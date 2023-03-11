@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "nhssynth"
+version = "0.1.0"
+description = "Synthetic data generation pipeline leveraging a Differentially Private Variational Auto Encoder assessed using a variety of metrics"
+authors = ["HarrisonWilde <harrisondwilde@outlook.com>"]
+license = "MIT"
+readme = ["README.md", "src/nhssynth/README.md"]
+repository = "https://github.com/nhsx/NHSSynth"
+keywords = ["synthetic data", "privacy", "fairness", "machine learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/nhsx/NHSSynth/issues"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+torch = "^1.13.1"
+tqdm = "^4.65.0"
+scikit-learn = "^1.2.1"
+rdt = "^1.3.0"
+opacus = "^1.3.0"
+sdv = "^0.18.0"
+pandas = "^1.5.3"
+gower = "^0.1.2"
+matplotlib = "^3.7.1"
+llvmlite = "^0.39.1"
+numba = "^0.56.4"
+pycox = "^0.2.3"
+
+[tool.poetry.scripts]
+cli = 'nhssynth.cli:run'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
