@@ -57,6 +57,10 @@ For more standard usage of the package:
 
 This package comprises a pipeline that is runnable via `poetry run cli pipeline <args>` or `poetry run cli config <config filepath>`. You can run the modules that make up this pipeline independently via `poetry run cli <module name>`. To see the modules that are available and their corresponding arguments and function, run `poetry run cli --help` / `poetry run cli <module name> --help`.
 
+The figure below shows the structure and workflow of the package and its modules.
+
+![](docs/modules.png)
+
 ### Roadmap
 
 See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of proposed features (and known issues).
