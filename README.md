@@ -18,7 +18,7 @@ The project currently consists of a Python package alongside research and invest
 
 [Project Description - Synthetic Data Exploration: Variational Autoencoders](https://nhsx.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/)
 
-The codebase builds on previous NHSX Analytics Unit PhD internships contextualising and investigating the potential use of Variational Auto Encoders (VAEs) for synthetic data generation. These were undertaken by Dominic Danks ([last commit to the repository: 88a4bdf](https://github.com/nhsx/NHSSynth/commit/88a4bdf613f538af45834f22d38e52312cfe24c5)) and David Brind ([last commit to the repository: ]()).
+The codebase builds on previous NHSX Analytics Unit PhD internships contextualising and investigating the potential use of Variational Auto Encoders (VAEs) for synthetic data generation. These were undertaken by Dominic Danks and David Brind.
 
 _**Note:** No data, public or private are shared in this repository._
 
