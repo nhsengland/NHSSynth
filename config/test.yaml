@@ -1,0 +1,4 @@
+run_type: pipeline
+dir: data/.nosync
+input_file: ADMISSIONS
+output_file: _prepared
