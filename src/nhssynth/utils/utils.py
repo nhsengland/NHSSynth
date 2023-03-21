@@ -1,11 +1,8 @@
-import numpy as np
-import torch
-from rdt.transformers import numerical, categorical, datetime
-import pandas as pd
-
-# Graph Visualisation
 import matplotlib.pyplot as plt
-
+import numpy as np
+import pandas as pd
+import torch
+from rdt.transformers import categorical, datetime, numerical
 from sklearn.preprocessing import StandardScaler
 
 
@@ -26,9 +23,7 @@ def support_pre_proc(data_supp, pre_proc_method="GMM"):
     # We one-hot the categorical cols and standardise the continuous cols
     data_supp["x14"] = data_supp["x0"]
     # data_supp = data_supp.astype('float32')
-    data_supp = data_supp[
-        ["duration"] + [f"x{i}" for i in range(1, 15)] + ["event"]
-    ]
+    data_supp = data_supp[["duration"] + [f"x{i}" for i in range(1, 15)] + ["event"]]
     data_supp[["x1", "x2", "x3", "x4", "x5", "x6", "event"]] = data_supp[
         ["x1", "x2", "x3", "x4", "x5", "x6", "event"]
     ].astype(int)
@@ -42,9 +37,7 @@ def support_pre_proc(data_supp, pre_proc_method="GMM"):
 
     continuous_columns = ["duration"] + [f"x{i}" for i in range(7, 15)]
     categorical_columns = ["event"] + [f"x{i}" for i in range(1, 7)]
-    num_categories = (
-        np.array([np.amax(data_supp[col]) for col in categorical_columns]) + 1
-    ).astype(int)
+    num_categories = (np.array([np.amax(data_supp[col]) for col in categorical_columns]) + 1).astype(int)
     num_continuous = len(continuous_columns)
 
     transformed_dataset = data_supp.copy(deep=True)
@@ -57,13 +50,9 @@ def support_pre_proc(data_supp, pre_proc_method="GMM"):
             # Fit GMM
             temp_continuous = numerical.ClusterBasedNormalizer()
             temp_continuous.fit(transformed_dataset, column=column)
-            continuous_transformers[
-                "continuous_{}".format(column)
-            ] = temp_continuous
+            continuous_transformers["continuous_{}".format(column)] = temp_continuous
 
-            transformed_dataset = temp_continuous.transform(
-                transformed_dataset
-            )
+            transformed_dataset = temp_continuous.transform(transformed_dataset)
 
             # Each numerical one gets a .normalized column + a .component column giving the mixture info
             # This too needs to be one hot encoded
@@ -72,21 +61,13 @@ def support_pre_proc(data_supp, pre_proc_method="GMM"):
 
             # Let's retrieve the new categorical and continuous column names
 
-            continuous_columns = ["duration.normalized"] + [
-                f"x{i}.normalized" for i in range(7, 15)
-            ]
+            continuous_columns = ["duration.normalized"] + [f"x{i}.normalized" for i in range(7, 15)]
 
             # For each categorical column we want to know the number of categories
 
-            num_categories = (
-                np.array(
-                    [
-                        np.amax(transformed_dataset[col])
-                        for col in categorical_columns
-                    ]
-                )
-                + 1
-            ).astype(int)
+            num_categories = (np.array([np.amax(transformed_dataset[col]) for col in categorical_columns]) + 1).astype(
+                int
+            )
 
             num_continuous = len(continuous_columns)
 
@@ -96,21 +77,15 @@ def support_pre_proc(data_supp, pre_proc_method="GMM"):
             temp_continuous = StandardScaler()
             temp_column = transformed_dataset[column].values.reshape(-1, 1)
             temp_continuous.fit(temp_column)
-            continuous_transformers[
-                "continuous_{}".format(column)
-            ] = temp_continuous
+            continuous_transformers["continuous_{}".format(column)] = temp_continuous
 
-            transformed_dataset[column] = (
-                temp_continuous.transform(temp_column)
-            ).flatten()
+            transformed_dataset[column] = (temp_continuous.transform(temp_column)).flatten()
 
     for index, column in enumerate(categorical_columns):
 
         temp_categorical = categorical.OneHotEncoder()
         temp_categorical.fit(transformed_dataset, column=column)
-        categorical_transformers[
-            "categorical_{}".format(index)
-        ] = temp_categorical
+        categorical_transformers["categorical_{}".format(index)] = temp_categorical
 
         transformed_dataset = temp_categorical.transform(transformed_dataset)
 
@@ -227,22 +202,16 @@ def mimic_pre_proc(data_supp, pre_proc_method="GMM"):
             # Fit GMM
             temp_continuous = numerical.BayesGMMTransformer()
             temp_continuous.fit(transformed_dataset, column=column)
-            continuous_transformers[
-                "continuous_{}".format(column)
-            ] = temp_continuous
+            continuous_transformers["continuous_{}".format(column)] = temp_continuous
 
             categorical_columns += [str(column) + ".component"]
 
-            transformed_dataset = temp_continuous.transform(
-                transformed_dataset
-            )
+            transformed_dataset = temp_continuous.transform(transformed_dataset)
 
         # Each numerical one gets a .normalized column + a .component column giving the mixture info
         # This too needs to be one hot encoded
 
-        continuous_columns = [
-            str(col) + ".normalized" for col in continuous_columns
-        ]
+        continuous_columns = [str(col) + ".normalized" for col in continuous_columns]
 
     elif pre_proc_method == "standard":
 
@@ -252,13 +221,9 @@ def mimic_pre_proc(data_supp, pre_proc_method="GMM"):
             temp_continuous = StandardScaler()
             temp_column = transformed_dataset[column].values.reshape(-1, 1)
             temp_continuous.fit(temp_column)
-            continuous_transformers[
-                "continuous_{}".format(column)
-            ] = temp_continuous
+            continuous_transformers["continuous_{}".format(column)] = temp_continuous
 
-            transformed_dataset[column] = (
-                temp_continuous.transform(temp_column)
-            ).flatten()
+            transformed_dataset[column] = (temp_continuous.transform(temp_column)).flatten()
 
     num_categories = []
 
@@ -277,9 +242,7 @@ def mimic_pre_proc(data_supp, pre_proc_method="GMM"):
         else:
 
             # Convert column into one type
-            values = np.unique(
-                transformed_dataset[col].astype(str), return_counts=False
-            )
+            values = np.unique(transformed_dataset[col].astype(str), return_counts=False)
 
             num_categories.append(values.shape[0])
 
@@ -289,9 +252,7 @@ def mimic_pre_proc(data_supp, pre_proc_method="GMM"):
 
         temp_categorical = categorical.OneHotEncoder()
         temp_categorical.fit(transformed_dataset, column=column)
-        categorical_transformers[
-            "categorical_{}".format(index)
-        ] = temp_categorical
+        categorical_transformers["categorical_{}".format(index)] = temp_categorical
 
         transformed_dataset = temp_categorical.transform(transformed_dataset)
 
@@ -344,9 +305,7 @@ def reverse_transformers(
             transformer = cat_transformers[transformer_name]
             column_name = transformer_name[12:]
 
-            synthetic_transformed_set = transformer.reverse_transform(
-                synthetic_transformed_set
-            )
+            synthetic_transformed_set = transformer.reverse_transform(synthetic_transformed_set)
 
     if cont_transformers != None:
 
@@ -357,9 +316,7 @@ def reverse_transformers(
                 transformer = cont_transformers[transformer_name]
                 column_name = transformer_name[11:]
 
-                synthetic_transformed_set = transformer.reverse_transform(
-                    synthetic_transformed_set
-                )
+                synthetic_transformed_set = transformer.reverse_transform(synthetic_transformed_set)
 
         elif pre_proc_method == "standard":
 
@@ -369,12 +326,8 @@ def reverse_transformers(
                 column_name = transformer_name[11:]
 
                 # Reverse the standard scaling
-                synthetic_transformed_set[
-                    column_name
-                ] = transformer.inverse_transform(
-                    synthetic_transformed_set[column_name].values.reshape(
-                        -1, 1
-                    )
+                synthetic_transformed_set[column_name] = transformer.inverse_transform(
+                    synthetic_transformed_set[column_name].values.reshape(-1, 1)
                 ).flatten()
 
     if date_transformers != None:
@@ -383,13 +336,9 @@ def reverse_transformers(
             transformer = date_transformers[transformer_name]
             column_name = transformer_name[9:]
 
-            synthetic_transformed_set = transformer.reverse_transform(
-                synthetic_transformed_set
-            )
+            synthetic_transformed_set = transformer.reverse_transform(synthetic_transformed_set)
 
-    synthetic_transformed_set = pd.DataFrame(
-        synthetic_transformed_set, columns=data_supp_columns
-    )
+    synthetic_transformed_set = pd.DataFrame(synthetic_transformed_set, columns=data_supp_columns)
 
     return synthetic_transformed_set
 
@@ -414,14 +363,10 @@ def constraint_filtering(
 
     if torch.cuda.is_available():
         # Create pandas dataframe in column order
-        synthetic_dataframe = pd.DataFrame(
-            synthetic_trial.cpu().detach().numpy(), columns=reordered_cols
-        )
+        synthetic_dataframe = pd.DataFrame(synthetic_trial.cpu().detach().numpy(), columns=reordered_cols)
     else:
         # Create pandas dataframe in column order
-        synthetic_dataframe = pd.DataFrame(
-            synthetic_trial.detach().numpy(), columns=reordered_cols
-        )
+        synthetic_dataframe = pd.DataFrame(synthetic_trial.detach().numpy(), columns=reordered_cols)
 
     # Reverse all the transformations ready for filtering
     synthetic_dataframe = reverse_transformers(
@@ -467,9 +412,7 @@ def constraint_filtering(
 
             new_set = vae.generate(rows_needed)
 
-            new_set = pd.DataFrame(
-                new_set.cpu().detach().numpy(), columns=reordered_cols
-            )
+            new_set = pd.DataFrame(new_set.cpu().detach().numpy(), columns=reordered_cols)
 
             new_set = reverse_transformers(
                 new_set,
@@ -482,9 +425,7 @@ def constraint_filtering(
             new_filtered_set = constraint_check(new_set)
 
             # Add this onto the original and re-run
-            synthetic_dataframe = pd.concat(
-                [synthetic_dataframe, new_filtered_set]
-            )
+            synthetic_dataframe = pd.concat([synthetic_dataframe, new_filtered_set])
 
     return synthetic_dataframe
 
@@ -517,11 +458,7 @@ def plot_elbo(
 
     if saving_filepath != None:
         # Save static image
-        plt.savefig(
-            "{}ELBO_Breakdown_SynthVAE_{}.png".format(
-                saving_filepath, pre_proc_method
-            )
-        )
+        plt.savefig("{}ELBO_Breakdown_SynthVAE_{}.png".format(saving_filepath, pre_proc_method))
 
     plt.show()
 
@@ -561,11 +498,7 @@ def plot_likelihood_breakdown(
 
     if saving_filepath != None:
         # Save static image
-        plt.savefig(
-            "{}Reconstruction_Breakdown_SynthVAE_{}.png".format(
-                saving_filepath, pre_proc_method
-            )
-        )
+        plt.savefig("{}Reconstruction_Breakdown_SynthVAE_{}.png".format(saving_filepath, pre_proc_method))
 
     return None
 
@@ -609,11 +542,7 @@ def plot_variable_distributions(
 
         if saving_filepath != None:
             # Save static image
-            plt.savefig(
-                "{}Variable_{}_SynthVAE_{}.png".format(
-                    saving_filepath, column, pre_proc_method
-                )
-            )
+            plt.savefig("{}Variable_{}_SynthVAE_{}.png".format(saving_filepath, column, pre_proc_method))
 
         plt.show()
 
@@ -645,11 +574,7 @@ def plot_variable_distributions(
 
         if saving_filepath != None:
             # Save static image
-            plt.savefig(
-                "{}Variable_{}_SynthVAE_{}.png".format(
-                    saving_filepath, column, pre_proc_method
-                )
-            )
+            plt.savefig("{}Variable_{}_SynthVAE_{}.png".format(saving_filepath, column, pre_proc_method))
 
         plt.show()
 
