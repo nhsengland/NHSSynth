@@ -11,11 +11,7 @@ The implementation of the Variational AutoEncoder (VAE) with Differential Privac
 
 ### Intended Use
 
-This model is intended for use in experimenting with the interplay of differential privacy and VAEs.
-
-### Out-of-Scope Use Cases
-
-This model is not suitable to provide privacy guarantees in a production environment.
+This model is intended for use in experimenting with differential privacy and VAEs.
 
 ## Training Data
 
