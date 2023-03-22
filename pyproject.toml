@@ -25,9 +25,6 @@ sdv = "^0.18.0"
 pandas = "^1.5.3"
 gower = "^0.1.2"
 matplotlib = "^3.7.1"
-llvmlite = "^0.39.1"
-numba = "^0.56.4"
-pycox = "^0.2.3"
 
 [tool.poetry.scripts]
 cli = 'nhssynth.cli:run'
