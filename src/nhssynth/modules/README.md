@@ -1,88 +1,89 @@
-# NHS Synth
+# Modules
 
-<div align="center">
+This folder contains all of the modules contained in this package. They can be used together or independently - through importing them into your existing codebase or using the CLI to select which / all modules to run.
 
-[![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-[![PyPI - Wheel](https://img.shields.io/pypi/wheel/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-[![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth?style=flat-square)]()
-[![PyPI - License](https://img.shields.io/pypi/l/nhssynth?style=flat-square)](https://github.com/nhsx/nhssynth/blob/main/LICENSE)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=flat-square)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat-square)](https://pycqa.github.io/isort/)
+## Importing a module from this package
 
-</div>
+After installing the package, you can simply do:
+```python
+from nhssynth.modules import <module>
+```
+and you will be able to use it in your code!
 
-## About the Project
+## Creating a new module and folding it into the CLI
 
-The project currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases.
+The following instructions specify how to extend this package with a new module:
 
-[Project Description - Synthetic Data Exploration: Variational Autoencoders](https://nhsx.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/)
+1. Create a folder for your module within the package, i.e. `src/nhssynth/modules/mymodule`
+2. Include within it a main executor that accepts arguments from the CLI, e.g.
 
-The codebase builds on previous NHSX Analytics Unit PhD internships contextualising and investigating the potential use of Variational Auto Encoders (VAEs) for synthetic data generation. These were undertaken by Dominic Danks and David Brind.
+    ```python
+    def myexecutor(args):
+        ...
+    ```
 
-_**Note:** No data, public or private are shared in this repository._
+    In `mymodule/executor.py` and export this by adding `from .executor import myexecutor` in `mymodule/__init__.py`.
 
-## Getting Started
+3. In the `cli` folder, add the following code blocks to `arguments.py` and populate them in a similar fashion to the other modules as you build:
 
-### Project Stucture
+    ```python
+    def add_mymodule_args(parser: argparse.ArgumentParser):
+        ...
+    ```
 
-- The main package and codebase is found in [`src/nhssynth`]() (see Usage below for more information)
-- Accompanying materials are available in the `docs` folder:
-  - A [report](docs/reports/report.pdf) summarising the previous iteration of this project
-  - A [model card](docs/model_card.md) providing more information about the VAE with Differential Privacy
-- Numerous [exemplar configurations](config) are found in `config`
-- Empty `data` and `experiments` folders are provided; these are the default locations for inputs and outputs when running the project using the provided [`cli`](src/nhssynth/cli/) module
-- Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](auxiliary/)
+    The following code blocks are optional, ddd them if this module should be executed as part of a full pipeline run:
 
-### Installation
+    ```python
+    def add_all_module_args(parser: argparse.ArgumentParser):
+        ...
+        mymodule_group = parser.add_argument_group(title="mymodule")
+        add_mymodule_args(mymodule_group)
+        ...
+    ```
+    
+    ```python
+    def add_config_args(parser: argparse.ArgumentParser, override=False):
+        ...
+        add_mymodule_args(overrides_group)
+        ...
+    ```
 
-As it stands, we recommend the following steps to reproduce our experiments and fully work with this project:
+4. Mext, in `module_setup.py` add the following code:
 
-1. Clone the repo
-2. Ensure one of the required versions of Python is installed
-3. Install [`poetry`](https://python-poetry.org/docs/#installation)
-4. Instantiate a virtual environment, e.g. via `python -m venv nhssynth`
-3. Activate the virtual environment, e.g. via `source nhssynth/bin/activate`
-4. Install project dependencies with `poetry install` (optionally install `jupyter` and `notebook` to work with some of the preprocessing files in [`auxiliary`](auxiliary/))
-5. Interact with the package in one of two ways:
-    - Via the [`cli`](src/nhssynth/cli/) module using `poetry run cli`
-    - Through building the package with `poetry build` and using it in an existing project (`import nhssynth`). However, if you intend on doing the latter it may be preferable to instead follow the second, simpler setup below.
+    ```python
+    from nhssynth.modules import ..., mymodule, ...
+    ```
 
-For more standard usage of the package:
+    ```python
+    MODULE_MAP = {
+        ...
+        "mymodule": ModuleConfig(
+            mymodule.myexecutor,
+            add_mymodule_args,
+            "<description>",
+            "<short help>",
+        ),
+        ...
+    }
+    ```
 
-1. Run `pip install nhssynth` within a supported Python installation
-2. Use the modules exported by the package as you would any other. _Note that in this setup you will have to work more closely with the configuration and code to ensure you are handling inputs and outputs for each module appropriately. The cli handles a lot of this complexity, and interacting with the modules directly is considered advanced usage._
+    And again, edit the following block if you want your module to be included in a full pipeline run:
 
-### Usage
+    ```python
+    def run_pipeline(args):
+        ...
+        mymodule.myexecutor(args)
+        ...
+    ```
 
-This package comprises a pipeline that is runnable via `poetry run cli pipeline <args>` or `poetry run cli config <config filepath>`. You can run the modules that make up this pipeline independently via `poetry run cli <module name>`. To see the modules that are available and their corresponding arguments and function, run `poetry run cli --help` / `poetry run cli <module name> --help`.
+5. Finally, add the following line of code to `run.py`:
 
-The figure below shows the structure and workflow of the package and its modules.
+    ```python
+    def run()
+        ...
+        add_module_subparser(subparsers, "mymodule")
+        ...
+    ```
 
-![](docs/modules.png)
+6. Congrats, your module is implemented!
 
-### Roadmap
-
-See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of proposed features (and known issues).
-
-### Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the project
-2. Create your branch (`git checkout -b <yourusername>/<featurename>`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin <yourusername>/<featurename>`)
-5. Open a PR and we will try to get it merged!
-
-_See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidance._
-
-### License
-
-Distributed under the MIT License. _See [LICENSE](./LICENSE) for more information._
-
-### Contact
-
-To find out more about the [Analytics Unit](https://www.nhsx.nhs.uk/key-tools-and-info/nhsx-analytics-unit/) visit our [project website](https://nhsx.github.io/AnalyticsUnit/projects.html) or get in touch at [analytics-unit@nhsx.nhs.uk](mailto:analytics-unit@nhsx.nhs.uk).
-
-<!-- ### Acknowledgements -->

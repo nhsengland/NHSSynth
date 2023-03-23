@@ -25,6 +25,9 @@ def config():
     raise "This function should never be called"
 
 
+# TODO I wonder if it is possible to add a flag to ModuleConfig
+# saying whether the module should be included in a full run,
+# and construct the functions in module_arguments accordingly
 MODULE_MAP = {
     "pipeline": ModuleConfig(
         run_pipeline,
