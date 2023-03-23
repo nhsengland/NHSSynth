@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nhssynth"
-version = "0.1.0"
+version = "0.1.1"
 description = "Synthetic data generation pipeline leveraging a Differentially Private Variational Auto Encoder assessed using a variety of metrics"
 authors = ["HarrisonWilde <harrisondwilde@outlook.com>"]
 license = "MIT"
