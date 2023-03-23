@@ -4,7 +4,7 @@ version = "0.1.1"
 description = "Synthetic data generation pipeline leveraging a Differentially Private Variational Auto Encoder assessed using a variety of metrics"
 authors = ["HarrisonWilde <harrisondwilde@outlook.com>"]
 license = "MIT"
-readme = ["README.md", "src/nhssynth/README.md"]
+readme = ["README.md", "src/nhssynth/modules/README.md"]
 repository = "https://github.com/nhsx/NHSSynth"
 keywords = ["synthetic data", "privacy", "fairness", "machine learning"]
 classifiers = [
@@ -27,7 +27,7 @@ gower = "^0.1.2"
 matplotlib = "^3.7.1"
 
 [tool.poetry.scripts]
-cli = 'nhssynth.cli:run'
+nhssynth = 'nhssynth.cli:run'
 
 [build-system]
 requires = ["poetry-core"]
