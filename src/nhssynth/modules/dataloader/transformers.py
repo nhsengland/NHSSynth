@@ -19,7 +19,7 @@ def get_transformer(d: dict):
         return None
 
 
-def instantiate_synthesizer(sdtypes, transformers, data, allow_null_transformers):
+def instantiate_synthesizer(sdtypes, transformers, data, allow_null_transformers: bool):
     if all(sdtypes.values()):
         metadata = SingleTableMetadata.load_from_dict({"columns": sdtypes})
     else:
@@ -47,7 +47,7 @@ def instantiate_synthesizer(sdtypes, transformers, data, allow_null_transformers
     return metadata, synthesizer
 
 
-def instantiate_hypertransformer(sdtypes, transformers, data, allow_null_transformers):
+def instantiate_hypertransformer(sdtypes, transformers, data, allow_null_transformers: bool) -> HyperTransformer:
     ht = HyperTransformer()
     if all(sdtypes.values()) and (all(transformers.values()) or allow_null_transformers):
         ht.set_config(
@@ -71,7 +71,7 @@ def instantiate_hypertransformer(sdtypes, transformers, data, allow_null_transfo
 
 # TODO maybe there is a cleaner way of doing this functionality without having the empty dict space for unspecified cols in the data?
 def instantiate_metatransformer(
-    metadata: dict, data: pd.DataFrame, sdv_workflow, allow_null_transformers
+    metadata: dict, data: pd.DataFrame, sdv_workflow: bool, allow_null_transformers: bool
 ) -> tuple[dict[str, dict], SingleTableMetadata]:
 
     sdtypes = {cn: filter_inner_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()}
@@ -83,6 +83,8 @@ def instantiate_metatransformer(
     return metatransformer
 
 
-def apply_transformer(metatransformer, typed_input, sdv_workflow):
+def apply_transformer(metatransformer, typed_input, sdv_workflow: bool):
     if sdv_workflow:
+        pass
+    else:
         pass

@@ -69,6 +69,18 @@ def add_dataloader_args(parser: argparse.ArgumentParser, override=False):
         help="utilise the SDV synthesizer workflow for transformation and metadata, rather than a `HyperTransformer` from RDT",
     )
     parser.add_argument(
+        "-ant",
+        "--allow-null-transformers",
+        action="store_true",
+        help="allow null / None transformers, i.e. leave some columns as they are",
+    )
+    parser.add_argument(
+        "-cy",
+        "--collapse-yaml",
+        action="store_true",
+        help="use aliases and anchors in the output metadata yaml, this will make it much more compact",
+    )
+    parser.add_argument(
         "-is",
         "--imputation-strategy",
         default="mean",
