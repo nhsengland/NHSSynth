@@ -9,7 +9,8 @@ from sdv.single_table import TVAESynthesizer
 
 
 def get_transformer(d: dict):
-    transformer_data = d.get("transformer")
+    # Need to copy in case dicts are shared across columns, this can happen when reading a yaml with anchors
+    transformer_data = d.get("transformer").copy()
     if isinstance(transformer_data, dict):
         transformer_name = transformer_data.pop("name", None)
         return eval(transformer_name)(**transformer_data) if transformer_name else None
@@ -85,6 +86,7 @@ def instantiate_metatransformer(
 
 def apply_transformer(metatransformer, typed_input, sdv_workflow: bool):
     if sdv_workflow:
-        pass
+        transformed_input = metatransformer.preprocess(typed_input)
     else:
-        pass
+        transformed_input = metatransformer.fit_transform(typed_input)
+    return transformed_input

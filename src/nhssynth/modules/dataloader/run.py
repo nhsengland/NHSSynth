@@ -7,7 +7,8 @@ from nhssynth.modules.dataloader.transformers import *
 
 def run(args) -> None:
 
-    np.random.seed(args.seed)
+    if args.seed:
+        np.random.seed(args.seed)
 
     input_path, output_path, metadata_input_path, metadata_output_path, experiment_path = format_io(
         args.input_file, args.output_file, args.metadata_file, args.dir, run_name=args.run_name
@@ -27,4 +28,5 @@ def run(args) -> None:
 
     output_metadata(metadata_output_path, dtypes, metatransformer, args.sdv_workflow, args.collapse_yaml)
 
-    transformed_input = apply_transformer(metatransformer, typed_input)
+    transformed_input = apply_transformer(metatransformer, typed_input, args.sdv_workflow)
+    transformed_input.to_csv(output_path, index=False)
