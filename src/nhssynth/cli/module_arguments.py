@@ -1,33 +1,22 @@
 import argparse
 
-
-def add_all_module_args(parser: argparse.ArgumentParser):
-    dataloader_group = parser.add_argument_group(title="dataloader")
-    add_dataloader_args(dataloader_group)
-    structure_group = parser.add_argument_group(title="structure")
-    add_structure_args(structure_group)
-    model_group = parser.add_argument_group(title="model")
-    add_model_args(model_group)
-    evaluation_group = parser.add_argument_group(title="evaluation")
-    add_evaluation_args(evaluation_group)
-    plotting_group = parser.add_argument_group(title="plotting")
-    add_plotting_args(plotting_group)
+from nhssynth.utils.constants import TIME
 
 
-def add_config_args(parser: argparse.ArgumentParser):
+def add_top_level_args(parser: argparse.ArgumentParser):
     parser.add_argument(
-        "--input-config",
-        "-c",
-        required=True,
-        help="Specify the config file.",
+        "-rn",
+        "--run-name",
+        default=TIME,
+        help=f"name the run to affect logging, config and outputs, defaults to current time, i.e. `{TIME}`",
     )
-    overrides_group = parser.add_argument_group(title="overrides")
-    # TODO is there a way to do this using `add_all_module_args`, i.e. can we nest groups? Doesn't seem to work
-    add_dataloader_args(overrides_group, override=True)
-    add_structure_args(overrides_group, override=True)
-    add_model_args(overrides_group, override=True)
-    add_evaluation_args(overrides_group, override=True)
-    add_plotting_args(overrides_group, override=True)
+    parser.add_argument("-sc", "--save-config", action="store_true", help="save the config provided via the cli")
+    parser.add_argument(
+        "-scp",
+        "--save-config-path",
+        help="where to save the config when `-sc` is provided, defaults to `experiments/<RUN_NAME>/config_<RUN_NAME>.yaml`",
+    )
+    parser.add_argument("-s", "--seed", help="specify a seed for reproducibility")
 
 
 def add_dataloader_args(parser: argparse.ArgumentParser, override=False):

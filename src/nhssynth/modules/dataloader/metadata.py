@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from nhssynth.modules.dataloader.utils import *
+from nhssynth.utils import get_key_by_value
 
 
 def create_empty_metadata(data: pd.DataFrame) -> dict[str, dict]:
@@ -80,13 +81,6 @@ def assemble_metadata(dtypes, metatransformer, sdv_workflow):
             for cn, cd in config["sdtypes"].items()
         }
     return metadata
-
-
-def get_key_by_value(dict, value):
-    for key, val in dict.items():
-        if val == value:
-            return key
-    return None
 
 
 def output_metadata(out_path: pathlib.Path, dtypes, metatransformer, sdv_workflow=True, collapse_yaml=True):

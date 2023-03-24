@@ -1,7 +1,8 @@
 import argparse
 
-from nhssynth.cli.argparse import *
 from nhssynth.cli.config import *
+from nhssynth.cli.module_arguments import add_top_level_args
+from nhssynth.cli.module_setup import MODULE_MAP, add_subparser
 
 
 def run():
@@ -11,28 +12,25 @@ def run():
     )
     add_top_level_args(parser)
 
-    # Below we instantiate one subparser for each module
-    # + one for running with a config file and one for doing a full run with CLI-specified config
+    # Below we instantiate one subparser for each module + one for running with a config file and one for
+    # doing a full pipeline run with CLI-specified config
     subparsers = parser.add_subparsers()
 
-    add_module_subparser(subparsers, "pipeline")
-    config_parser = add_module_subparser(subparsers, "config")
-    add_module_subparser(subparsers, "prepare")
-    add_module_subparser(subparsers, "structure")
-    add_module_subparser(subparsers, "train")
-    add_module_subparser(subparsers, "evaluate")
-    add_module_subparser(subparsers, "plot")
+    # TODO can probably do this better as we dont actually need the `pipeline` or `config` subparsers in this dict
+    all_subparsers = {
+        name: add_subparser(subparsers, name, option_config) for name, option_config in MODULE_MAP.items()
+    }
 
     args = parser.parse_args()
 
     # Use get to return None when no function has been set, i.e. user made no running choice
     executor = vars(args).get("func")
 
-    # If `config` is the specified running choice, we mutate `args` using `parser` and `config_parser` in `read_config`
+    # If `config` is the specified running choice, we mutate `args` in `read_config`
     # else we execute according to the user's choice
     # else we return `--help` if no choice has been passed, i.e. executor is None
-    if executor == config:
-        args = read_config(args, parser, config_parser)
+    if not executor:
+        args = read_config(args, parser, all_subparsers)
     elif executor:
         executor(args)
     else:
@@ -41,8 +39,8 @@ def run():
     # Whenever either are specified, we want to dump the configuration to allow for this run to be replicated
     if args.save_config or args.save_config_path:
         if not args.save_config_path:
-            args.save_config_path = f"config/dump_{args.run_name}.yaml"
-        write_config(args)
+            args.save_config_path = f"experiments/{args.run_name}/config_{args.run_name}.yaml"
+        write_config(args, all_subparsers)
 
     print("Complete!")
 

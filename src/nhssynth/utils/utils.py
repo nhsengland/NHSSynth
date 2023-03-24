@@ -6,6 +6,13 @@ from rdt.transformers import categorical, datetime, numerical
 from sklearn.preprocessing import StandardScaler
 
 
+def get_key_by_value(dict, value):
+    for key, val in dict.items():
+        if val == value:
+            return key
+    return None
+
+
 def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
