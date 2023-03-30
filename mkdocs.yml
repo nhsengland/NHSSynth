@@ -57,9 +57,9 @@ plugins:
       nav_file: SUMMARY.md
   - section-index
   - mkdocstrings
-  # - git-revision-date-localized:
-  #     enable_creation_date: true
-  #     fallback_to_build_date: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      fallback_to_build_date: true
   # THIS DOESNT SEEM TO WORK
 
 extra:
