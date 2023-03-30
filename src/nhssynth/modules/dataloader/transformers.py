@@ -1,7 +1,7 @@
 import warnings
 
 import pandas as pd
-from nhssynth.modules.dataloader.utils import *
+from nhssynth.utils import filter_dict
 from rdt import HyperTransformer
 from rdt.transformers import *
 from sdv.metadata import SingleTableMetadata
@@ -10,7 +10,9 @@ from sdv.single_table import TVAESynthesizer
 
 def get_transformer(d: dict):
     # Need to copy in case dicts are shared across columns, this can happen when reading a yaml with anchors
-    transformer_data = d.get("transformer").copy()
+    transformer_data = d.get("transformer", None)
+    if transformer_data:
+        transformer_data = transformer_data.copy()
     if isinstance(transformer_data, dict):
         transformer_name = transformer_data.pop("name", None)
         return eval(transformer_name)(**transformer_data) if transformer_name else None
@@ -45,7 +47,7 @@ def instantiate_synthesizer(sdtypes, transformers, data, allow_null_transformers
     synthesizer.update_transformers(
         transformers if allow_null_transformers else {k: v for k, v in transformers.items() if v}
     )
-    return metadata, synthesizer
+    return synthesizer
 
 
 def instantiate_hypertransformer(sdtypes, transformers, data, allow_null_transformers: bool) -> HyperTransformer:
@@ -70,12 +72,11 @@ def instantiate_hypertransformer(sdtypes, transformers, data, allow_null_transfo
     return ht
 
 
-# TODO maybe there is a cleaner way of doing this functionality without having the empty dict space for unspecified cols in the data?
 def instantiate_metatransformer(
     metadata: dict, data: pd.DataFrame, sdv_workflow: bool, allow_null_transformers: bool
 ) -> tuple[dict[str, dict], SingleTableMetadata]:
 
-    sdtypes = {cn: filter_inner_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()}
+    sdtypes = {cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()}
     transformers = {cn: get_transformer(cd) for cn, cd in metadata.items()}
     if sdv_workflow:
         metatransformer = instantiate_synthesizer(sdtypes, transformers, data, allow_null_transformers)

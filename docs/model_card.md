@@ -32,6 +32,6 @@ including as the level of DP is varied. It would also be of interest to apply DP
 whether the performance drop as a function of implemented privacy is similar or different
 across the models.
 
-Currently the SynthVAE model only works for data which is 'clean'. I.e data that has no missingness or NaNs within its input. It can handle continuous, categorical and datetime variables. Special types such as nominal data cannot be handled properly however the model may still run. Column names have to be specified in the code for the variable group they belong to. A simple example CSV file is provided under [example_input.csv](./example_input.csv).
+Currently the SynthVAE model only works for data which is 'clean'. I.e data that has no missingness or NaNs within its input. It can handle continuous, categorical and datetime variables. Special types such as nominal data cannot be handled properly however the model may still run. Column names have to be specified in the code for the variable group they belong to.
 
 Hyperparameter tuning of the model can result in errors if certain parameter values are selected. Most commonly, changing learning rate in our example results in errors during training. An extensive test to evaluate plausible ranges has not been performed as of yet. If you get errors during tuning then consider your hyperparameter values and adjust accordingly.

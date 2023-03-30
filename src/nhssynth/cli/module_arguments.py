@@ -1,9 +1,11 @@
 import argparse
+from time import strftime
 
-from nhssynth.utils.constants import TIME
+TIME = strftime("%Y_%m_%d___%H_%M_%S")
 
 
-def add_top_level_args(parser: argparse.ArgumentParser):
+def add_top_level_args(parser: argparse.ArgumentParser) -> None:
+    """Adds top-level arguments to an existing ArgumentParser instance."""
     parser.add_argument(
         "-rn",
         "--run-name",
@@ -19,7 +21,8 @@ def add_top_level_args(parser: argparse.ArgumentParser):
     parser.add_argument("-s", "--seed", help="specify a seed for reproducibility")
 
 
-def add_dataloader_args(parser: argparse.ArgumentParser, override=False):
+def add_dataloader_args(parser: argparse.ArgumentParser, override=False) -> None:
+    """Adds arguments to an existing dataloader module sub-parser instance."""
     parser.add_argument(
         "-i",
         "--input-file",
@@ -78,17 +81,20 @@ def add_dataloader_args(parser: argparse.ArgumentParser, override=False):
     )
 
 
-def add_structure_args(parser: argparse.ArgumentParser, override=False):
+def add_structure_args(parser: argparse.ArgumentParser, override=False) -> None:
     pass
 
 
-def add_model_args(parser: argparse.ArgumentParser, override=False):
+def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
+    """Adds arguments to an existing model module sub-parser instance."""
     pass
 
 
-def add_evaluation_args(parser: argparse.ArgumentParser, override=False):
+def add_evaluation_args(parser: argparse.ArgumentParser, override=False) -> None:
+    """Adds arguments to an existing evaluation module sub-parser instance."""
     pass
 
 
-def add_plotting_args(parser: argparse.ArgumentParser, override=False):
+def add_plotting_args(parser: argparse.ArgumentParser, override=False) -> None:
+    """Adds arguments to an existing plotting module sub-parser instance."""
     pass

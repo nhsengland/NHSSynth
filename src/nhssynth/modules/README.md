@@ -27,28 +27,11 @@ The following instructions specify how to extend this package with a new module:
 3. In the `cli` folder, add the following code blocks to `arguments.py` and populate them in a similar fashion to the other modules as you build:
 
     ```python
-    def add_mymodule_args(parser: argparse.ArgumentParser):
+    def add_mymodule_args(parser: argparse.ArgumentParser, override=False):
         ...
     ```
 
-    The following code blocks are optional, ddd them if this module should be executed as part of a full pipeline run:
-
-    ```python
-    def add_all_module_args(parser: argparse.ArgumentParser):
-        ...
-        mymodule_group = parser.add_argument_group(title="mymodule")
-        add_mymodule_args(mymodule_group)
-        ...
-    ```
-    
-    ```python
-    def add_config_args(parser: argparse.ArgumentParser, override=False):
-        ...
-        add_mymodule_args(overrides_group)
-        ...
-    ```
-
-4. Mext, in `module_setup.py` add the following code:
+4. Next, in `module_setup.py` add the following code:
 
     ```python
     from nhssynth.modules import ..., mymodule, ...
@@ -67,23 +50,11 @@ The following instructions specify how to extend this package with a new module:
     }
     ```
 
-    And again, edit the following block if you want your module to be included in a full pipeline run:
+    And (optionally) edit the following block if you want your module to be included in a full pipeline run:
 
     ```python
-    def run_pipeline(args):
-        ...
-        mymodule.myexecutor(args)
-        ...
+    PIPELINE = [..., mymodule, ...]  # NOTE this determines the order of a pipeline run
     ```
 
-5. Finally, add the following line of code to `run.py`:
-
-    ```python
-    def run()
-        ...
-        add_module_subparser(subparsers, "mymodule")
-        ...
-    ```
-
-6. Congrats, your module is implemented!
+5. Congrats, your module is implemented!
 

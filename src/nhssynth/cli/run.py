@@ -1,14 +1,15 @@
 import argparse
 
-from nhssynth.cli.config import *
+from nhssynth.cli.config import read_config, write_config
 from nhssynth.cli.module_arguments import add_top_level_args
 from nhssynth.cli.module_setup import MODULE_MAP, add_subparser
 
 
-def run():
+def run() -> None:
+    """CLI for preparing, training and evaluating a synthetic data generator."""
 
     parser = argparse.ArgumentParser(
-        prog="SynthVAE", description="CLI for preparing, training and evaluating a synthetic data generator."
+        prog="nhssynth", description="CLI for preparing, training and evaluating a synthetic data generator."
     )
     add_top_level_args(parser)
 

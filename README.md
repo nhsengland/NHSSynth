@@ -24,15 +24,15 @@ _**Note:** No data, public or private are shared in this repository._
 
 ## Getting Started
 
-### Project Stucture
+### Project Structure
 
-- The main package and codebase is found in [`src/nhssynth`]() (see Usage below for more information)
+- The main package and codebase is found in `src/nhssynth` (see Usage below for more information)
 - Accompanying materials are available in the `docs` folder:
-  - A [report](docs/reports/report.pdf) summarising the previous iteration of this project
-  - A [model card](docs/model_card.md) providing more information about the VAE with Differential Privacy
-- Numerous [exemplar configurations](config) are found in `config`
-- Empty `data` and `experiments` folders are provided; these are the default locations for inputs and outputs when running the project using the provided [`cli`](src/nhssynth/cli/) module
-- Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](auxiliary/)
+  - A [report](reports/report.pdf) summarising the previous iteration of this project
+  - A [model card](model_card.md) providing more information about the VAE with Differential Privacy
+- Numerous [exemplar configurations](../config) are found in `config`
+- Empty `data` and `experiments` folders are provided; these are the default locations for inputs and outputs when running the project using the provided [`cli`](../src/nhssynth/cli/) module
+- Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](../auxiliary/)
 
 ### Installation
 
