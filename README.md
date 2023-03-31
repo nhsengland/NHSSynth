@@ -29,8 +29,6 @@
   </p>
 </div>
 
-# NHS Synth
-
 ## About the Project
 
 The project currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases.
