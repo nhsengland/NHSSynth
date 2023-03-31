@@ -3,6 +3,7 @@ name = "nhssynth"
 version = "0.1.3"
 description = "Synthetic data generation pipeline leveraging a Differentially Private Variational Auto Encoder assessed using a variety of metrics"
 authors = ["HarrisonWilde <harrisondwilde@outlook.com>"]
+maintainers = ["NHSE TDAU <england.tdau@nhs.net>"]
 license = "MIT"
 readme = ["README.md", "src/nhssynth/modules/README.md"]
 repository = "https://github.com/nhsx/NHSSynth"
@@ -13,6 +14,7 @@ classifiers = [
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/nhsx/NHSSynth/issues"
+"Docs" = "https://nhsx.github.io/NHSSynth"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
@@ -25,6 +27,7 @@ sdv = "^1.0.0"
 pandas = "^1.5.3"
 gower = "^0.1.2"
 pyyaml = "^6.0"
+setuptools = "^67.6.1"
 
 [tool.poetry.scripts]
 nhssynth = 'nhssynth.cli:run'
