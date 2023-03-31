@@ -58,7 +58,7 @@ plugins:
   - section-index
   - mkdocstrings
   - git-revision-date-localized:
-    fallback_to_build_date: true
+      fallback_to_build_date: true
 
 extra:
   generator: false
