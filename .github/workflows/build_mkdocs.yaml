@@ -55,10 +55,10 @@ jobs:
       #----------------------------------------------
       - name: Install project
         run: poetry install --no-interaction --with docs
-      - name: Install MkDocs
-        run: pip install mkdocs
       #----------------------------------------------
       # deploy mkdocs
       #----------------------------------------------
       - name: Deploy MkDocs
-        run: mkdocs gh-deploy --force --clean --verbose
+        run: |
+          source .venv/bin/activate
+          mkdocs gh-deploy --force --clean --verbose
