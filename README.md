@@ -1,5 +1,4 @@
-# NHS Synth
-
+<!-- PROJECT SHIELDS -->
 <div align="center">
 
 [![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
@@ -10,7 +9,28 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=flat-square)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat-square)](https://pycqa.github.io/isort/)
 
+<a href="https://github.com/nhsx/nhssynth/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nhsx/nhssynth" />
+</a>
+
 </div>
+
+
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://nhsx.github.io/NHSSynth">
+    <img src="docs/assets/NHS.svg" alt="Logo" width="200" height="150">
+  </a>
+
+<h2 align="center"><b><i>NHS</i> Synth</b></h2>
+  <p align="center">
+    <a href="https://nhsx.github.io/NHSSynth"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+  </p>
+</div>
+
 
 ## About the Project
 
