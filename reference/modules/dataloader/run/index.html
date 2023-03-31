@@ -91,7 +91,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../../../.." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -269,7 +269,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../../../.." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     Generating Useful Synthetic Data
@@ -927,6 +927,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../utils/constants/" class="md-nav__link">
+        constants
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../utils/utils/" class="md-nav__link">
         utils
       </a>
@@ -1078,7 +1092,11 @@
 
     <span class="c1"># Setup the metatransformer</span>
     <span class="n">metatransformer</span> <span class="o">=</span> <span class="n">instantiate_metatransformer</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="p">,</span> <span class="n">typed_input</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">allow_null_transformers</span>
+        <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">typed_input</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">,</span>
+        <span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">synthesizer</span><span class="p">],</span>
     <span class="p">)</span>
 
     <span class="c1"># Output the metadata corresponding to `transformed_input`, for reproducibility</span>

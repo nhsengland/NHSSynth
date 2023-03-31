@@ -91,7 +91,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../../.." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../assets/NHS.svg" alt="logo">
+  <img src="../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -269,7 +269,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../../.." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../assets/NHS.svg" alt="logo">
+  <img src="../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     Generating Useful Synthetic Data
@@ -953,6 +953,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../utils/constants/" class="md-nav__link">
+        constants
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../utils/utils/" class="md-nav__link">
         utils
       </a>
@@ -1016,7 +1030,6 @@
 
 
   <div class="doc doc-children">
-
 
 
 
@@ -1098,6 +1111,13 @@
         <span class="n">default</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
         <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;cull&quot;</span><span class="p">],</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;imputation strategy for missing values&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--synthesizer&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;TVAE&quot;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;pick a synthesizer to use (note this can also be specified in the model module, these must match)&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div>
         </details>

@@ -91,7 +91,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../assets/NHS.svg" alt="logo">
+  <img src="../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -269,7 +269,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../assets/NHS.svg" alt="logo">
+  <img src="../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     Generating Useful Synthetic Data
@@ -881,6 +881,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../utils/constants/" class="md-nav__link">
+        constants
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../utils/utils/" class="md-nav__link">
         utils
       </a>
@@ -1423,7 +1437,7 @@
   <tbody>
     <tr>
       <td><code>None</code></td>
-      <td><p>None.</p></td>
+      <td><p>None</p></td>
     </tr>
   </tbody>
 </table>
@@ -1441,8 +1455,11 @@
 <span class="sd">        all_subparsers: A dictionary containing all subparsers for the config args.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        None.</span>
+<span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO Maybe build a function that does this kind of filtering</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">args</span><span class="o">.</span><span class="n">synthesizer</span>
     <span class="n">args_dict</span> <span class="o">=</span> <span class="n">assemble_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">yaml_file</span><span class="p">:</span>
         <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">args_dict</span><span class="p">,</span> <span class="n">yaml_file</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1482,7 +1499,6 @@
 
 
   <div class="doc doc-children">
-
 
 
 
@@ -1564,6 +1580,13 @@
         <span class="n">default</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
         <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;cull&quot;</span><span class="p">],</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;imputation strategy for missing values&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--synthesizer&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;TVAE&quot;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;pick a synthesizer to use (note this can also be specified in the model module, these must match)&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div>
         </details>

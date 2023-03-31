@@ -91,7 +91,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../../../.." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -269,7 +269,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../../../.." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     Generating Useful Synthetic Data
@@ -934,6 +934,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../utils/constants/" class="md-nav__link">
+        constants
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../utils/utils/" class="md-nav__link">
         utils
       </a>
@@ -1109,19 +1123,19 @@
       <tr>
         <td><code>fn_in</code></td>
         <td><code>str</code></td>
-        <td><p>The input filename.</p></td>
+        <td><p>The input data filename.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>fn_out</code></td>
         <td><code>str</code></td>
-        <td><p>The output filename.</p></td>
+        <td><p>The output data filename / suffix to append to <code>fn_in</code>.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>fn_metadata</code></td>
         <td><code>str</code></td>
-        <td><p>The metadata filename.</p></td>
+        <td><p>The metadata filename / suffix to append to <code>fn_in</code>.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -1154,11 +1168,15 @@
   </thead>
   <tbody>
     <tr>
-      <td><code>tuple[Path, Path, Path, Path, Path]</code></td>
-      <td><p>A tuple containing the formatted input, output, and metadata (in and out) paths as well as the .</p></td>
+      <td><code>tuple[Path, Path, Path, Path]</code></td>
+      <td><p>A tuple containing the formatted input, output, and metadata (in and out) paths.</p></td>
     </tr>
   </tbody>
-</table>
+</table>      <p>!!! warnings
+    Raises a UserWarning when the path to <code>fn_in</code> includes directory separators, as this is not supported and may not work as intended.
+    Raises a UserWarning when the path to <code>fn_out</code> includes directory separators, as only the name of the output file will be used.
+    Raises a UserWarning when the path to <code>fn_metadata</code> includes directory separators, as this is not supported and may not work as intended.</p>
+
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/io.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">setup_io</span><span class="p">(</span>
@@ -1173,15 +1191,20 @@
 <span class="sd">    Formats the input and output filenames and directories for an experiment.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        fn_in: The input filename.</span>
-<span class="sd">        fn_out: The output filename.</span>
-<span class="sd">        fn_metadata: The metadata filename.</span>
+<span class="sd">        fn_in: The input data filename.</span>
+<span class="sd">        fn_out: The output data filename / suffix to append to `fn_in`.</span>
+<span class="sd">        fn_metadata: The metadata filename / suffix to append to `fn_in`.</span>
 <span class="sd">        dir_data: The directory containing the data.</span>
 <span class="sd">        run_name: The name of the experiment run.</span>
 <span class="sd">        dir_exp: The parent directory for the experiment folders. Default is &quot;experiments&quot;.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple[Path, Path, Path, Path, Path]: A tuple containing the formatted input, output, and metadata (in and out) paths as well as the .</span>
+<span class="sd">        tuple[Path, Path, Path, Path]: A tuple containing the formatted input, output, and metadata (in and out) paths.</span>
+
+<span class="sd">    Warnings:</span>
+<span class="sd">        Raises a UserWarning when the path to `fn_in` includes directory separators, as this is not supported and may not work as intended.</span>
+<span class="sd">        Raises a UserWarning when the path to `fn_out` includes directory separators, as only the name of the output file will be used.</span>
+<span class="sd">        Raises a UserWarning when the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># ensure .csv ending consistency</span>
     <span class="n">fn_in</span><span class="p">,</span> <span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">check_ending</span><span class="p">(</span><span class="n">fn_in</span><span class="p">),</span> <span class="n">check_ending</span><span class="p">(</span><span class="n">fn_out</span><span class="p">),</span> <span class="n">check_ending</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="s2">&quot;.yaml&quot;</span><span class="p">)</span>
@@ -1198,7 +1221,8 @@
     <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">fn_in</span><span class="p">:</span>
         <span class="n">fn_in</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_in</span><span class="p">)</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Using the path supplied to `--input-file` appended to `--dir`, i.e. attempting to read data from </span><span class="si">{</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_in</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">to avoid this warning, specify the path using `--dir` and only the name using `--input-file`</span><span class="se">\n</span><span class="s2">e.g. `... --dir </span><span class="si">{</span><span class="p">(</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_in</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> --input-file </span><span class="si">{</span><span class="n">fn_in</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> ...`&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Using the path supplied to `--input-file` appended to `--dir`, i.e. attempting to read data from </span><span class="si">{</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_in</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">to avoid this warning, specify the path using `--dir` and only the name using `--input-file`</span><span class="se">\n</span><span class="s2">e.g. `... --dir </span><span class="si">{</span><span class="p">(</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_in</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> --input-file </span><span class="si">{</span><span class="n">fn_in</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> ...`&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="c1"># generate timestamped experiment folder</span>
@@ -1207,13 +1231,15 @@
     <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">fn_out</span><span class="p">:</span>
         <span class="n">fn_out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_out</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Paths are not supported via `--output-file`, using the name part instead, i.e. attempting to write data to </span><span class="si">{</span><span class="n">dir_exp</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_out</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Paths are not supported via `--output-file`, using the name part instead, i.e. attempting to write data to </span><span class="si">{</span><span class="n">dir_exp</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">fn_metadata</span><span class="p">:</span>
         <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">)</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Using the path supplied to `--metadata` appended to `--dir`, i.e. attempting to read data from </span><span class="si">{</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_metadata</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">to avoid this warning, specify the path using `--dir` and only the name using `--metadata`</span><span class="se">\n</span><span class="s2">e.g. `... --dir </span><span class="si">{</span><span class="p">(</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_metadata</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> --metadata </span><span class="si">{</span><span class="n">fn_metadata</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> ...`&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Using the path supplied to `--metadata` appended to `--dir`, i.e. attempting to read data from </span><span class="si">{</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_metadata</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">to avoid this warning, specify the path using `--dir` and only the name using `--metadata`</span><span class="se">\n</span><span class="s2">e.g. `... --dir </span><span class="si">{</span><span class="p">(</span><span class="n">dir_data</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn_metadata</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> --metadata </span><span class="si">{</span><span class="n">fn_metadata</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> ...`&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="c1"># Make the experiment directory</span>

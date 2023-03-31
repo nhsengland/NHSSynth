@@ -91,7 +91,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../../../.." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -269,7 +269,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../../../.." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../../../../assets/NHSSYNTH.svg" alt="logo">
 
     </a>
     Generating Useful Synthetic Data
@@ -580,8 +580,36 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nhssynth.modules.dataloader.metadata.check_metadata_columns" class="md-nav__link">
+    check_metadata_columns()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#nhssynth.modules.dataloader.metadata.collapse" class="md-nav__link">
     collapse()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.modules.dataloader.metadata.create_empty_metadata" class="md-nav__link">
+    create_empty_metadata()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.modules.dataloader.metadata.instantiate_dtypes" class="md-nav__link">
+    instantiate_dtypes()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.modules.dataloader.metadata.load_metadata" class="md-nav__link">
+    load_metadata()
   </a>
   
 </li>
@@ -941,6 +969,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../utils/constants/" class="md-nav__link">
+        constants
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../utils/utils/" class="md-nav__link">
         utils
       </a>
@@ -1045,10 +1087,11 @@
       </tr>
       <tr>
         <td><code>metatransformer</code></td>
-        <td><code>Union[Any, rdt.hyper_transformer.HyperTransformer]</code></td>
+        <td><code>sdv.single_table.base.BaseSingleTableSynthesizer | rdt.hyper_transformer.HyperTransformer</code></td>
         <td><p>A meta-transformer used to create synthetic data.
-If <code>sdv_workflow</code> is True, <code>metatransformer</code> should be an SDV synthesizer.
-If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a dictionary containing transformers and sdtypes for each column.</p></td>
+- If <code>sdv_workflow</code> is True, <code>metatransformer</code> should be an SDV single-table synthesizer.
+- If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be an RDT HyperTransformer object
+  wrapping a dictionary containing transformers and sdtypes for each column.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -1085,7 +1128,7 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
           <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">assemble_metadata</span><span class="p">(</span>
     <span class="n">dtypes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">],</span>
-    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">,</span>
+    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">,</span>
     <span class="n">sdv_workflow</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1094,8 +1137,9 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
 <span class="sd">    Args:</span>
 <span class="sd">        dtypes: A dictionary mapping column names of the input data to their assigned data types.</span>
 <span class="sd">        metatransformer: A meta-transformer used to create synthetic data.</span>
-<span class="sd">            If `sdv_workflow` is True, `metatransformer` should be an SDV synthesizer.</span>
-<span class="sd">            If `sdv_workflow` is False, `metatransformer` should be a dictionary containing transformers and sdtypes for each column.</span>
+<span class="sd">            - If `sdv_workflow` is True, `metatransformer` should be an SDV single-table synthesizer.</span>
+<span class="sd">            - If `sdv_workflow` is False, `metatransformer` should be an RDT HyperTransformer object</span>
+<span class="sd">              wrapping a dictionary containing transformers and sdtypes for each column.</span>
 <span class="sd">        sdv_workflow: A boolean indicating whether the data was transformed using the SDV / synthesizer workflow.</span>
 
 <span class="sd">    Returns:</span>
@@ -1156,6 +1200,84 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
 
 
 
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.modules.dataloader.metadata.check_metadata_columns" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Check if all column representations in the metadata correspond to valid columns in the DataFrame.
+If any columns are not present, add them to the metadata and instantiate an empty dictionary.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>metadata</code></td>
+        <td><code>dict</code></td>
+        <td><p>A dictionary containing metadata for the columns in the DataFrame.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The DataFrame to check against the metadata.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>AssertionError</code></td>
+        <td><p>If any columns in metadata are not present in the DataFrame.</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if all column representations in the metadata correspond to valid columns in the DataFrame.</span>
+<span class="sd">    If any columns are not present, add them to the metadata and instantiate an empty dictionary.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        metadata: A dictionary containing metadata for the columns in the DataFrame.</span>
+<span class="sd">        data: The DataFrame to check against the metadata.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: If any columns in metadata are not present in the DataFrame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cn</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">cn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">})</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
 
   <div class="doc doc-object doc-function">
 
@@ -1206,7 +1328,7 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
     {
         "transformers": dict,
         "column_types": dict,
-        <strong>metadata
+        <strong>metadata  # columns that now reference the dicts above
     }
     - "transformers" is a dictionary mapping transformer indices (integers) to transformer configurations.
     - "column_types" is a dictionary mapping column type indices (integers) to column type configurations.
@@ -1222,7 +1344,7 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
 <span class="sd">    Given a metadata dictionary, rewrites it to collapse duplicate column types and transformers.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        metadata (dict): The metadata dictionary to be rewritten.</span>
+<span class="sd">        metadata: The metadata dictionary to be rewritten.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: A rewritten metadata dictionary with collapsed column types and transformers.</span>
@@ -1230,7 +1352,7 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
 <span class="sd">            {</span>
 <span class="sd">                &quot;transformers&quot;: dict,</span>
 <span class="sd">                &quot;column_types&quot;: dict,</span>
-<span class="sd">                **metadata</span>
+<span class="sd">                **metadata  # columns that now reference the dicts above</span>
 <span class="sd">            }</span>
 <span class="sd">            - &quot;transformers&quot; is a dictionary mapping transformer indices (integers) to transformer configurations.</span>
 <span class="sd">            - &quot;column_types&quot; is a dictionary mapping column type indices (integers) to column type configurations.</span>
@@ -1268,6 +1390,258 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
 
 
 
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.modules.dataloader.metadata.create_empty_metadata" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Creates an empty metadata dictionary for a given pandas DataFrame.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The DataFrame for which an empty metadata dictionary is created.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>A dictionary where each key corresponds to a column name in the DataFrame, and each value is an empty dictionary.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an empty metadata dictionary for a given pandas DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: The DataFrame for which an empty metadata dictionary is created.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary where each key corresponds to a column name in the DataFrame, and each value is an empty dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.modules.dataloader.metadata.instantiate_dtypes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">instantiate_dtypes</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Instantiate the data types for each column based on the given metadata.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>metadata</code></td>
+        <td><code>dict</code></td>
+        <td><p>A dictionary containing metadata information for each column, including the data type.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>A pandas DataFrame containing the data to be instantiated.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>A dictionary containing the instantiated data types for each column.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>UserWarning</code></td>
+        <td><p>If incomplete metadata is detected, i.e., if there are columns with missing 'dtype' information.</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">instantiate_dtypes</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instantiate the data types for each column based on the given metadata.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        metadata: A dictionary containing metadata information for each column, including the data type.</span>
+<span class="sd">        data: A pandas DataFrame containing the data to be instantiated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary containing the instantiated data types for each column.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        UserWarning: If incomplete metadata is detected, i.e., if there are columns with missing &#39;dtype&#39; information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">dtypes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Incomplete metadata, detecting missing `dtype`s for column(s): </span><span class="si">{</span><span class="p">[</span><span class="n">k</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">dtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> automatically...&quot;</span><span class="p">,</span>
+            <span class="ne">UserWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cv</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cv</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">dtypes</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.modules.dataloader.metadata.load_metadata" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">load_metadata</span><span class="p">(</span><span class="n">in_path</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Load metadata from a YAML file located at <code>in_path</code>. If the file does not exist, create an empty metadata
+dictionary with column names from the <code>data</code> DataFrame.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>in_path</code></td>
+        <td><code>Path</code></td>
+        <td><p>The path to the YAML file containing the metadata.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The DataFrame containing the data for which metadata is being loaded.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>A metadata dictionary containing information about the columns in the <code>data</code> DataFrame.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">load_metadata</span><span class="p">(</span><span class="n">in_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load metadata from a YAML file located at `in_path`. If the file does not exist, create an empty metadata</span>
+<span class="sd">    dictionary with column names from the `data` DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        in_path: The path to the YAML file containing the metadata.</span>
+<span class="sd">        data: The DataFrame containing the data for which metadata is being loaded.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A metadata dictionary containing information about the columns in the `data` DataFrame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">in_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;transformers&quot;</span><span class="p">,</span> <span class="s2">&quot;column_types&quot;</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
 
 
 
@@ -1310,7 +1684,7 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
       </tr>
       <tr>
         <td><code>metatransformer</code></td>
-        <td><code>Union[Any, rdt.hyper_transformer.HyperTransformer]</code></td>
+        <td><code>sdv.single_table.base.BaseSingleTableSynthesizer | rdt.hyper_transformer.HyperTransformer</code></td>
         <td><p>The synthesizer or hypertransformer that was used to transform the data.</p></td>
         <td><em>required</em></td>
       </tr>
@@ -1348,7 +1722,7 @@ If <code>sdv_workflow</code> is False, <code>metatransformer</code> should be a 
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">output_metadata</span><span class="p">(</span>
     <span class="n">out_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
     <span class="n">dtypes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">,</span>
+    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">,</span>
     <span class="n">sdv_workflow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">collapse_yaml</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
