@@ -12,6 +12,7 @@ from nhssynth.modules.dataloader.transformers import (
     apply_transformer,
     instantiate_metatransformer,
 )
+from nhssynth.utils.constants import SDV_SYNTHESIZER_CHOICES
 
 
 def run(args: argparse.Namespace) -> None:
@@ -44,7 +45,11 @@ def run(args: argparse.Namespace) -> None:
 
     # Setup the metatransformer
     metatransformer = instantiate_metatransformer(
-        metadata, typed_input, args.sdv_workflow, args.allow_null_transformers
+        metadata,
+        typed_input,
+        args.sdv_workflow,
+        args.allow_null_transformers,
+        SDV_SYNTHESIZER_CHOICES[args.synthesizer],
     )
 
     # Output the metadata corresponding to `transformed_input`, for reproducibility

@@ -7,18 +7,50 @@ import pandas as pd
 import yaml
 from nhssynth.utils import filter_dict, get_key_by_value
 from rdt import HyperTransformer
+from sdv.single_table.base import BaseSingleTableSynthesizer
 
 
 def create_empty_metadata(data: pd.DataFrame) -> dict[str, dict]:
+    """
+    Creates an empty metadata dictionary for a given pandas DataFrame.
+
+    Args:
+        data: The DataFrame for which an empty metadata dictionary is created.
+
+    Returns:
+        A dictionary where each key corresponds to a column name in the DataFrame, and each value is an empty dictionary.
+    """
     return {cn: {} for cn in data.columns}
 
 
-def check_metadata_columns(metadata: dict, data: pd.DataFrame):
+def check_metadata_columns(metadata: dict[str, dict], data: pd.DataFrame) -> None:
+    """
+    Check if all column representations in the metadata correspond to valid columns in the DataFrame.
+    If any columns are not present, add them to the metadata and instantiate an empty dictionary.
+
+    Args:
+        metadata: A dictionary containing metadata for the columns in the DataFrame.
+        data: The DataFrame to check against the metadata.
+
+    Raises:
+        AssertionError: If any columns in metadata are not present in the DataFrame.
+    """
     assert all([k in data.columns for k in metadata.keys()])
     metadata.update({cn: {} for cn in data.columns if cn not in metadata})
 
 
-def load_metadata(in_path: pathlib.Path, data: pd.DataFrame):
+def load_metadata(in_path: pathlib.Path, data: pd.DataFrame) -> dict[str, dict]:
+    """
+    Load metadata from a YAML file located at `in_path`. If the file does not exist, create an empty metadata
+    dictionary with column names from the `data` DataFrame.
+
+    Args:
+        in_path: The path to the YAML file containing the metadata.
+        data: The DataFrame containing the data for which metadata is being loaded.
+
+    Returns:
+        A metadata dictionary containing information about the columns in the `data` DataFrame.
+    """
     if in_path.exists():
         with open(in_path) as stream:
             metadata = yaml.safe_load(stream)
@@ -29,7 +61,20 @@ def load_metadata(in_path: pathlib.Path, data: pd.DataFrame):
     return metadata
 
 
-def instantiate_dtypes(metadata: dict, data: pd.DataFrame) -> dict[str, np.dtype]:
+def instantiate_dtypes(metadata: dict[str, dict], data: pd.DataFrame) -> dict[str, np.dtype]:
+    """
+    Instantiate the data types for each column based on the given metadata.
+
+    Args:
+        metadata: A dictionary containing metadata information for each column, including the data type.
+        data: A pandas DataFrame containing the data to be instantiated.
+
+    Returns:
+        A dictionary containing the instantiated data types for each column.
+
+    Raises:
+        UserWarning: If incomplete metadata is detected, i.e., if there are columns with missing 'dtype' information.
+    """
     dtypes = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
     if not all(dtypes.values()):
         warnings.warn(
@@ -42,7 +87,7 @@ def instantiate_dtypes(metadata: dict, data: pd.DataFrame) -> dict[str, np.dtype
 
 def assemble_metadata(
     dtypes: dict[str, type],
-    metatransformer: Any | HyperTransformer,
+    metatransformer: BaseSingleTableSynthesizer | HyperTransformer,
     sdv_workflow: bool,
 ) -> dict[str, dict[str, Any]]:
     """
@@ -51,8 +96,9 @@ def assemble_metadata(
     Args:
         dtypes: A dictionary mapping column names of the input data to their assigned data types.
         metatransformer: A meta-transformer used to create synthetic data.
-            If `sdv_workflow` is True, `metatransformer` should be an SDV synthesizer.
-            If `sdv_workflow` is False, `metatransformer` should be a dictionary containing transformers and sdtypes for each column.
+            - If `sdv_workflow` is True, `metatransformer` should be an SDV single-table synthesizer.
+            - If `sdv_workflow` is False, `metatransformer` should be an RDT HyperTransformer object
+              wrapping a dictionary containing transformers and sdtypes for each column.
         sdv_workflow: A boolean indicating whether the data was transformed using the SDV / synthesizer workflow.
 
     Returns:
@@ -112,7 +158,7 @@ def collapse(metadata: dict) -> dict:
     Given a metadata dictionary, rewrites it to collapse duplicate column types and transformers.
 
     Args:
-        metadata (dict): The metadata dictionary to be rewritten.
+        metadata: The metadata dictionary to be rewritten.
 
     Returns:
         dict: A rewritten metadata dictionary with collapsed column types and transformers.
@@ -120,7 +166,7 @@ def collapse(metadata: dict) -> dict:
             {
                 "transformers": dict,
                 "column_types": dict,
-                **metadata
+                **metadata  # columns that now reference the dicts above
             }
             - "transformers" is a dictionary mapping transformer indices (integers) to transformer configurations.
             - "column_types" is a dictionary mapping column type indices (integers) to column type configurations.
@@ -155,7 +201,7 @@ def collapse(metadata: dict) -> dict:
 def output_metadata(
     out_path: pathlib.Path,
     dtypes: dict[str, Any],
-    metatransformer: Any | HyperTransformer,
+    metatransformer: BaseSingleTableSynthesizer | HyperTransformer,
     sdv_workflow: bool = True,
     collapse_yaml: bool = True,
 ) -> None:

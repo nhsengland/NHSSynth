@@ -1,7 +1,6 @@
 import argparse
-from time import strftime
 
-TIME = strftime("%Y_%m_%d___%H_%M_%S")
+from nhssynth.utils.constants import SDV_SYNTHESIZER_CHOICES, TIME
 
 
 def add_top_level_args(parser: argparse.ArgumentParser) -> None:
@@ -78,6 +77,13 @@ def add_dataloader_args(parser: argparse.ArgumentParser, override=False) -> None
         default="mean",
         choices=["mean", "median", "cull"],
         help="imputation strategy for missing values",
+    )
+    parser.add_argument(
+        "-s",
+        "--synthesizer",
+        default="TVAE",
+        choices=list(SDV_SYNTHESIZER_CHOICES.keys()),
+        help="pick a synthesizer to use (note this can also be specified in the model module, these must match)",
     )
 
 

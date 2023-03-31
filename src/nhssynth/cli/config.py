@@ -178,8 +178,11 @@ def write_config(
         all_subparsers: A dictionary containing all subparsers for the config args.
 
     Returns:
-        None.
+        None
     """
+    # TODO Maybe build a function that does this kind of filtering
+    if args.sdv_workflow:
+        del args.synthesizer
     args_dict = assemble_config(args, all_subparsers)
     with open(f"{args.save_config_path}", "w") as yaml_file:
         yaml.dump(args_dict, yaml_file, default_flow_style=False, sort_keys=False)

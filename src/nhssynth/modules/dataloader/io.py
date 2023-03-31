@@ -28,15 +28,20 @@ def setup_io(
     Formats the input and output filenames and directories for an experiment.
 
     Args:
-        fn_in: The input filename.
-        fn_out: The output filename.
-        fn_metadata: The metadata filename.
+        fn_in: The input data filename.
+        fn_out: The output data filename / suffix to append to `fn_in`.
+        fn_metadata: The metadata filename / suffix to append to `fn_in`.
         dir_data: The directory containing the data.
         run_name: The name of the experiment run.
         dir_exp: The parent directory for the experiment folders. Default is "experiments".
 
     Returns:
-        tuple[Path, Path, Path, Path, Path]: A tuple containing the formatted input, output, and metadata (in and out) paths as well as the .
+        tuple[Path, Path, Path, Path]: A tuple containing the formatted input, output, and metadata (in and out) paths.
+
+    Warnings:
+        Raises a UserWarning when the path to `fn_in` includes directory separators, as this is not supported and may not work as intended.
+        Raises a UserWarning when the path to `fn_out` includes directory separators, as only the name of the output file will be used.
+        Raises a UserWarning when the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.
     """
     # ensure .csv ending consistency
     fn_in, fn_out, fn_metadata = check_ending(fn_in), check_ending(fn_out), check_ending(fn_metadata, ending=".yaml")
@@ -53,7 +58,8 @@ def setup_io(
     if "/" in fn_in:
         fn_in = Path(fn_in)
         warnings.warn(
-            f"Using the path supplied to `--input-file` appended to `--dir`, i.e. attempting to read data from {dir_data / fn_in},\nto avoid this warning, specify the path using `--dir` and only the name using `--input-file`\ne.g. `... --dir {(dir_data / fn_in).parent} --input-file {fn_in.name} ...`"
+            f"Using the path supplied to `--input-file` appended to `--dir`, i.e. attempting to read data from {dir_data / fn_in},\nto avoid this warning, specify the path using `--dir` and only the name using `--input-file`\ne.g. `... --dir {(dir_data / fn_in).parent} --input-file {fn_in.name} ...`",
+            UserWarning,
         )
 
     # generate timestamped experiment folder
@@ -62,13 +68,15 @@ def setup_io(
     if "/" in fn_out:
         fn_out = Path(fn_out).name
         warnings.warn(
-            f"Paths are not supported via `--output-file`, using the name part instead, i.e. attempting to write data to {dir_exp / fn_out}"
+            f"Paths are not supported via `--output-file`, using the name part instead, i.e. attempting to write data to {dir_exp / fn_out}",
+            UserWarning,
         )
 
     if "/" in fn_metadata:
         fn_metadata = Path(fn_metadata)
         warnings.warn(
-            f"Using the path supplied to `--metadata` appended to `--dir`, i.e. attempting to read data from {dir_data / fn_metadata},\nto avoid this warning, specify the path using `--dir` and only the name using `--metadata`\ne.g. `... --dir {(dir_data / fn_metadata).parent} --metadata {fn_metadata.name} ...`"
+            f"Using the path supplied to `--metadata` appended to `--dir`, i.e. attempting to read data from {dir_data / fn_metadata},\nto avoid this warning, specify the path using `--dir` and only the name using `--metadata`\ne.g. `... --dir {(dir_data / fn_metadata).parent} --metadata {fn_metadata.name} ...`",
+            UserWarning,
         )
 
     # Make the experiment directory
