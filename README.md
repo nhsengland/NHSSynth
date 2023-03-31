@@ -9,10 +9,6 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=flat-square)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat-square)](https://pycqa.github.io/isort/)
 
-<a href="https://github.com/nhsx/nhssynth/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nhsx/nhssynth" />
-</a>
-
 </div>
 
 
@@ -93,6 +89,14 @@ Contributions are what make the open source community such an amazing place to l
 5. Open a PR and we will try to get it merged!
 
 _See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidance._
+
+Thanks to everyone that has contributed so far!
+
+<div align="center">
+<a href="https://github.com/nhsx/nhssynth/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nhsx/nhssynth" />
+</a>
+</div>
 
 ### License
 
