@@ -1,6 +1,6 @@
 site_name: Generating Useful Synthetic Data
 theme:
-  logo: assets/NHS.svg
+  logo: assets/NHSSYNTH.svg
   favicon: assets/NHS.svg
   name: material
   palette:
