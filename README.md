@@ -13,10 +13,9 @@
 
 
 <!-- PROJECT LOGO -->
-<br />
 <div align="center">
   <a href="https://nhsx.github.io/NHSSynth">
-    <img src="docs/assets/NHSSYNTH.svg" alt="Logo" width="400" height="150">
+    <img src="docs/assets/NHS.svg" alt="Logo" width="200" height="100">
   </a>
   <p align="center">
     <a href="https://nhsx.github.io/NHSSynth"><strong>Explore the docs »</strong></a>
@@ -24,6 +23,8 @@
     <br />
   </p>
 </div>
+
+# NHS Synth
 
 ## About the Project
 

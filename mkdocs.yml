@@ -1,6 +1,6 @@
 site_name: Generating Useful Synthetic Data
 theme:
-  logo: assets/NHSSYNTH.svg
+  logo: assets/NHS.svg
   favicon: assets/NHS.svg
   name: material
   palette:
@@ -57,10 +57,7 @@ plugins:
       nav_file: SUMMARY.md
   - section-index
   - mkdocstrings
-  - git-revision-date-localized:
-      enable_creation_date: true
-      fallback_to_build_date: true
-  # THIS DOESNT SEEM TO WORK
+  - git-revision-date-localized
 
 extra:
   generator: false
