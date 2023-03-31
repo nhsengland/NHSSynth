@@ -104,7 +104,7 @@ Distributed under the MIT License. _See [LICENSE](./LICENSE) for more informatio
 
 ### Contact
 
-This project is being actively developed by [@HarrisonWilde](https://github.com/HarrisonWilde), for any questions or security concerns [contact him](mailto:h.wilde@warwick.ac.uk) or [raise an issue](https://github.com/nhsx/NHSSynth/issues/new/choose). Alternatively, contact [NHS England TDAU](mailto:england.tdau@nhs.net).
+This project is under active development by [@HarrisonWilde](https://github.com/HarrisonWilde), for any questions or security concerns [contact him](mailto:h.wilde@warwick.ac.uk) or [raise an issue](https://github.com/nhsx/NHSSynth/issues/new/choose). Alternatively, contact [NHS England TDAU](mailto:england.tdau@nhs.net).
 
 To find out more about the [Analytics Unit](https://www.nhsx.nhs.uk/key-tools-and-info/nhsx-analytics-unit/) visit our [project website](https://nhsx.github.io/AnalyticsUnit/projects.html) or get in touch at [analytics-unit@nhsx.nhs.uk](mailto:analytics-unit@nhsx.nhs.uk).
 
