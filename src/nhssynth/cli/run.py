@@ -1,6 +1,6 @@
 import argparse
 
-from nhssynth.cli.config import read_config, write_config
+from nhssynth.cli.config import get_modules_to_run, read_config, write_config
 from nhssynth.cli.module_arguments import add_top_level_args
 from nhssynth.cli.module_setup import MODULE_MAP, add_subparser
 
@@ -33,6 +33,7 @@ def run() -> None:
     if not executor:
         args = read_config(args, parser, all_subparsers)
     elif executor:
+        args.modules_to_run = get_modules_to_run(executor)
         executor(args)
     else:
         parser.parse_args(["--help"])
@@ -40,11 +41,7 @@ def run() -> None:
     # Whenever either are specified, we want to dump the configuration to allow for this run to be replicated
     if args.save_config or args.save_config_path:
         if not args.save_config_path:
-            args.save_config_path = f"experiments/{args.run_name}/config_{args.run_name}.yaml"
+            args.save_config_path = f"experiments/{args.experiment_name}/config_{args.experiment_name}.yaml"
         write_config(args, all_subparsers)
 
     print("Complete!")
-
-
-if __name__ == "__main__":
-    run()

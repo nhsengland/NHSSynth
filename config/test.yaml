@@ -1,7 +1,0 @@
-run_type: pipeline
-dataloader:
-  dir: data/.nosync
-  input_file: PATIENTS
-  output_file: _prepared
-  collapse_yaml: true
-  imputation_strategy: mean

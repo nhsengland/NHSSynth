@@ -1,13 +1,12 @@
 from random import gauss
-from pandas import Categorical
+
 import torch
 import torch.nn as nn
-
 from opacus import PrivacyEngine
+from pandas import Categorical
 
 # from torch.distributions.bernoulli import Bernoulli
 from torch.distributions.normal import Normal
-
 from tqdm import tqdm
 
 
@@ -18,7 +17,12 @@ class Encoder(nn.Module):
     """
 
     def __init__(
-        self, input_dim, latent_dim, hidden_dim=32, activation=nn.Tanh, device="gpu",
+        self,
+        input_dim,
+        latent_dim,
+        hidden_dim=32,
+        activation=nn.Tanh,
+        device="gpu",
     ):
         super().__init__()
         if device == "gpu":
@@ -114,26 +118,20 @@ class VAE(nn.Module):
         return x_recon
 
     def generate(self, N):
-        z_samples = torch.randn_like(
-            torch.ones((N, self.encoder.latent_dim)), device=self.device
-        )
+        z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim)), device=self.device)
         x_gen = self.decoder(z_samples)
         x_gen_ = torch.ones_like(x_gen, device=self.device)
         i = 0
 
         for v in range(len(self.num_categories)):
-            x_gen_[
-                :, i : (i + self.num_categories[v])
-            ] = torch.distributions.one_hot_categorical.OneHotCategorical(
+            x_gen_[:, i : (i + self.num_categories[v])] = torch.distributions.one_hot_categorical.OneHotCategorical(
                 logits=x_gen[:, i : (i + self.num_categories[v])]
             ).sample()
             i = i + self.num_categories[v]
 
-        x_gen_[:, -self.num_continuous :] = x_gen[
-            :, -self.num_continuous :
-        ] + torch.exp(self.noiser(x_gen[:, -self.num_continuous :])) * torch.randn_like(
-            x_gen[:, -self.num_continuous :]
-        )
+        x_gen_[:, -self.num_continuous :] = x_gen[:, -self.num_continuous :] + torch.exp(
+            self.noiser(x_gen[:, -self.num_continuous :])
+        ) * torch.randn_like(x_gen[:, -self.num_continuous :])
         return x_gen_
 
     def loss(self, X):
@@ -181,7 +179,7 @@ class VAE(nn.Module):
     def train(
         self,
         x_dataloader,
-        n_epochs,
+        num_epochs,
         logging_freq=1,
         patience=5,
         delta=10,
@@ -201,7 +199,7 @@ class VAE(nn.Module):
         stop_counter = 0  # Counter for stops
         delta = delta  # Difference in elbo value
 
-        for epoch in range(n_epochs):
+        for epoch in range(num_epochs):
 
             train_loss = 0.0
             divergence_epoch_loss = 0.0
@@ -266,12 +264,12 @@ class VAE(nn.Module):
 
             if stop_counter == patience:
 
-                n_epochs = epoch + 1
+                num_epochs = epoch + 1
 
                 break
 
         return (
-            n_epochs,
+            num_epochs,
             log_elbo,
             log_reconstruct,
             log_divergence,
@@ -282,10 +280,10 @@ class VAE(nn.Module):
     def diff_priv_train(
         self,
         x_dataloader,
-        n_epochs,
+        num_epochs,
         C=1e16,
         noise_scale=None,
-        target_eps=1,
+        target_epsilon=1,
         target_delta=1e-5,
         logging_freq=1,
         sample_rate=0.1,
@@ -306,9 +304,9 @@ class VAE(nn.Module):
                 self,
                 sample_rate=sample_rate,
                 alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
-                target_epsilon=target_eps,
+                target_epsilonilon=target_epsilon,
                 target_delta=target_delta,
-                epochs=n_epochs,
+                epochs=num_epochs,
                 max_grad_norm=C,
             )
         self.privacy_engine.attach(self.optimizer)
@@ -325,7 +323,7 @@ class VAE(nn.Module):
         stop_counter = 0  # Counter for stops
         delta = delta  # Difference in elbo value
 
-        for epoch in range(n_epochs):
+        for epoch in range(num_epochs):
             train_loss = 0.0
             divergence_epoch_loss = 0.0
             reconstruction_epoch_loss = 0.0
@@ -384,11 +382,11 @@ class VAE(nn.Module):
 
             if stop_counter == patience:
 
-                n_epochs = epoch + 1
+                num_epochs = epoch + 1
                 break
 
         return (
-            n_epochs,
+            num_epochs,
             log_elbo,
             log_reconstruct,
             log_divergence,

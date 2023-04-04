@@ -1,21 +1,13 @@
 import argparse
 
-import numpy as np
 import pandas as pd
-from nhssynth.modules.dataloader.io import setup_io
-from nhssynth.modules.dataloader.metadata import (
-    instantiate_dtypes,
-    load_metadata,
-    output_metadata,
-)
-from nhssynth.modules.dataloader.transformers import (
-    apply_transformer,
-    instantiate_metatransformer,
-)
-from nhssynth.utils.constants import SDV_SYNTHESIZER_CHOICES
+from nhssynth.common import *
+from nhssynth.modules.dataloader.io import *
+from nhssynth.modules.dataloader.metadata import *
+from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
-def run(args: argparse.Namespace) -> None:
+def run(args: argparse.Namespace) -> argparse.Namespace:
     """
     Runs the main workflow of the dataloader module, transforming the input data and writing the output to file.
 
@@ -25,39 +17,38 @@ def run(args: argparse.Namespace) -> None:
     Returns:
         None
     """
+    print("Running dataloader module...")
 
-    print("Running dataloader...")
+    set_seed(args.seed)
+    dir_experiment = experiment_io(args.experiment_name)
 
-    if args.seed:
-        np.random.seed(args.seed)
-
-    input_path, output_path, metadata_input_path, metadata_output_path = setup_io(
-        args.input_file, args.output_file, args.metadata_file, args.dir, args.run_name
-    )
+    dir_input, fn_input_data, fn_metadata = check_input_paths(args.input, args.metadata, args.data_dir)
 
     # Load the dataset and accompanying metadata
-    input = pd.read_csv(input_path, index_col=args.index_col)
-    metadata = load_metadata(metadata_input_path, input)
+    input = pd.read_csv(dir_input / fn_input_data, index_col=args.index_col)
+    metadata = load_metadata(dir_input / fn_metadata, input)
 
-    # Setup the input data dtypes and apply them
-    dtypes = instantiate_dtypes(metadata, input)
-    typed_input = input.astype(dtypes)
-
-    # Setup the metatransformer
-    metatransformer = instantiate_metatransformer(
-        metadata,
-        typed_input,
-        args.sdv_workflow,
-        args.allow_null_transformers,
-        SDV_SYNTHESIZER_CHOICES[args.synthesizer],
-    )
+    mt = MetaTransformer(metadata, args.sdv_workflow, args.allow_null_transformers, args.synthesizer)
+    transformed_input = mt.apply(input)
 
     # Output the metadata corresponding to `transformed_input`, for reproducibility
-    output_metadata(metadata_output_path, dtypes, metatransformer, args.sdv_workflow, args.collapse_yaml)
-
-    print("Transforming input...")
-    transformed_input = apply_transformer(metatransformer, typed_input, args.sdv_workflow)
+    if not args.discard_metadata:
+        output_metadata(dir_experiment / fn_metadata, mt.get_assembled_metadata(), args.collapse_yaml)
 
     # Write the transformed input to the appropriate file
-    print("Writing output")
-    transformed_input.to_csv(output_path, index=False)
+    if not args.modules_to_run or args.modules_to_run == ["dataloader"] or args.write_all:
+        fn_output_data, fn_transformer = check_output_paths(
+            fn_input_data, args.output, args.metatransformer, dir_experiment
+        )
+        write_data_outputs(transformed_input, mt, fn_output_data, fn_transformer, dir_experiment)
+
+    # TODO Probably some way to ensure modules_to_run exists in args
+    if "model" in args.modules_to_run:
+        args.dataloader_output = {
+            "fn_data": fn_input_data,
+            "data": transformed_input,
+            "categorical_metadata": mt.get_categoricals(),
+            "metatransformer": mt,
+        }
+
+    return args
