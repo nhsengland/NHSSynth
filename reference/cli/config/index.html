@@ -1169,7 +1169,7 @@
 <span class="sd">        ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">args_dict</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">args_dict</span><span class="p">[</span><span class="s2">&quot;modules_to_run&quot;</span><span class="p">]</span>
+    <span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;modules_to_run&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">modules_to_run</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">run_type</span> <span class="o">=</span> <span class="n">modules_to_run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">modules_to_run</span> <span class="o">==</span> <span class="n">PIPELINE</span><span class="p">:</span>
