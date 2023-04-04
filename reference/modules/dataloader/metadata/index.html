@@ -213,11 +213,15 @@
   
 
 
-  <li class="md-tabs__item">
-    <a href="../../../../model_card/" class="md-tabs__link">
-      Model Card
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../modules/" class="md-tabs__link">
+        User Guide
+      </a>
+    </li>
+  
 
       
         
@@ -311,10 +315,58 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          User Guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../modules/" class="md-nav__link">
+        Modules
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../../../model_card/" class="md-nav__link">
         Model Card
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1139,21 +1191,21 @@ If any columns are not present, add them to the metadata and instantiate an empt
 </table>
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Check if all column representations in the `metadata` correspond to valid columns in the `data`.</span>
-<span class="sd">    If any columns are not present, add them to the metadata and instantiate an empty dictionary.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        metadata: A dictionary containing metadata for the columns in the passed `data`.</span>
-<span class="sd">        data: The DataFrame to check against the metadata.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        AssertionError: If any columns that *are* in metadata are *not* present in the `data`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
-    <span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cn</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">cn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">})</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Check if all column representations in the `metadata` correspond to valid columns in the `data`.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="sd">    If any columns are not present, add them to the metadata and instantiate an empty dictionary.</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        metadata: A dictionary containing metadata for the columns in the passed `data`.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">        data: The DataFrame to check against the metadata.</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">    Raises:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">        AssertionError: If any columns that *are* in metadata are *not* present in the `data`.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cn</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">cn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">})</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1221,50 +1273,50 @@ If any columns are not present, add them to the metadata and instantiate an empt
 </table>
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">collapse</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a metadata dictionary, rewrite to collapse duplicate column types and transformers in order to leverage YAML anchors</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        metadata: The metadata dictionary to be rewritten.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        dict: A rewritten metadata dictionary with collapsed column types and transformers.</span>
-<span class="sd">            The returned dictionary has the following structure:</span>
-<span class="sd">            {</span>
-<span class="sd">                &quot;transformers&quot;: dict,</span>
-<span class="sd">                &quot;column_types&quot;: dict,</span>
-<span class="sd">                **metadata  # one entry for each column that now reference the dicts above</span>
-<span class="sd">            }</span>
-<span class="sd">            - &quot;transformers&quot; is a dictionary mapping transformer indices to transformer configurations.</span>
-<span class="sd">            - &quot;column_types&quot; is a dictionary mapping column type indices to column type configurations.</span>
-<span class="sd">            - &quot;**metadata&quot; contains the original metadata dictionary, with column types and transformers</span>
-<span class="sd">              rewritten to use the indices in &quot;transformers&quot; and &quot;column_types&quot;.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">c_index</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">column_types</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">t_index</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">transformers</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
-        <span class="k">if</span> <span class="n">cd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">column_types</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">column_types</span><span class="p">[</span><span class="n">c_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_types</span><span class="p">[</span><span class="n">c_index</span><span class="p">]</span>
-            <span class="n">c_index</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">cix</span> <span class="o">=</span> <span class="n">get_key_by_value</span><span class="p">(</span><span class="n">column_types</span><span class="p">,</span> <span class="n">cd</span><span class="p">)</span>
-            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_types</span><span class="p">[</span><span class="n">cix</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transformers</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="ow">and</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]:</span>
-            <span class="n">transformers</span><span class="p">[</span><span class="n">t_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">][</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformers</span><span class="p">[</span><span class="n">t_index</span><span class="p">]</span>
-            <span class="n">t_index</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]:</span>
-            <span class="n">tix</span> <span class="o">=</span> <span class="n">get_key_by_value</span><span class="p">(</span><span class="n">transformers</span><span class="p">,</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">])</span>
-            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">][</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformers</span><span class="p">[</span><span class="n">tix</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;transformers&quot;</span><span class="p">:</span> <span class="n">transformers</span><span class="p">,</span> <span class="s2">&quot;column_types&quot;</span><span class="p">:</span> <span class="n">column_types</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">}</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">collapse</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Given a metadata dictionary, rewrite to collapse duplicate column types and transformers in order to leverage YAML anchors</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        metadata: The metadata dictionary to be rewritten.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">        dict: A rewritten metadata dictionary with collapsed column types and transformers.</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">            The returned dictionary has the following structure:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">            {</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">                &quot;transformers&quot;: dict,</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">                &quot;column_types&quot;: dict,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">                **metadata  # one entry for each column that now reference the dicts above</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">            }</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">            - &quot;transformers&quot; is a dictionary mapping transformer indices to transformer configurations.</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd">            - &quot;column_types&quot; is a dictionary mapping column type indices to column type configurations.</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="sd">            - &quot;**metadata&quot; contains the original metadata dictionary, with column types and transformers</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd">              rewritten to use the indices in &quot;transformers&quot; and &quot;column_types&quot;.</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">c_index</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">column_types</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">t_index</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">transformers</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="k">if</span> <span class="n">cd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">column_types</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="n">column_types</span><span class="p">[</span><span class="n">c_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_types</span><span class="p">[</span><span class="n">c_index</span><span class="p">]</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>            <span class="n">c_index</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>            <span class="n">cix</span> <span class="o">=</span> <span class="n">get_key_by_value</span><span class="p">(</span><span class="n">column_types</span><span class="p">,</span> <span class="n">cd</span><span class="p">)</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_types</span><span class="p">[</span><span class="n">cix</span><span class="p">]</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>        <span class="k">if</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transformers</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="ow">and</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]:</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>            <span class="n">transformers</span><span class="p">[</span><span class="n">t_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">][</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformers</span><span class="p">[</span><span class="n">t_index</span><span class="p">]</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>            <span class="n">t_index</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>        <span class="k">elif</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]:</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>            <span class="n">tix</span> <span class="o">=</span> <span class="n">get_key_by_value</span><span class="p">(</span><span class="n">transformers</span><span class="p">,</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">])</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>            <span class="n">metadata</span><span class="p">[</span><span class="n">cn</span><span class="p">][</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transformers</span><span class="p">[</span><span class="n">tix</span><span class="p">]</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;transformers&quot;</span><span class="p">:</span> <span class="n">transformers</span><span class="p">,</span> <span class="s2">&quot;column_types&quot;</span><span class="p">:</span> <span class="n">column_types</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">}</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1322,18 +1374,18 @@ If any columns are not present, add them to the metadata and instantiate an empt
 </table>
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates an empty metadata dictionary for a given pandas DataFrame.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        data: The DataFrame in question.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A dictionary where each key corresponds to a column name in the DataFrame, and each value is an empty dictionary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Creates an empty metadata dictionary for a given pandas DataFrame.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        data: The DataFrame in question.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">        A dictionary where each key corresponds to a column name in the DataFrame, and each value is an empty dictionary.</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="k">return</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">cn</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1398,28 +1450,28 @@ dictionary with column names from the <code>data</code>.</p>
 </table>
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">load_metadata</span><span class="p">(</span><span class="n">in_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Load metadata from a YAML file located at `in_path`. If the file does not exist, create an empty metadata</span>
-<span class="sd">    dictionary with column names from the `data`.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        in_path: The path to the YAML file containing the metadata.</span>
-<span class="sd">        data: The DataFrame containing the data for which metadata is being loaded.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A metadata dictionary containing information about the columns in the `data`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">in_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
-            <span class="n">metadata</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
-        <span class="c1"># Filter out expanded alias/anchor groups</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;transformers&quot;</span><span class="p">,</span> <span class="s2">&quot;column_types&quot;</span><span class="p">})</span>
-        <span class="n">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">metadata</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">load_metadata</span><span class="p">(</span><span class="n">in_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Load metadata from a YAML file located at `in_path`. If the file does not exist, create an empty metadata</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="sd">    dictionary with column names from the `data`.</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        in_path: The path to the YAML file containing the metadata.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">        data: The DataFrame containing the data for which metadata is being loaded.</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">        A metadata dictionary containing information about the columns in the `data`.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="k">if</span> <span class="n">in_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>            <span class="n">metadata</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="c1"># Filter out expanded alias/anchor groups</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="n">metadata</span> <span class="o">=</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;transformers&quot;</span><span class="p">,</span> <span class="s2">&quot;column_types&quot;</span><span class="p">})</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="n">check_metadata_columns</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">metadata</span> <span class="o">=</span> <span class="n">create_empty_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="k">return</span> <span class="n">metadata</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1474,24 +1526,24 @@ dictionary with column names from the <code>data</code>.</p>
 </table>
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/metadata.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">output_metadata</span><span class="p">(</span>
-    <span class="n">out_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
-    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
-    <span class="n">collapse_yaml</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes metadata to a YAML file.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        out_path: The path at which to write the metadata YAML file.</span>
-<span class="sd">        metadata: The metadata dictionary to be written.</span>
-<span class="sd">        collapse_yaml: A boolean indicating whether to collapse the YAML representation of the metadata, reducing duplication.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">collapse_yaml</span><span class="p">:</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">collapse</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">yaml_file</span><span class="p">:</span>
-        <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">yaml_file</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">output_metadata</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">out_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">collapse_yaml</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">    Writes metadata to a YAML file.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        out_path: The path at which to write the metadata YAML file.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">        metadata: The metadata dictionary to be written.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        collapse_yaml: A boolean indicating whether to collapse the YAML representation of the metadata, reducing duplication.</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">if</span> <span class="n">collapse_yaml</span><span class="p">:</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="n">metadata</span> <span class="o">=</span> <span class="n">collapse</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">yaml_file</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">yaml_file</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1593,7 +1645,7 @@ dictionary with column names from the <code>data</code>.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit"], "search": "../../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../../../assets/javascripts/bundle.407015b8.min.js"></script>

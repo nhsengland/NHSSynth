@@ -213,11 +213,15 @@
   
 
 
-  <li class="md-tabs__item">
-    <a href="../../../model_card/" class="md-tabs__link">
-      Model Card
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../modules/" class="md-tabs__link">
+        User Guide
+      </a>
+    </li>
+  
 
       
         
@@ -311,10 +315,58 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          User Guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../modules/" class="md-nav__link">
+        Modules
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../../model_card/" class="md-nav__link">
         Model Card
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1136,21 +1188,21 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>common/io.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">check_exists</span><span class="p">(</span><span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks if the files in `fns` exist in `dir`.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        fns: The list of files to check.</span>
-<span class="sd">        dir_experiment: The directory the files should exist in.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        FileNotFoundError: If any of the files in `fns` do not exist in `dir_experiment`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">dir</span> <span class="o">/</span> <span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2"> does not exist at </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">check_exists</span><span class="p">(</span><span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Checks if the files in `fns` exist in `dir`.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        fns: The list of files to check.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        dir_experiment: The directory the files should exist in.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Raises:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        FileNotFoundError: If any of the files in `fns` do not exist in `dir_experiment`.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">dir</span> <span class="o">/</span> <span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2"> does not exist at </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1214,23 +1266,23 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>common/io.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ending</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Ensures that the filename `fn` ends with `ending`. If not, removes any existing ending and appends `ending`.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        fn: The filename to check.</span>
-<span class="sd">        ending: The desired ending to check for. Default is &quot;.pkl&quot;.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        The filename with the correct ending.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">path_fn</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="n">ending</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">fn</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="n">ending</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ending</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Ensures that the filename `fn` ends with `ending`. If not, removes any existing ending and appends `ending`.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        fn: The filename to check.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        ending: The desired ending to check for. Default is &quot;.pkl&quot;.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        The filename with the correct ending.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">path_fn</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="k">if</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="n">ending</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="k">return</span> <span class="n">fn</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="n">ending</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1294,21 +1346,21 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>common/io.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">experiment_io</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dir_experiments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;experiments&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create an experiment&#39;s directory and return the path.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        experiment_name: The name of the experiment.</span>
-<span class="sd">        dir_experiments: The name of the directory containing all experiments.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        The path to the experiment directory.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">dir_experiment</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dir_experiments</span><span class="p">)</span> <span class="o">/</span> <span class="n">experiment_name</span>
-    <span class="n">dir_experiment</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">dir_experiment</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">experiment_io</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dir_experiments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;experiments&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Create an experiment&#39;s directory and return the path.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        experiment_name: The name of the experiment.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        dir_experiments: The name of the directory containing all experiments.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        The path to the experiment directory.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">dir_experiment</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dir_experiments</span><span class="p">)</span> <span class="o">/</span> <span class="n">experiment_name</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">dir_experiment</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">return</span> <span class="n">dir_experiment</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1372,23 +1424,23 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>common/io.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">potential_suffix</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn_base</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks if `fn` is a suffix (starts with an underscore) to append to `fn_base`, or a filename in its own right.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        fn: The filename / potential suffix to append to `fn_base`.</span>
-<span class="sd">        fn_base: The name of the file the suffix would attach to.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        The appropriately processed `fn`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fn_base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_base</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-    <span class="k">if</span> <span class="n">fn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">fn_base</span> <span class="o">+</span> <span class="n">fn</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">fn</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">potential_suffix</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn_base</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Checks if `fn` is a suffix (starts with an underscore) to append to `fn_base`, or a filename in its own right.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        fn: The filename / potential suffix to append to `fn_base`.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        fn_base: The name of the file the suffix would attach to.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        The appropriately processed `fn`</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">fn_base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_base</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="k">if</span> <span class="n">fn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="k">return</span> <span class="n">fn_base</span> <span class="o">+</span> <span class="n">fn</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="k">return</span> <span class="n">fn</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1439,24 +1491,24 @@
 
         <details class="quote">
           <summary>Source code in <code>common/io.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">warn_if_path_supplied</span><span class="p">(</span><span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Warns if the files in `fns` include directory separators.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        fns: The list of files to check.</span>
-<span class="sd">        dir: The directory the files should exist in.</span>
-
-<span class="sd">    Warnings:</span>
-<span class="sd">        Raises a UserWarning when the path to any of the files in `fns` includes directory separators, as this may not work as intended.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Using the path supplied appended to </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">, i.e. attempting to read data from </span><span class="si">{</span><span class="nb">dir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="ne">UserWarning</span><span class="p">,</span>
-            <span class="p">)</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">warn_if_path_supplied</span><span class="p">(</span><span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Warns if the files in `fns` include directory separators.</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        fns: The list of files to check.</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        dir: The directory the files should exist in.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Warnings:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        Raises a UserWarning when the path to any of the files in `fns` includes directory separators, as this may not work as intended.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>                <span class="sa">f</span><span class="s2">&quot;Using the path supplied appended to </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">, i.e. attempting to read data from </span><span class="si">{</span><span class="nb">dir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>                <span class="ne">UserWarning</span><span class="p">,</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>            <span class="p">)</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1558,7 +1610,7 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.407015b8.min.js"></script>

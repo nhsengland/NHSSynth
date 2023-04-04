@@ -213,11 +213,15 @@
   
 
 
-  <li class="md-tabs__item">
-    <a href="../../../model_card/" class="md-tabs__link">
-      Model Card
-    </a>
-  </li>
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../modules/" class="md-tabs__link">
+        User Guide
+      </a>
+    </li>
+  
 
       
         
@@ -311,10 +315,58 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          User Guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../modules/" class="md-nav__link">
+        Modules
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../../model_card/" class="md-nav__link">
         Model Card
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1068,47 +1120,47 @@
 
         <details class="quote">
           <summary>Source code in <code>cli/run.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">run</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;&quot;&quot;</span>
-
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">prog</span><span class="o">=</span><span class="s2">&quot;nhssynth&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;</span>
-    <span class="p">)</span>
-    <span class="n">add_top_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
-
-    <span class="c1"># Below we instantiate one subparser for each module + one for running with a config file and one for</span>
-    <span class="c1"># doing a full pipeline run with CLI-specified config</span>
-    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
-
-    <span class="c1"># TODO can probably do this better as we dont actually need the `pipeline` or `config` subparsers in this dict</span>
-    <span class="n">all_subparsers</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">name</span><span class="p">:</span> <span class="n">add_subparser</span><span class="p">(</span><span class="n">subparsers</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span> <span class="ow">in</span> <span class="n">MODULE_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-    <span class="p">}</span>
-
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-
-    <span class="c1"># Use get to return None when no function has been set, i.e. user made no running choice</span>
-    <span class="n">executor</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;func&quot;</span><span class="p">)</span>
-
-    <span class="c1"># If `config` is the specified running choice, we mutate `args` in `read_config`</span>
-    <span class="c1"># else we execute according to the user&#39;s choice</span>
-    <span class="c1"># else we return `--help` if no choice has been passed, i.e. executor is None</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="p">:</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">executor</span><span class="p">:</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">get_modules_to_run</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
-        <span class="n">executor</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;--help&quot;</span><span class="p">])</span>
-
-    <span class="c1"># Whenever either are specified, we want to dump the configuration to allow for this run to be replicated</span>
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;experiments/</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">/config_</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
-        <span class="n">write_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Complete!&quot;</span><span class="p">)</span>
-</code></pre></div>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">run</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;&quot;&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="n">prog</span><span class="o">=</span><span class="s2">&quot;nhssynth&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">add_top_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="c1"># Below we instantiate one subparser for each module + one for running with a config file and one for</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="c1"># doing a full pipeline run with CLI-specified config</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="c1"># TODO can probably do this better as we dont actually need the `pipeline` or `config` subparsers in this dict</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">all_subparsers</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="n">name</span><span class="p">:</span> <span class="n">add_subparser</span><span class="p">(</span><span class="n">subparsers</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span> <span class="ow">in</span> <span class="n">MODULE_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="p">}</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="c1"># Use get to return None when no function has been set, i.e. user made no running choice</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">executor</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;func&quot;</span><span class="p">)</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="c1"># If `config` is the specified running choice, we mutate `args` in `read_config`</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="c1"># else we execute according to the user&#39;s choice</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="c1"># else we return `--help` if no choice has been passed, i.e. executor is None</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="p">:</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="n">args</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="k">elif</span> <span class="n">executor</span><span class="p">:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">get_modules_to_run</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">executor</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>        <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;--help&quot;</span><span class="p">])</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="c1"># Whenever either are specified, we want to dump the configuration to allow for this run to be replicated</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>            <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;experiments/</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">/config_</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>        <span class="n">write_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Complete!&quot;</span><span class="p">)</span>
+</span></code></pre></div>
         </details>
     </div>
 
@@ -1210,7 +1262,7 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.407015b8.min.js"></script>
