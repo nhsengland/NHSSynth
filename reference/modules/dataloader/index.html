@@ -2270,7 +2270,7 @@ This workflow is highly encouraged to ensure that the MetaTransformer is properl
 <span class="sd">            The original data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">_data_processor</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div>
@@ -2859,7 +2859,7 @@ This workflow is highly encouraged to ensure that the MetaTransformer is properl
 <span class="sd">        The original data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">_data_processor</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div>
