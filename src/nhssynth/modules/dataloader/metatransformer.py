@@ -14,13 +14,13 @@ from sdv.single_table.base import BaseSingleTableSynthesizer
 # TODO should this be an @classmethod?
 def get_transformer(d: dict) -> BaseTransformer | None:
     """
-    Return a callable transformer object extracted from the given dictionary.
+    Return a callable transformer object constructed from data in the given dictionary.
 
     Args:
         d: A dictionary containing the transformer data.
 
     Returns:
-        A callable object (transformer) if the dictionary contains transformer data, else None.
+        An instantiated `BaseTransformer` if the dictionary contains valid transformer data, else None.
     """
     transformer_data = d.get("transformer", None)
     if isinstance(transformer_data, dict) and "name" in transformer_data:
@@ -35,64 +35,88 @@ def get_transformer(d: dict) -> BaseTransformer | None:
 
 
 # TODO should this be an @classmethod?
-def make_transformer_dict(transformer: BaseTransformer | None) -> dict:
+def make_transformer_dict(transformer: BaseTransformer) -> dict[str, Any]:
     """
-    Deconstruct an instance of a transformer (if one is present) into a dictionary of config.
+    Deconstruct a `transformer` into a dictionary of config.
 
     Args:
         transformer: A BaseTransformer object from RDT (SDV).
 
     Returns:
-        A dictionary containing the transformer name and arguments.
+        A dictionary containing the transformer's name and arguments.
     """
-    if transformer:
-        return {
-            "name": type(transformer).__name__,
-            **filter_dict(
-                transformer.__dict__,
-                {"output_properties", "random_states", "transform", "reverse_transform", "_dtype"},
-            ),
-        }
-    else:
-        return None
+    return {
+        "name": type(transformer).__name__,
+        **filter_dict(
+            transformer.__dict__,
+            {"output_properties", "random_states", "transform", "reverse_transform", "_dtype"},
+        ),
+    }
 
 
 # TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
 class MetaTransformer:
     """
-    A metatransformer object that can be either a `HyperTransformer` from RDT or a `BaseSingleTableSynthesizer` from SDV.
+    A metatransformer object that can wrap either a `HyperTransformer` from RDT or a `BaseSingleTableSynthesizer` from SDV. The metatransformer
+    is responsible for transforming input data into a format that can be used by the model module, and transforming the module's output back to
+    the original format of the input data.
 
     Args:
-        data: The input data as a pandas DataFrame.
-        metadata: A dictionary containing the metadata for the input data. Each key corresponds to a column name in the
-            input data, and its value is a dictionary containing the metadata for the corresponding column. The metadata
-            should contain "dtype" and "sdtype" fields specifying the column's data type, and a "transformer" field specifying the
-            name of the transformer to use for the column and its configuration (to be instantiated below).
-        dtypes: A dictionary mapping column names to their data types.
-        sdv_workflow: A boolean flag indicating whether to use the SDV workflow or the RDT workflow. If True, the
-            TVAESynthesizer from SDV will be used as the metatransformer. If False, the HyperTransformer from
-            RDT will be used instead.
-        allow_null_transformers: A boolean flag indicating whether to allow transformers to be None. If True, a None value
-            for a transformer in the metadata will be treated as a valid value, and no transformer will be instantiated
-            for that column.
-        Synthesizer: The synthesizer class to use for the SDV workflow.
+        metadata: A dictionary mapping column names to their metadata.
+        sdv_workflow: A flag indicating whether or not to use the SDV workflow.
+        allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.
+        synthesizer: The `BaseSingleTableSynthesizer` class to use within the SDV workflow.
+
+    Once instantiated via `mt = MetaTransformer(<parameters>)`, the following attributes will be available:
+
+    Attributes:
+        sdv_workflow: A flag indicating whether or not to use the SDV workflow.
+        allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.
+        Synthesizer: The `BaseSingleTableSynthesizer` class to use within the SDV workflow.
+        dtypes: A dictionary mapping each column to its specified pandas dtype (will infer from pandas defaults if this is missing).
+        sdtypes: A dictionary mapping each column to the appropriate SDV-specific data type.
+        transformers: A dictionary mapping each column to their assigned (if any) transformer.
+
+    After preparing some data with the MetaTransformer, i.e. `prepared_data = mt.apply(data)`, the following attributes and methods will be available:
+
+    Attributes:
+        metatransformer (HyperTransformer | self.Synthesizer): An instanatiated `HyperTransformer` or `self.Synthesizer` object, ready to use on data.
+        assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.
+        categoricals (dict[str, int]): A dictionary mapping categorical columns to the number of levels in the variable.
+        num_continuous (int): The number of continuous columns.
+
+    **Methods:**
+
+    - `get_assembled_metadata()`: Return the assembled metadata.
+    - `order(prepared_data)`: Order the prepared data according to the MetaTransformer's `categoricals` and `num_continuous` attributes.
+    - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.
+
+    Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.infer_categoricals`,
+    `mt.infer_num_continuous`, and finally `mt.prepare` in sequence on a given raw dataset. Along the way it assigns the attributes listed above.
+    This workflow is highly encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.
     """
 
     def __init__(self, metadata, sdv_workflow, allow_null_transformers, synthesizer) -> None:
-
-        self.sdv_workflow = sdv_workflow
-        self.allow_null_transformers = allow_null_transformers
-        self.Synthesizer = SDV_SYNTHESIZER_CHOICES[synthesizer]
-        self.dtypes = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
-        self.sdtypes = {cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()}
-        self.transformers = {cn: get_transformer(cd) for cn, cd in metadata.items()}
+        # self.metadata: dict[str, dict[str, Any]] = metadata
+        self.sdv_workflow: bool = sdv_workflow
+        self.allow_null_transformers: bool = allow_null_transformers
+        self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZER_CHOICES[synthesizer]
+        # TODO think about whether these belong here
+        self.dtypes: dict[str, dict[str, Any]] = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
+        self.sdtypes: dict[str, dict[str, Any]] = {
+            cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()
+        }
+        self.transformers: dict[str, BaseTransformer | None] = {cn: get_transformer(cd) for cn, cd in metadata.items()}
 
     def apply_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Applies dtypes from the metadata to `data` and infers missing dtypes by reading pandas defaults.
 
+        Args:
+            data: The raw input DataFrame.
+
         Returns:
-            The data with the data types applied.
+            The data with the dtypes applied.
         """
         if not all(self.dtypes.values()):
             warnings.warn(
@@ -102,19 +126,18 @@ class MetaTransformer:
             self.dtypes.update({cn: data[cn].dtype for cn, cv in self.dtypes.items() if not cv})
         return data.astype(self.dtypes)
 
-    def instantiate_synthesizer(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
+    def _instantiate_synthesizer(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
         """
-        Instantiates a BaseSingleTableSynthesizer object from the given metadata and data.
+        Instantiates a `self.Synthesizer` object from the given metadata and data. Infers missing metadata (sdtypes and transformers).
 
         Args:
-            sdtypes: A dictionary of column names to their metadata, containing the key "sdtype" which
-                specifies the semantic SDV data type of the column.
-            transformers: A dictionary of column names to their transformers.
             data: The input DataFrame.
-            allow_null_transformers: A flag indicating whether or not to allow null transformers.
 
         Returns:
-            A BaseSingleTableSynthesizer object instantiated from the given metadata and data.
+            A fully instantiated `self.Synthesizer` object.
+
+        Raises:
+            UserWarning: If the metadata is incomplete and `self.allow_null_transformers` is `False`.
         """
         if all(self.sdtypes.values()):
             metadata = SingleTableMetadata.load_from_dict({"columns": self.sdtypes})
@@ -140,19 +163,18 @@ class MetaTransformer:
         )
         return synthesizer
 
-    def instantiate_hypertransformer(self, data: pd.DataFrame) -> HyperTransformer:
+    def _instantiate_hypertransformer(self, data: pd.DataFrame) -> HyperTransformer:
         """
-        Instantiates a HyperTransformer object from the given metadata and data.
+        Instantiates a `HyperTransformer` object from the metadata and given data. Infers missing metadata (sdtypes and transformers).
 
         Args:
-            sdtypes: A dictionary of column names to their metadata, containing the key "sdtype" which
-                specifies the semantic SDV data type of the column.
-            transformers: A dictionary of column names to their transformers.
             data: The input DataFrame.
-            allow_null_transformers: A flag indicating whether or not to allow null transformers.
 
         Returns:
-            A HyperTransformer object instantiated from the given metadata and data.
+            A fully instantiated `HyperTransformer` object.
+
+        Raises:
+            UserWarning: If the metadata is incomplete.
         """
         ht = HyperTransformer()
         if all(self.sdtypes.values()) and (all(self.transformers.values()) or self.allow_null_transformers):
@@ -175,29 +197,36 @@ class MetaTransformer:
         return ht
 
     def instantiate(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer | HyperTransformer:
-        """Calls the appropriate instantiation method based on the value of `sdv_workflow`."""
-        if self.sdv_workflow:
-            return self.instantiate_synthesizer(data)
-        else:
-            return self.instantiate_hypertransformer(data)
+        """
+        Calls the appropriate instantiation method based on the value of `self.sdv_workflow`.
 
-    def get_dtype(self, cn: str) -> str | np.dtype:
+        Args:
+            data: The input DataFrame.
+
+        Returns:
+            A fully instantiated `self.Synthesizer` or `HyperTransformer` object.
+        """
+        if self.sdv_workflow:
+            return self._instantiate_synthesizer(data)
+        else:
+            return self._instantiate_hypertransformer(data)
+
+    def _get_dtype(self, cn: str) -> str | np.dtype:
         """Returns the dtype for the given column name `cn`."""
         return self.dtypes[cn].name if not isinstance(self.dtypes[cn], str) else self.dtypes[cn]
 
-    def assemble(self) -> None:
+    def assemble(self) -> dict[str, dict[str, Any]]:
         """
-        Extracts the metadata for the transformers and sdtypes used to transform the data.
+        Rearranges the dtype, sdtype and transformer metadata into a consistent format regardless of the value of `self,sdv_workflow`
 
         Returns:
-            dict[str, Any]: A dictionary mapping column names to column metadata.
+            A dictionary mapping column names to column metadata.
                 The metadata for each column has the following keys:
-                - sdtype: The data type for the column (only present if `sdv_workflow` is False).
-                - transformer: A dictionary containing information about the transformer
-                used for the column (if any). The dictionary has the following keys:
-                - name: The name of the transformer.
-                - Any other properties of the transformer that are not private or set by a random seed.
-                - dtype: The data type for the column
+                - dtype: The pandas data type for the column
+                - sdtype: The SDV-specific data type for the column.
+                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
+                    - name: The name of the transformer.
+                    - Any other properties of the transformer that we want to record in output.
         """
         if self.sdv_workflow:
             sdmetadata = self.metatransformer.metadata
@@ -205,8 +234,8 @@ class MetaTransformer:
             return {
                 cn: {
                     **cd,
-                    "transformer": make_transformer_dict(transformers[cn]),
-                    "dtype": self.get_dtype(cn),
+                    "transformer": make_transformer_dict(transformers[cn]) if transformers[cn] else None,
+                    "dtype": self._get_dtype(cn),
                 }
                 for cn, cd in sdmetadata.columns.items()
             }
@@ -215,31 +244,38 @@ class MetaTransformer:
             return {
                 cn: {
                     "sdtype": cd,
-                    "transformer": make_transformer_dict(config["transformers"][cn]),
-                    "dtype": self.get_dtype(cn),
+                    "transformer": make_transformer_dict(config["transformers"][cn])
+                    if config["transformers"][cn]
+                    else None,
+                    "dtype": self._get_dtype(cn),
                 }
                 for cn, cd in config["sdtypes"].items()
             }
 
-    def infer_categorical_and_continuous(self, data: pd.DataFrame) -> tuple[dict[str, int], int]:
+    def infer_categoricals(self, data: pd.DataFrame) -> dict[str, int]:
         """
-        Infers the categorical columns from the data.
+        Uses the (assembled) metadata to identify the categorical columns from the data and count the number of levels each categorical variable has.
 
         Args:
-            data: The data to infer the categorical columns from.
+            data: The data to infer the categorical columns from using `self.assembled_metadata`
 
         Returns:
             A dictionary mapping column names to the number of unique values in the column (if the column is categorical).
         """
-        categoricals = {
-            cn: data[cn].nunique() for cn, cd in self.assembled_metadata.items() if cd["sdtype"] == "categorical"
-        }
-        num_continuous = len(data.columns) - len(categoricals)
-        return categoricals, num_continuous
+        return {cn: data[cn].nunique() for cn, cd in self.assembled_metadata.items() if cd["sdtype"] == "categorical"}
+
+    def infer_num_continuous(self) -> int:
+        """
+        Uses the (assembled) metadata to infers the number of continuous columns in the data.
+
+        Returns:
+            The number of continuous columns
+        """
+        return sum([cd["sdtype"] != "categorical" for cd in self.assembled_metadata.values()])
 
     def prepare(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Prepares the data by processing via the metatransformer.
+        Prepares the data by processing it via the metatransformer.
 
         Args:
             data: The data to fit and apply the transformer to.
@@ -262,9 +298,9 @@ class MetaTransformer:
         typed_data = self.apply_dtypes(data)
         self.metatransformer = self.instantiate(typed_data)
         self.assembled_metadata = self.assemble()
-        self.categoricals, self.num_continuous = self.infer_categorical_and_continuous(typed_data)
-        prepared_data = self.prepare(typed_data)
-        return prepared_data
+        self.categoricals = self.infer_categoricals(typed_data)
+        self.num_continuous = self.infer_num_continuous()
+        return self.prepare(typed_data)
 
     def get_assembled_metadata(self) -> dict[str, dict[str, Any]]:
         """
@@ -273,12 +309,11 @@ class MetaTransformer:
         Returns:
             A dictionary mapping column names to column metadata.
                 The metadata for each column has the following keys:
-                - sdtype: The data type for the column (only present if `sdv_workflow` is False).
-                - transformer: A dictionary containing information about the transformer
-                used for the column (if any). The dictionary has the following keys:
-                - name: The name of the transformer.
-                - Any other properties of the transformer that are not private or set by a random seed.
-                - dtype: The data type for the column
+                - dtype: The pandas data type for the column
+                - sdtype: The SDV-specific data type for the column.
+                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
+                    - name: The name of the transformer.
+                    - Any other properties of the transformer that we want to record in output.
 
         Raises:
             ValueError: If the metadata has not yet been assembled.
@@ -297,16 +332,15 @@ class MetaTransformer:
             data: The data to order.
 
         Returns:
-            A tuple containing the ordered data, a list of the number of unique values for each categorical column,
-            and the number of continuous columns.
+            A tuple containing the ordered data, a list of the number of unique values for each categorical column, and the number of continuous columns.
 
         Raises:
-            ValueError: If the categorical and continuous metadata has not yet been inferred.
-            ValueError: If a column is not found in the passed data.
+            ValueError: If the metadata has not yet been finalised and assembled or `categoricals` and/or `num_continuous` have yet to be inferred.
+            ValueError: If a column in `self.assembled_metadata` is not found in the passed data.
         """
-        if not self.categoricals or not self.num_continuous:
+        if not self.categoricals or not self.num_continuous or not self.assembled_metadata:
             raise ValueError(
-                "Categorical and continuous metadata has not yet been inferred. Call `MetaTransformer.apply` (or `MetaTransformer.infer_categorical_and_continuous`) first."
+                "Some metadata is missing. Call `mt.apply(data)` first (or `mt.[assemble(),infer_categoricals(data),infer_num_continuous()]` in sequence)."
             )
         categorical_ordering = []
         continuous_ordering = []
