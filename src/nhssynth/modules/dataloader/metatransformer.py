@@ -366,6 +366,6 @@ class MetaTransformer:
             The original data.
         """
         if self.sdv_workflow:
-            return self.metatransformer.reverse_transform(data)
+            return self.metatransformer._data_processor.reverse_transform(data)
         else:
             return self.metatransformer.reverse_transform(data)
