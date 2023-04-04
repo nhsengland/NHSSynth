@@ -9,13 +9,10 @@ from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
     """
-    Runs the main workflow of the dataloader module, transforming the input data and writing the output to file.
+    Runs the main workflow of the dataloader module, transforming the input data and writing the output and transformer used to file.
 
     Args:
         args: An argparse Namespace containing the command line arguments.
-
-    Returns:
-        None
     """
     print("Running dataloader module...")
 
