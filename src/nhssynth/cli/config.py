@@ -151,7 +151,7 @@ def assemble_config(
         ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.
     """
     args_dict = vars(args)
-    modules_to_run = args_dict["modules_to_run"]
+    modules_to_run = args_dict.pop("modules_to_run")
     if len(modules_to_run) == 1:
         run_type = modules_to_run[0]
     elif modules_to_run == PIPELINE:
