@@ -15,29 +15,29 @@ and you will be able to use it in your code!
 The following instructions specify how to extend this package with a new module:
 
 1. Create a folder for your module within the package, i.e. `src/nhssynth/modules/mymodule`
-2. Include within it a main executor that accepts arguments from the CLI, e.g.
+2. Include within it a main executor function that accepts arguments from the CLI, i.e.
 
     ```python
     def myexecutor(args):
         ...
     ```
 
-    In `mymodule/executor.py` and export this by adding `from .executor import myexecutor` in `mymodule/__init__.py`.
+    In `mymodule/executor.py` and export it by adding `#!python from .executor import myexecutor` to `mymodule/__init__.py`.
 
-3. In the `cli` folder, add the following code blocks to `arguments.py` and populate them in a similar fashion to the other modules as you build:
+3. In the `cli` folder, add a corresponding function to `arguments.py` and populate with arguments you want to expose in the CLI:
 
     ```python
     def add_mymodule_args(parser: argparse.ArgumentParser, override=False):
         ...
     ```
 
-4. Next, in `module_setup.py` add the following code:
+4. Next, in `module_setup.py` make the following adjustments the following code:
 
     ```python
     from nhssynth.modules import ..., mymodule, ...
     ```
 
-    ```python
+    ```python hl_lines="3 4 5 6 7 8"
     MODULE_MAP = {
         ...
         "mymodule": ModuleConfig(
