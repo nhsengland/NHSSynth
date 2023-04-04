@@ -719,15 +719,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.get_dtype" class="md-nav__link">
-    get_dtype()
+  <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.infer_categoricals" class="md-nav__link">
+    infer_categoricals()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.infer_categorical_and_continuous" class="md-nav__link">
-    infer_categorical_and_continuous()
+  <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.infer_num_continuous" class="md-nav__link">
+    infer_num_continuous()
   </a>
   
 </li>
@@ -735,20 +735,6 @@
           <li class="md-nav__item">
   <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.instantiate" class="md-nav__link">
     instantiate()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.instantiate_hypertransformer" class="md-nav__link">
-    instantiate_hypertransformer()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nhssynth.modules.dataloader.metatransformer.MetaTransformer.instantiate_synthesizer" class="md-nav__link">
-    instantiate_synthesizer()
   </a>
   
 </li>
@@ -1143,11 +1129,11 @@
 
 <div class="doc doc-object doc-module">
 
-
 <a id="nhssynth.modules.dataloader.metatransformer"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
+
 
   <div class="doc doc-children">
 
@@ -1157,412 +1143,210 @@
 
 
 
-
-<div class="doc doc-object doc-class">
+  <div class="doc doc-object doc-class">
 
 
 
 <h2 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer" class="doc doc-heading">
-        <code>MetaTransformer</code>
+        <code>
+MetaTransformer        </code>
+
 
 
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
+      <p>A metatransformer object that can wrap either a <code>HyperTransformer</code> from RDT or a <code>BaseSingleTableSynthesizer</code> from SDV. The metatransformer
+is responsible for transforming input data into a format that can be used by the model module, and transforming the module's output back to
+the original format of the input data.</p>
 
-  
-      <p>A metatransformer object that can be either a <code>HyperTransformer</code> from RDT or a <code>BaseSingleTableSynthesizer</code> from SDV.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>metadata</code></td>
+        <td></td>
+        <td><p>A dictionary mapping column names to their metadata.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-          </td>
-          <td><p>The input data as a pandas DataFrame.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>metadata</code></td>
-          <td>
-          </td>
-          <td><p>A dictionary containing the metadata for the input data. Each key corresponds to a column name in the
-input data, and its value is a dictionary containing the metadata for the corresponding column. The metadata
-should contain "dtype" and "sdtype" fields specifying the column's data type, and a "transformer" field specifying the
-name of the transformer to use for the column and its configuration (to be instantiated below).</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>dtypes</code></td>
-          <td>
-          </td>
-          <td><p>A dictionary mapping column names to their data types.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>sdv_workflow</code></td>
-          <td>
-          </td>
-          <td><p>A boolean flag indicating whether to use the SDV workflow or the RDT workflow. If True, the
-TVAESynthesizer from SDV will be used as the metatransformer. If False, the HyperTransformer from
-RDT will be used instead.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>allow_null_transformers</code></td>
-          <td>
-          </td>
-          <td><p>A boolean flag indicating whether to allow transformers to be None. If True, a None value
-for a transformer in the metadata will be treated as a valid value, and no transformer will be instantiated
-for that column.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>Synthesizer</code></td>
-          <td>
-          </td>
-          <td><p>The synthesizer class to use for the SDV workflow.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+      <tr>
+        <td><code>sdv_workflow</code></td>
+        <td></td>
+        <td><p>A flag indicating whether or not to use the SDV workflow.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>allow_null_transformers</code></td>
+        <td></td>
+        <td><p>A flag indicating whether or not to allow null transformers on some / all columns.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>synthesizer</code></td>
+        <td></td>
+        <td><p>The <code>BaseSingleTableSynthesizer</code> class to use within the SDV workflow.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>      <p>Once instantiated via <code>mt = MetaTransformer(&lt;parameters&gt;)</code>, the following attributes will be available:</p>
 
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>sdv_workflow</code></td>
+        <td><code>bool</code></td>
+        <td><p>A flag indicating whether or not to use the SDV workflow.</p></td>
+      </tr>
+      <tr>
+        <td><code>allow_null_transformers</code></td>
+        <td><code>bool</code></td>
+        <td><p>A flag indicating whether or not to allow null transformers on some / all columns.</p></td>
+      </tr>
+      <tr>
+        <td><code>Synthesizer</code></td>
+        <td><code>BaseSingleTableSynthesizer</code></td>
+        <td><p>The <code>BaseSingleTableSynthesizer</code> class to use within the SDV workflow.</p></td>
+      </tr>
+      <tr>
+        <td><code>dtypes</code></td>
+        <td><code>dict[str, dict[str, Any]]</code></td>
+        <td><p>A dictionary mapping each column to its specified pandas dtype (will infer from pandas defaults if this is missing).</p></td>
+      </tr>
+      <tr>
+        <td><code>sdtypes</code></td>
+        <td><code>dict[str, dict[str, Any]]</code></td>
+        <td><p>A dictionary mapping each column to the appropriate SDV-specific data type.</p></td>
+      </tr>
+      <tr>
+        <td><code>transformers</code></td>
+        <td><code>dict[str, BaseTransformer | None]</code></td>
+        <td><p>A dictionary mapping each column to their assigned (if any) transformer.</p></td>
+      </tr>
+  </tbody>
+</table>      <p>After preparing some data with the MetaTransformer, i.e. <code>prepared_data = mt.apply(data)</code>, the following attributes and methods will be available:</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>metatransformer</code></td>
+        <td><code>HyperTransformer | self.Synthesizer</code></td>
+        <td><p>An instanatiated <code>HyperTransformer</code> or <code>self.Synthesizer</code> object, ready to use on data.</p></td>
+      </tr>
+      <tr>
+        <td><code>assembled_metadata</code></td>
+        <td><code>dict[str, dict[str, Any]]</code></td>
+        <td><p>A dictionary containing the formatted and complete metadata for the MetaTransformer.</p></td>
+      </tr>
+      <tr>
+        <td><code>categoricals</code></td>
+        <td><code>dict[str, int]</code></td>
+        <td><p>A dictionary mapping categorical columns to the number of levels in the variable.</p></td>
+      </tr>
+      <tr>
+        <td><code>num_continuous</code></td>
+        <td><code>int</code></td>
+        <td><p>The number of continuous columns.</p></td>
+      </tr>
+  </tbody>
+</table>      <p><strong>Methods:</strong></p>
+<ul>
+<li><code>get_assembled_metadata()</code>: Return the assembled metadata.</li>
+<li><code>order(prepared_data)</code>: Order the prepared data according to the MetaTransformer's <code>categoricals</code> and <code>num_continuous</code> attributes.</li>
+<li><code>inverse_apply(synthetic_data)</code>: Apply the inverse of the MetaTransformer to the given data.</li>
+</ul>
+<p>Note that <code>mt.apply</code> is a helper function that runs <code>mt.apply_dtypes</code>, <code>mt.instaniate</code>, <code>mt.assemble</code>, <code>mt.infer_categoricals</code>,
+<code>mt.infer_num_continuous</code>, and finally <code>mt.prepare</code> in sequence on a given raw dataset. Along the way it assigns the attributes listed above.
+This workflow is highly encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.</p>
 
         <details class="quote">
-          <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 61</span>
-<span class="normal"> 62</span>
-<span class="normal"> 63</span>
-<span class="normal"> 64</span>
-<span class="normal"> 65</span>
-<span class="normal"> 66</span>
-<span class="normal"> 67</span>
-<span class="normal"> 68</span>
-<span class="normal"> 69</span>
-<span class="normal"> 70</span>
-<span class="normal"> 71</span>
-<span class="normal"> 72</span>
-<span class="normal"> 73</span>
-<span class="normal"> 74</span>
-<span class="normal"> 75</span>
-<span class="normal"> 76</span>
-<span class="normal"> 77</span>
-<span class="normal"> 78</span>
-<span class="normal"> 79</span>
-<span class="normal"> 80</span>
-<span class="normal"> 81</span>
-<span class="normal"> 82</span>
-<span class="normal"> 83</span>
-<span class="normal"> 84</span>
-<span class="normal"> 85</span>
-<span class="normal"> 86</span>
-<span class="normal"> 87</span>
-<span class="normal"> 88</span>
-<span class="normal"> 89</span>
-<span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span>
-<span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span>
-<span class="normal">202</span>
-<span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span>
-<span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
-<span class="normal">258</span>
-<span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span>
-<span class="normal">266</span>
-<span class="normal">267</span>
-<span class="normal">268</span>
-<span class="normal">269</span>
-<span class="normal">270</span>
-<span class="normal">271</span>
-<span class="normal">272</span>
-<span class="normal">273</span>
-<span class="normal">274</span>
-<span class="normal">275</span>
-<span class="normal">276</span>
-<span class="normal">277</span>
-<span class="normal">278</span>
-<span class="normal">279</span>
-<span class="normal">280</span>
-<span class="normal">281</span>
-<span class="normal">282</span>
-<span class="normal">283</span>
-<span class="normal">284</span>
-<span class="normal">285</span>
-<span class="normal">286</span>
-<span class="normal">287</span>
-<span class="normal">288</span>
-<span class="normal">289</span>
-<span class="normal">290</span>
-<span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
-<span class="normal">295</span>
-<span class="normal">296</span>
-<span class="normal">297</span>
-<span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span>
-<span class="normal">301</span>
-<span class="normal">302</span>
-<span class="normal">303</span>
-<span class="normal">304</span>
-<span class="normal">305</span>
-<span class="normal">306</span>
-<span class="normal">307</span>
-<span class="normal">308</span>
-<span class="normal">309</span>
-<span class="normal">310</span>
-<span class="normal">311</span>
-<span class="normal">312</span>
-<span class="normal">313</span>
-<span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
-<span class="normal">323</span>
-<span class="normal">324</span>
-<span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
-<span class="normal">328</span>
-<span class="normal">329</span>
-<span class="normal">330</span>
-<span class="normal">331</span>
-<span class="normal">332</span>
-<span class="normal">333</span>
-<span class="normal">334</span>
-<span class="normal">335</span>
-<span class="normal">336</span>
-<span class="normal">337</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MetaTransformer</span><span class="p">:</span>
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">MetaTransformer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A metatransformer object that can be either a `HyperTransformer` from RDT or a `BaseSingleTableSynthesizer` from SDV.</span>
+<span class="sd">    A metatransformer object that can wrap either a `HyperTransformer` from RDT or a `BaseSingleTableSynthesizer` from SDV. The metatransformer</span>
+<span class="sd">    is responsible for transforming input data into a format that can be used by the model module, and transforming the module&#39;s output back to</span>
+<span class="sd">    the original format of the input data.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        data: The input data as a pandas DataFrame.</span>
-<span class="sd">        metadata: A dictionary containing the metadata for the input data. Each key corresponds to a column name in the</span>
-<span class="sd">            input data, and its value is a dictionary containing the metadata for the corresponding column. The metadata</span>
-<span class="sd">            should contain &quot;dtype&quot; and &quot;sdtype&quot; fields specifying the column&#39;s data type, and a &quot;transformer&quot; field specifying the</span>
-<span class="sd">            name of the transformer to use for the column and its configuration (to be instantiated below).</span>
-<span class="sd">        dtypes: A dictionary mapping column names to their data types.</span>
-<span class="sd">        sdv_workflow: A boolean flag indicating whether to use the SDV workflow or the RDT workflow. If True, the</span>
-<span class="sd">            TVAESynthesizer from SDV will be used as the metatransformer. If False, the HyperTransformer from</span>
-<span class="sd">            RDT will be used instead.</span>
-<span class="sd">        allow_null_transformers: A boolean flag indicating whether to allow transformers to be None. If True, a None value</span>
-<span class="sd">            for a transformer in the metadata will be treated as a valid value, and no transformer will be instantiated</span>
-<span class="sd">            for that column.</span>
-<span class="sd">        Synthesizer: The synthesizer class to use for the SDV workflow.</span>
+<span class="sd">        metadata: A dictionary mapping column names to their metadata.</span>
+<span class="sd">        sdv_workflow: A flag indicating whether or not to use the SDV workflow.</span>
+<span class="sd">        allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.</span>
+<span class="sd">        synthesizer: The `BaseSingleTableSynthesizer` class to use within the SDV workflow.</span>
+
+<span class="sd">    Once instantiated via `mt = MetaTransformer(&lt;parameters&gt;)`, the following attributes will be available:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        sdv_workflow: A flag indicating whether or not to use the SDV workflow.</span>
+<span class="sd">        allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.</span>
+<span class="sd">        Synthesizer: The `BaseSingleTableSynthesizer` class to use within the SDV workflow.</span>
+<span class="sd">        dtypes: A dictionary mapping each column to its specified pandas dtype (will infer from pandas defaults if this is missing).</span>
+<span class="sd">        sdtypes: A dictionary mapping each column to the appropriate SDV-specific data type.</span>
+<span class="sd">        transformers: A dictionary mapping each column to their assigned (if any) transformer.</span>
+
+<span class="sd">    After preparing some data with the MetaTransformer, i.e. `prepared_data = mt.apply(data)`, the following attributes and methods will be available:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        metatransformer (HyperTransformer | self.Synthesizer): An instanatiated `HyperTransformer` or `self.Synthesizer` object, ready to use on data.</span>
+<span class="sd">        assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.</span>
+<span class="sd">        categoricals (dict[str, int]): A dictionary mapping categorical columns to the number of levels in the variable.</span>
+<span class="sd">        num_continuous (int): The number of continuous columns.</span>
+
+<span class="sd">    **Methods:**</span>
+
+<span class="sd">    - `get_assembled_metadata()`: Return the assembled metadata.</span>
+<span class="sd">    - `order(prepared_data)`: Order the prepared data according to the MetaTransformer&#39;s `categoricals` and `num_continuous` attributes.</span>
+<span class="sd">    - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.</span>
+
+<span class="sd">    Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.infer_categoricals`,</span>
+<span class="sd">    `mt.infer_num_continuous`, and finally `mt.prepare` in sequence on a given raw dataset. Along the way it assigns the attributes listed above.</span>
+<span class="sd">    This workflow is highly encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">sdv_workflow</span><span class="p">,</span> <span class="n">allow_null_transformers</span><span class="p">,</span> <span class="n">synthesizer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span> <span class="o">=</span> <span class="n">sdv_workflow</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span> <span class="o">=</span> <span class="n">allow_null_transformers</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Synthesizer</span> <span class="o">=</span> <span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="p">[</span><span class="n">synthesizer</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="s2">&quot;transformer&quot;</span><span class="p">})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">get_transformer</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="c1"># self.metadata: dict[str, dict[str, Any]] = metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">sdv_workflow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">allow_null_transformers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Synthesizer</span><span class="p">:</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">=</span> <span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="p">[</span><span class="n">synthesizer</span><span class="p">]</span>
+        <span class="c1"># TODO think about whether these belong here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">cn</span><span class="p">:</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="s2">&quot;transformer&quot;</span><span class="p">})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BaseTransformer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">get_transformer</span><span class="p">(</span><span class="n">cd</span><span class="p">)</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="k">def</span> <span class="nf">apply_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Applies dtypes from the metadata to `data` and infers missing dtypes by reading pandas defaults.</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">            data: The raw input DataFrame.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            The data with the data types applied.</span>
+<span class="sd">            The data with the dtypes applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -1572,19 +1356,18 @@ for that column.</p></td>
             <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cv</span><span class="p">})</span>
         <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">instantiate_synthesizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleTableSynthesizer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_instantiate_synthesizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleTableSynthesizer</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Instantiates a BaseSingleTableSynthesizer object from the given metadata and data.</span>
+<span class="sd">        Instantiates a `self.Synthesizer` object from the given metadata and data. Infers missing metadata (sdtypes and transformers).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            sdtypes: A dictionary of column names to their metadata, containing the key &quot;sdtype&quot; which</span>
-<span class="sd">                specifies the semantic SDV data type of the column.</span>
-<span class="sd">            transformers: A dictionary of column names to their transformers.</span>
 <span class="sd">            data: The input DataFrame.</span>
-<span class="sd">            allow_null_transformers: A flag indicating whether or not to allow null transformers.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A BaseSingleTableSynthesizer object instantiated from the given metadata and data.</span>
+<span class="sd">            A fully instantiated `self.Synthesizer` object.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            UserWarning: If the metadata is incomplete and `self.allow_null_transformers` is `False`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="n">metadata</span> <span class="o">=</span> <span class="n">SingleTableMetadata</span><span class="o">.</span><span class="n">load_from_dict</span><span class="p">({</span><span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="p">})</span>
@@ -1610,19 +1393,18 @@ for that column.</p></td>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">synthesizer</span>
 
-    <span class="k">def</span> <span class="nf">instantiate_hypertransformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HyperTransformer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_instantiate_hypertransformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HyperTransformer</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Instantiates a HyperTransformer object from the given metadata and data.</span>
+<span class="sd">        Instantiates a `HyperTransformer` object from the metadata and given data. Infers missing metadata (sdtypes and transformers).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            sdtypes: A dictionary of column names to their metadata, containing the key &quot;sdtype&quot; which</span>
-<span class="sd">                specifies the semantic SDV data type of the column.</span>
-<span class="sd">            transformers: A dictionary of column names to their transformers.</span>
 <span class="sd">            data: The input DataFrame.</span>
-<span class="sd">            allow_null_transformers: A flag indicating whether or not to allow null transformers.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A HyperTransformer object instantiated from the given metadata and data.</span>
+<span class="sd">            A fully instantiated `HyperTransformer` object.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            UserWarning: If the metadata is incomplete.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ht</span> <span class="o">=</span> <span class="n">HyperTransformer</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">):</span>
@@ -1645,29 +1427,36 @@ for that column.</p></td>
         <span class="k">return</span> <span class="n">ht</span>
 
     <span class="k">def</span> <span class="nf">instantiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls the appropriate instantiation method based on the value of `sdv_workflow`.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_synthesizer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_hypertransformer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calls the appropriate instantiation method based on the value of `self.sdv_workflow`.</span>
 
-    <span class="k">def</span> <span class="nf">get_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+<span class="sd">        Args:</span>
+<span class="sd">            data: The input DataFrame.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A fully instantiated `self.Synthesizer` or `HyperTransformer` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instantiate_synthesizer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instantiate_hypertransformer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the dtype for the given column name `cn`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">cn</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Extracts the metadata for the transformers and sdtypes used to transform the data.</span>
+<span class="sd">        Rearranges the dtype, sdtype and transformer metadata into a consistent format regardless of the value of `self,sdv_workflow`</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dict[str, Any]: A dictionary mapping column names to column metadata.</span>
+<span class="sd">            A dictionary mapping column names to column metadata.</span>
 <span class="sd">                The metadata for each column has the following keys:</span>
-<span class="sd">                - sdtype: The data type for the column (only present if `sdv_workflow` is False).</span>
-<span class="sd">                - transformer: A dictionary containing information about the transformer</span>
-<span class="sd">                used for the column (if any). The dictionary has the following keys:</span>
-<span class="sd">                - name: The name of the transformer.</span>
-<span class="sd">                - Any other properties of the transformer that are not private or set by a random seed.</span>
-<span class="sd">                - dtype: The data type for the column</span>
+<span class="sd">                - dtype: The pandas data type for the column</span>
+<span class="sd">                - sdtype: The SDV-specific data type for the column.</span>
+<span class="sd">                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:</span>
+<span class="sd">                    - name: The name of the transformer.</span>
+<span class="sd">                    - Any other properties of the transformer that we want to record in output.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
             <span class="n">sdmetadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">metadata</span>
@@ -1675,8 +1464,8 @@ for that column.</p></td>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="n">cn</span><span class="p">:</span> <span class="p">{</span>
                     <span class="o">**</span><span class="n">cd</span><span class="p">,</span>
-                    <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">transformers</span><span class="p">[</span><span class="n">cn</span><span class="p">]),</span>
-                    <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
+                    <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">transformers</span><span class="p">[</span><span class="n">cn</span><span class="p">])</span> <span class="k">if</span> <span class="n">transformers</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
                 <span class="p">}</span>
                 <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">sdmetadata</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">}</span>
@@ -1685,31 +1474,38 @@ for that column.</p></td>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="n">cn</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s2">&quot;sdtype&quot;</span><span class="p">:</span> <span class="n">cd</span><span class="p">,</span>
-                    <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;transformers&quot;</span><span class="p">][</span><span class="n">cn</span><span class="p">]),</span>
-                    <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
+                    <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;transformers&quot;</span><span class="p">][</span><span class="n">cn</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;transformers&quot;</span><span class="p">][</span><span class="n">cn</span><span class="p">]</span>
+                    <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
                 <span class="p">}</span>
                 <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;sdtypes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">infer_categorical_and_continuous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">infer_categoricals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Infers the categorical columns from the data.</span>
+<span class="sd">        Uses the (assembled) metadata to identify the categorical columns from the data and count the number of levels each categorical variable has.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            data: The data to infer the categorical columns from.</span>
+<span class="sd">            data: The data to infer the categorical columns from using `self.assembled_metadata`</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary mapping column names to the number of unique values in the column (if the column is categorical).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">categoricals</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span>
-        <span class="p">}</span>
-        <span class="n">num_continuous</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">categoricals</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">categoricals</span><span class="p">,</span> <span class="n">num_continuous</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">infer_num_continuous</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses the (assembled) metadata to infers the number of continuous columns in the data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The number of continuous columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">cd</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;categorical&quot;</span> <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
     <span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Prepares the data by processing via the metatransformer.</span>
+<span class="sd">        Prepares the data by processing it via the metatransformer.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            data: The data to fit and apply the transformer to.</span>
@@ -1732,9 +1528,9 @@ for that column.</p></td>
         <span class="n">typed_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_dtypes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_categorical_and_continuous</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
-        <span class="n">prepared_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">prepared_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_categoricals</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_num_continuous</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_assembled_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1743,12 +1539,11 @@ for that column.</p></td>
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary mapping column names to column metadata.</span>
 <span class="sd">                The metadata for each column has the following keys:</span>
-<span class="sd">                - sdtype: The data type for the column (only present if `sdv_workflow` is False).</span>
-<span class="sd">                - transformer: A dictionary containing information about the transformer</span>
-<span class="sd">                used for the column (if any). The dictionary has the following keys:</span>
-<span class="sd">                - name: The name of the transformer.</span>
-<span class="sd">                - Any other properties of the transformer that are not private or set by a random seed.</span>
-<span class="sd">                - dtype: The data type for the column</span>
+<span class="sd">                - dtype: The pandas data type for the column</span>
+<span class="sd">                - sdtype: The SDV-specific data type for the column.</span>
+<span class="sd">                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:</span>
+<span class="sd">                    - name: The name of the transformer.</span>
+<span class="sd">                    - Any other properties of the transformer that we want to record in output.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If the metadata has not yet been assembled.</span>
@@ -1767,16 +1562,15 @@ for that column.</p></td>
 <span class="sd">            data: The data to order.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A tuple containing the ordered data, a list of the number of unique values for each categorical column,</span>
-<span class="sd">            and the number of continuous columns.</span>
+<span class="sd">            A tuple containing the ordered data, a list of the number of unique values for each categorical column, and the number of continuous columns.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            ValueError: If the categorical and continuous metadata has not yet been inferred.</span>
-<span class="sd">            ValueError: If a column is not found in the passed data.</span>
+<span class="sd">            ValueError: If the metadata has not yet been finalised and assembled or `categoricals` and/or `num_continuous` have yet to be inferred.</span>
+<span class="sd">            ValueError: If a column in `self.assembled_metadata` is not found in the passed data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Categorical and continuous metadata has not yet been inferred. Call `MetaTransformer.apply` (or `MetaTransformer.infer_categorical_and_continuous`) first.&quot;</span>
+                <span class="s2">&quot;Some metadata is missing. Call `mt.apply(data)` first (or `mt.[assemble(),infer_categoricals(data),infer_num_continuous()]` in sequence).&quot;</span>
             <span class="p">)</span>
         <span class="n">categorical_ordering</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">continuous_ordering</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1805,10 +1599,10 @@ for that column.</p></td>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1820,80 +1614,58 @@ for that column.</p></td>
 
 
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.apply" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Applies the various steps of the MetaTransformer to a passed DataFrame.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The DataFrame to transform.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The DataFrame to transform.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The transformed data.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
-<span class="normal">258</span>
-<span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span>
-<span class="normal">266</span>
-<span class="normal">267</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>DataFrame</code></td>
+      <td><p>The transformed data.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applies the various steps of the MetaTransformer to a passed DataFrame.</span>
 
@@ -1906,68 +1678,76 @@ for that column.</p></td>
     <span class="n">typed_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_dtypes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_categorical_and_continuous</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
-    <span class="n">prepared_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">prepared_data</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+    <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_categoricals</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infer_num_continuous</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.apply_dtypes" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">apply_dtypes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">apply_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Applies dtypes from the metadata to <code>data</code> and infers missing dtypes by reading pandas defaults.</p>
 
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Type</th>
-        <th>Description</th>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The raw input DataFrame.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The data with the data types applied.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">apply_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>DataFrame</code></td>
+      <td><p>The data with the dtypes applied.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">apply_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applies dtypes from the metadata to `data` and infers missing dtypes by reading pandas defaults.</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        data: The raw input DataFrame.</span>
+
 <span class="sd">    Returns:</span>
-<span class="sd">        The data with the data types applied.</span>
+<span class="sd">        The data with the dtypes applied.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -1976,100 +1756,68 @@ for that column.</p></td>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cv</span><span class="p">})</span>
     <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.assemble" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">assemble</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Extracts the metadata for the transformers and sdtypes used to transform the data.</p>
+      <p>Rearranges the dtype, sdtype and transformer metadata into a consistent format regardless of the value of <code>self,sdv_workflow</code></p>
 
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>None</code>
-          </td>
-          <td><p>dict[str, Any]: A dictionary mapping column names to column metadata.
-The metadata for each column has the following keys:
-- sdtype: The data type for the column (only present if <code>sdv_workflow</code> is False).
-- transformer: A dictionary containing information about the transformer
-used for the column (if any). The dictionary has the following keys:
-- name: The name of the transformer.
-- Any other properties of the transformer that are not private or set by a random seed.
-- dtype: The data type for the column</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span>
-<span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span>
-<span class="normal">202</span>
-<span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span>
-<span class="normal">222</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>A dictionary mapping column names to column metadata.
+    The metadata for each column has the following keys</code></td>
+      <td><ul>
+<li>dtype: The pandas data type for the column<ul>
+<li>sdtype: The SDV-specific data type for the column.</li>
+<li>transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:<ul>
+<li>name: The name of the transformer.</li>
+<li>Any other properties of the transformer that we want to record in output.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extracts the metadata for the transformers and sdtypes used to transform the data.</span>
+<span class="sd">    Rearranges the dtype, sdtype and transformer metadata into a consistent format regardless of the value of `self,sdv_workflow`</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        dict[str, Any]: A dictionary mapping column names to column metadata.</span>
+<span class="sd">        A dictionary mapping column names to column metadata.</span>
 <span class="sd">            The metadata for each column has the following keys:</span>
-<span class="sd">            - sdtype: The data type for the column (only present if `sdv_workflow` is False).</span>
-<span class="sd">            - transformer: A dictionary containing information about the transformer</span>
-<span class="sd">            used for the column (if any). The dictionary has the following keys:</span>
-<span class="sd">            - name: The name of the transformer.</span>
-<span class="sd">            - Any other properties of the transformer that are not private or set by a random seed.</span>
-<span class="sd">            - dtype: The data type for the column</span>
+<span class="sd">            - dtype: The pandas data type for the column</span>
+<span class="sd">            - sdtype: The SDV-specific data type for the column.</span>
+<span class="sd">            - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:</span>
+<span class="sd">                - name: The name of the transformer.</span>
+<span class="sd">                - Any other properties of the transformer that we want to record in output.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
         <span class="n">sdmetadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">metadata</span>
@@ -2077,8 +1825,8 @@ used for the column (if any). The dictionary has the following keys:
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">cn</span><span class="p">:</span> <span class="p">{</span>
                 <span class="o">**</span><span class="n">cd</span><span class="p">,</span>
-                <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">transformers</span><span class="p">[</span><span class="n">cn</span><span class="p">]),</span>
-                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
+                <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">transformers</span><span class="p">[</span><span class="n">cn</span><span class="p">])</span> <span class="k">if</span> <span class="n">transformers</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">sdmetadata</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
@@ -2087,110 +1835,90 @@ used for the column (if any). The dictionary has the following keys:
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">cn</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;sdtype&quot;</span><span class="p">:</span> <span class="n">cd</span><span class="p">,</span>
-                <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;transformers&quot;</span><span class="p">][</span><span class="n">cn</span><span class="p">]),</span>
-                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
+                <span class="s2">&quot;transformer&quot;</span><span class="p">:</span> <span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;transformers&quot;</span><span class="p">][</span><span class="n">cn</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;transformers&quot;</span><span class="p">][</span><span class="n">cn</span><span class="p">]</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">),</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;sdtypes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.get_assembled_metadata" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_assembled_metadata</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">get_assembled_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Returns the assembled metadata for the transformer.</p>
 
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>A dictionary mapping column names to column metadata.
+    The metadata for each column has the following keys</code></td>
+      <td><ul>
+<li>dtype: The pandas data type for the column<ul>
+<li>sdtype: The SDV-specific data type for the column.</li>
+<li>transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:<ul>
+<li>name: The name of the transformer.</li>
+<li>Any other properties of the transformer that we want to record in output.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Type</th>
-        <th>Description</th>
+        <td><code>ValueError</code></td>
+        <td><p>If the metadata has not yet been assembled.</p></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>dict[str, dict[str, <span title="typing.Any">Any</span>]]</code>
-          </td>
-          <td><p>A dictionary mapping column names to column metadata.
-The metadata for each column has the following keys:
-- sdtype: The data type for the column (only present if <code>sdv_workflow</code> is False).
-- transformer: A dictionary containing information about the transformer
-used for the column (if any). The dictionary has the following keys:
-- name: The name of the transformer.
-- Any other properties of the transformer that are not private or set by a random seed.
-- dtype: The data type for the column</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Raises:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>ValueError</code>
-          </td>
-          <td><p>If the metadata has not yet been assembled.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">269</span>
-<span class="normal">270</span>
-<span class="normal">271</span>
-<span class="normal">272</span>
-<span class="normal">273</span>
-<span class="normal">274</span>
-<span class="normal">275</span>
-<span class="normal">276</span>
-<span class="normal">277</span>
-<span class="normal">278</span>
-<span class="normal">279</span>
-<span class="normal">280</span>
-<span class="normal">281</span>
-<span class="normal">282</span>
-<span class="normal">283</span>
-<span class="normal">284</span>
-<span class="normal">285</span>
-<span class="normal">286</span>
-<span class="normal">287</span>
-<span class="normal">288</span>
-<span class="normal">289</span>
-<span class="normal">290</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_assembled_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_assembled_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the assembled metadata for the transformer.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A dictionary mapping column names to column metadata.</span>
 <span class="sd">            The metadata for each column has the following keys:</span>
-<span class="sd">            - sdtype: The data type for the column (only present if `sdv_workflow` is False).</span>
-<span class="sd">            - transformer: A dictionary containing information about the transformer</span>
-<span class="sd">            used for the column (if any). The dictionary has the following keys:</span>
-<span class="sd">            - name: The name of the transformer.</span>
-<span class="sd">            - Any other properties of the transformer that are not private or set by a random seed.</span>
-<span class="sd">            - dtype: The data type for the column</span>
+<span class="sd">            - dtype: The pandas data type for the column</span>
+<span class="sd">            - sdtype: The SDV-specific data type for the column.</span>
+<span class="sd">            - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:</span>
+<span class="sd">                - name: The name of the transformer.</span>
+<span class="sd">                - Any other properties of the transformer that we want to record in output.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the metadata has not yet been assembled.</span>
@@ -2200,559 +1928,253 @@ used for the column (if any). The dictionary has the following keys:
             <span class="s2">&quot;Metadata has not yet been assembled. Call `MetaTransformer.apply` (or `MetaTransformer.assemble`) first.&quot;</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
-
-<div class="doc doc-object doc-function">
 
 
+  <div class="doc doc-object doc-method">
 
-<h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.get_dtype" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_dtype</span><span class="p">(</span><span class="n">cn</span><span class="p">)</span></code>
+
+
+<h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.infer_categoricals" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">infer_categoricals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Returns the dtype for the given column name <code>cn</code>.</p>
+      <p>Uses the (assembled) metadata to identify the categorical columns from the data and count the number of levels each categorical variable has.</p>
 
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the dtype for the given column name `cn`.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">cn</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.infer_categorical_and_continuous" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">infer_categorical_and_continuous</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Infers the categorical columns from the data.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The data to infer the categorical columns from using <code>self.assembled_metadata</code></p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The data to infer the categorical columns from.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>tuple[dict[str, int], int]</code>
-          </td>
-          <td><p>A dictionary mapping column names to the number of unique values in the column (if the column is categorical).</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">infer_categorical_and_continuous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>A dictionary mapping column names to the number of unique values in the column (if the column is categorical).</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">infer_categoricals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Infers the categorical columns from the data.</span>
+<span class="sd">    Uses the (assembled) metadata to identify the categorical columns from the data and count the number of levels each categorical variable has.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        data: The data to infer the categorical columns from.</span>
+<span class="sd">        data: The data to infer the categorical columns from using `self.assembled_metadata`</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A dictionary mapping column names to the number of unique values in the column (if the column is categorical).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">categoricals</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span>
-    <span class="p">}</span>
-    <span class="n">num_continuous</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">categoricals</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">categoricals</span><span class="p">,</span> <span class="n">num_continuous</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+    <span class="k">return</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span><span class="p">}</span>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.infer_num_continuous" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">infer_num_continuous</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Uses the (assembled) metadata to infers the number of continuous columns in the data.</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>int</code></td>
+      <td><p>The number of continuous columns</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">infer_num_continuous</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses the (assembled) metadata to infers the number of continuous columns in the data.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The number of continuous columns</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">cd</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;categorical&quot;</span> <span class="k">for</span> <span class="n">cd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.instantiate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">instantiate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">instantiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Calls the appropriate instantiation method based on the value of <code>sdv_workflow</code>.</p>
+      <p>Calls the appropriate instantiation method based on the value of <code>self.sdv_workflow</code>.</p>
 
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">instantiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calls the appropriate instantiation method based on the value of `sdv_workflow`.&quot;&quot;&quot;</span>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The input DataFrame.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>sdv.single_table.base.BaseSingleTableSynthesizer | rdt.hyper_transformer.HyperTransformer</code></td>
+      <td><p>A fully instantiated <code>self.Synthesizer</code> or <code>HyperTransformer</code> object.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">instantiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">|</span> <span class="n">HyperTransformer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calls the appropriate instantiation method based on the value of `self.sdv_workflow`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: The input DataFrame.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A fully instantiated `self.Synthesizer` or `HyperTransformer` object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_synthesizer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instantiate_synthesizer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instantiate_hypertransformer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instantiate_hypertransformer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
-
-<div class="doc doc-object doc-function">
 
 
-
-<h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.instantiate_hypertransformer" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">instantiate_hypertransformer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Instantiates a HyperTransformer object from the given metadata and data.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>sdtypes</code></td>
-          <td>
-          </td>
-          <td><p>A dictionary of column names to their metadata, containing the key "sdtype" which
-specifies the semantic SDV data type of the column.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>transformers</code></td>
-          <td>
-          </td>
-          <td><p>A dictionary of column names to their transformers.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The input DataFrame.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>allow_null_transformers</code></td>
-          <td>
-          </td>
-          <td><p>A flag indicating whether or not to allow null transformers.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="rdt.HyperTransformer">HyperTransformer</span></code>
-          </td>
-          <td><p>A HyperTransformer object instantiated from the given metadata and data.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">instantiate_hypertransformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HyperTransformer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Instantiates a HyperTransformer object from the given metadata and data.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        sdtypes: A dictionary of column names to their metadata, containing the key &quot;sdtype&quot; which</span>
-<span class="sd">            specifies the semantic SDV data type of the column.</span>
-<span class="sd">        transformers: A dictionary of column names to their transformers.</span>
-<span class="sd">        data: The input DataFrame.</span>
-<span class="sd">        allow_null_transformers: A flag indicating whether or not to allow null transformers.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A HyperTransformer object instantiated from the given metadata and data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ht</span> <span class="o">=</span> <span class="n">HyperTransformer</span><span class="p">()</span>
-    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">):</span>
-        <span class="n">ht</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span>
-            <span class="n">config</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">&quot;sdtypes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
-                <span class="s2">&quot;transformers&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Incomplete metadata, detecting missing</span><span class="si">{</span><span class="p">(</span><span class="s1">&#39; `sdtype`s for column(s): &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">([</span><span class="n">k</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">v</span><span class="p">]))</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}{</span><span class="p">(</span><span class="s1">&#39; `transformer`s for column(s): &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">([</span><span class="n">k</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">v</span><span class="p">]))</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2"> automatically...&quot;</span><span class="p">,</span>
-            <span class="ne">UserWarning</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">ht</span><span class="o">.</span><span class="n">detect_initial_config</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">ht</span><span class="o">.</span><span class="n">update_sdtypes</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;sdtype&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">})</span>
-        <span class="n">ht</span><span class="o">.</span><span class="n">update_transformers</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span> <span class="k">else</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">}</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="n">ht</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.instantiate_synthesizer" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">instantiate_synthesizer</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Instantiates a BaseSingleTableSynthesizer object from the given metadata and data.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>sdtypes</code></td>
-          <td>
-          </td>
-          <td><p>A dictionary of column names to their metadata, containing the key "sdtype" which
-specifies the semantic SDV data type of the column.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>transformers</code></td>
-          <td>
-          </td>
-          <td><p>A dictionary of column names to their transformers.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The input DataFrame.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>allow_null_transformers</code></td>
-          <td>
-          </td>
-          <td><p>A flag indicating whether or not to allow null transformers.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="sdv.single_table.base.BaseSingleTableSynthesizer">BaseSingleTableSynthesizer</span></code>
-          </td>
-          <td><p>A BaseSingleTableSynthesizer object instantiated from the given metadata and data.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">instantiate_synthesizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSingleTableSynthesizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Instantiates a BaseSingleTableSynthesizer object from the given metadata and data.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        sdtypes: A dictionary of column names to their metadata, containing the key &quot;sdtype&quot; which</span>
-<span class="sd">            specifies the semantic SDV data type of the column.</span>
-<span class="sd">        transformers: A dictionary of column names to their transformers.</span>
-<span class="sd">        data: The input DataFrame.</span>
-<span class="sd">        allow_null_transformers: A flag indicating whether or not to allow null transformers.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A BaseSingleTableSynthesizer object instantiated from the given metadata and data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">SingleTableMetadata</span><span class="o">.</span><span class="n">load_from_dict</span><span class="p">({</span><span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="p">})</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Incomplete metadata, detecting missing `sdtype`s for column(s): </span><span class="si">{</span><span class="p">[</span><span class="n">k</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> automatically...&quot;</span><span class="p">,</span>
-            <span class="ne">UserWarning</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">SingleTableMetadata</span><span class="p">()</span>
-        <span class="n">metadata</span><span class="o">.</span><span class="n">detect_from_dataframe</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">values</span><span class="p">:</span>
-                <span class="n">metadata</span><span class="o">.</span><span class="n">update_column</span><span class="p">(</span><span class="n">column_name</span><span class="o">=</span><span class="n">column_name</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Incomplete metadata, detecting missing `transformers`s for column(s): </span><span class="si">{</span><span class="p">[</span><span class="n">k</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">v</span><span class="p">]</span><span class="si">}</span><span class="s2"> automatically...&quot;</span><span class="p">,</span>
-            <span class="ne">UserWarning</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="n">synthesizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Synthesizer</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
-    <span class="n">synthesizer</span><span class="o">.</span><span class="n">auto_assign_transformers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">synthesizer</span><span class="o">.</span><span class="n">update_transformers</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span> <span class="k">else</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">}</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">synthesizer</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.inverse_apply" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">inverse_apply</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">inverse_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Reverses the transformation applied by the MetaTransformer.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The transformed data.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The transformed data.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The original data.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">324</span>
-<span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
-<span class="normal">328</span>
-<span class="normal">329</span>
-<span class="normal">330</span>
-<span class="normal">331</span>
-<span class="normal">332</span>
-<span class="normal">333</span>
-<span class="normal">334</span>
-<span class="normal">335</span>
-<span class="normal">336</span>
-<span class="normal">337</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">inverse_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>DataFrame</code></td>
+      <td><p>The original data.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">inverse_apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reverses the transformation applied by the MetaTransformer.</span>
 
@@ -2766,131 +2188,84 @@ specifies the semantic SDV data type of the column.</p></td>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">reverse_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.order" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">order</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Orders the data based on the inferred categorical and continuous columns.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The data to order.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The data to order.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>tuple</code></td>
+      <td><p>A tuple containing the ordered data, a list of the number of unique values for each categorical column, and the number of continuous columns.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Type</th>
-        <th>Description</th>
+        <td><code>ValueError</code></td>
+        <td><p>If the metadata has not yet been finalised and assembled or <code>categoricals</code> and/or <code>num_continuous</code> have yet to be inferred.</p></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>A tuple containing the ordered data, a list of the number of unique values for each categorical column,</p></td>
-        </tr>
-        <tr>
-          <td>
-                <code>list[int]</code>
-          </td>
-          <td><p>and the number of continuous columns.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Raises:</strong></p>
-  <table>
-    <thead>
       <tr>
-        <th>Type</th>
-        <th>Description</th>
+        <td><code>ValueError</code></td>
+        <td><p>If a column in <code>self.assembled_metadata</code> is not found in the passed data.</p></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>ValueError</code>
-          </td>
-          <td><p>If the categorical and continuous metadata has not yet been inferred.</p></td>
-        </tr>
-        <tr>
-          <td>
-                <code>ValueError</code>
-          </td>
-          <td><p>If a column is not found in the passed data.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
-<span class="normal">295</span>
-<span class="normal">296</span>
-<span class="normal">297</span>
-<span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span>
-<span class="normal">301</span>
-<span class="normal">302</span>
-<span class="normal">303</span>
-<span class="normal">304</span>
-<span class="normal">305</span>
-<span class="normal">306</span>
-<span class="normal">307</span>
-<span class="normal">308</span>
-<span class="normal">309</span>
-<span class="normal">310</span>
-<span class="normal">311</span>
-<span class="normal">312</span>
-<span class="normal">313</span>
-<span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Orders the data based on the inferred categorical and continuous columns.</span>
 
@@ -2898,16 +2273,15 @@ specifies the semantic SDV data type of the column.</p></td>
 <span class="sd">        data: The data to order.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A tuple containing the ordered data, a list of the number of unique values for each categorical column,</span>
-<span class="sd">        and the number of continuous columns.</span>
+<span class="sd">        A tuple containing the ordered data, a list of the number of unique values for each categorical column, and the number of continuous columns.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If the categorical and continuous metadata has not yet been inferred.</span>
-<span class="sd">        ValueError: If a column is not found in the passed data.</span>
+<span class="sd">        ValueError: If the metadata has not yet been finalised and assembled or `categoricals` and/or `num_continuous` have yet to be inferred.</span>
+<span class="sd">        ValueError: If a column in `self.assembled_metadata` is not found in the passed data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Categorical and continuous metadata has not yet been inferred. Call `MetaTransformer.apply` (or `MetaTransformer.infer_categorical_and_continuous`) first.&quot;</span>
+            <span class="s2">&quot;Some metadata is missing. Call `mt.apply(data)` first (or `mt.[assemble(),infer_categoricals(data),infer_num_continuous()]` in sequence).&quot;</span>
         <span class="p">)</span>
     <span class="n">categorical_ordering</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">continuous_ordering</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2921,65 +2295,52 @@ specifies the semantic SDV data type of the column.</p></td>
             <span class="n">continuous_ordering</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">cn</span><span class="p">))</span>
     <span class="n">ordering</span> <span class="o">=</span> <span class="n">categorical_ordering</span> <span class="o">+</span> <span class="n">continuous_ordering</span>
     <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">ordering</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categoricals</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_continuous</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-method">
 
 
 
 <h3 id="nhssynth.modules.dataloader.metatransformer.MetaTransformer.prepare" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">prepare</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
 
 </h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Prepares the data by processing via the metatransformer.</p>
+      <p>Prepares the data by processing it via the metatransformer.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>data</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The data to fit and apply the transformer to.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>data</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The data to fit and apply the transformer to.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Prepares the data by processing via the metatransformer.</span>
+<span class="sd">    Prepares the data by processing it via the metatransformer.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        data: The data to fit and apply the transformer to.</span>
@@ -2988,107 +2349,84 @@ specifies the semantic SDV data type of the column.</p></td>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-
+</code></pre></div>
+        </details>
+    </div>
 
   </div>
 
+
+
+
+
   </div>
 
-</div>
+    </div>
+
+  </div>
 
 
-<div class="doc doc-object doc-function">
+
+
+  <div class="doc doc-object doc-function">
 
 
 
 <h2 id="nhssynth.modules.dataloader.metatransformer.get_transformer" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_transformer</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></code>
 
+
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Return a callable transformer object extracted from the given dictionary.</p>
+      <p>Return a callable transformer object constructed from data in the given dictionary.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>d</code></td>
+        <td><code>dict</code></td>
+        <td><p>A dictionary containing the transformer data.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>d</code></td>
-          <td>
-                <code>dict</code>
-          </td>
-          <td><p>A dictionary containing the transformer data.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>BaseTransformer | None</code>
-          </td>
-          <td><p>A callable object (transformer) if the dictionary contains transformer data, else None.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
-<span class="normal">16</span>
-<span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span>
-<span class="normal">20</span>
-<span class="normal">21</span>
-<span class="normal">22</span>
-<span class="normal">23</span>
-<span class="normal">24</span>
-<span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_transformer</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseTransformer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>rdt.transformers.base.BaseTransformer | None</code></td>
+      <td><p>An instantiated <code>BaseTransformer</code> if the dictionary contains valid transformer data, else None.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_transformer</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseTransformer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return a callable transformer object extracted from the given dictionary.</span>
+<span class="sd">    Return a callable transformer object constructed from data in the given dictionary.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        d: A dictionary containing the transformer data.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A callable object (transformer) if the dictionary contains transformer data, else None.</span>
+<span class="sd">        An instantiated `BaseTransformer` if the dictionary contains valid transformer data, else None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">transformer_data</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;transformer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transformer_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">transformer_data</span><span class="p">:</span>
@@ -3100,122 +2438,97 @@ specifies the semantic SDV data type of the column.</p></td>
         <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">transformer_data</span><span class="p">)()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-function">
 
 
 
 <h2 id="nhssynth.modules.dataloader.metatransformer.make_transformer_dict" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">make_transformer_dict</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span></code>
 
+
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Deconstruct an instance of a transformer (if one is present) into a dictionary of config.</p>
+      <p>Deconstruct a <code>transformer</code> into a dictionary of config.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>transformer</code></td>
+        <td><code>BaseTransformer</code></td>
+        <td><p>A BaseTransformer object from RDT (SDV).</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>transformer</code></td>
-          <td>
-                <code>BaseTransformer | None</code>
-          </td>
-          <td><p>A BaseTransformer object from RDT (SDV).</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>dict</code>
-          </td>
-          <td><p>A dictionary containing the transformer name and arguments.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/metatransformer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
-<span class="normal">39</span>
-<span class="normal">40</span>
-<span class="normal">41</span>
-<span class="normal">42</span>
-<span class="normal">43</span>
-<span class="normal">44</span>
-<span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">make_transformer_dict</span><span class="p">(</span><span class="n">transformer</span><span class="p">:</span> <span class="n">BaseTransformer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>A dictionary containing the transformer's name and arguments.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/metatransformer.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">make_transformer_dict</span><span class="p">(</span><span class="n">transformer</span><span class="p">:</span> <span class="n">BaseTransformer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Deconstruct an instance of a transformer (if one is present) into a dictionary of config.</span>
+<span class="sd">    Deconstruct a `transformer` into a dictionary of config.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transformer: A BaseTransformer object from RDT (SDV).</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A dictionary containing the transformer name and arguments.</span>
+<span class="sd">        A dictionary containing the transformer&#39;s name and arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">transformer</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">filter_dict</span><span class="p">(</span>
-                <span class="n">transformer</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span>
-                <span class="p">{</span><span class="s2">&quot;output_properties&quot;</span><span class="p">,</span> <span class="s2">&quot;random_states&quot;</span><span class="p">,</span> <span class="s2">&quot;transform&quot;</span><span class="p">,</span> <span class="s2">&quot;reverse_transform&quot;</span><span class="p">,</span> <span class="s2">&quot;_dtype&quot;</span><span class="p">},</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">filter_dict</span><span class="p">(</span>
+            <span class="n">transformer</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;output_properties&quot;</span><span class="p">,</span> <span class="s2">&quot;random_states&quot;</span><span class="p">,</span> <span class="s2">&quot;transform&quot;</span><span class="p">,</span> <span class="s2">&quot;reverse_transform&quot;</span><span class="p">,</span> <span class="s2">&quot;_dtype&quot;</span><span class="p">},</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+</code></pre></div>
+        </details>
+    </div>
 
   </div>
 
+
+
+
+
+
   </div>
 
-</div>
+    </div>
+
+  </div>
 
   <hr>
 <div class="md-source-file">

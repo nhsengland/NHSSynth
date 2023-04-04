@@ -993,11 +993,11 @@
 
 <div class="doc doc-object doc-module">
 
-
 <a id="nhssynth.cli"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
+
 
   <div class="doc doc-children">
 
@@ -1010,12 +1010,1437 @@
 
 
 
+  <div class="doc doc-object doc-module">
+
+
+
+<h2 id="nhssynth.cli.config" class="doc doc-heading">
+        <code>config</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.config.assemble_config" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">assemble_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Assemble and arrange a module-wise nested configuration dictionary from parsed command-line arguments to be output as a YAML record.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>Namespace</code></td>
+        <td><p>A namespace object containing all parsed command-line arguments.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>all_subparsers</code></td>
+        <td><code>dict</code></td>
+        <td><p>A dictionary mapping module names to subparser objects.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dict</code></td>
+      <td><p>A dictionary containing configuration information extracted from <code>args</code> in a module-wise nested format that is YAML-friendly.</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>ValueError</code></td>
+        <td><p>If a module specified in <code>args.modules_to_run</code> is not in <code>all_subparsers</code>.</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">assemble_config</span><span class="p">(</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span>
+    <span class="n">all_subparsers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assemble and arrange a module-wise nested configuration dictionary from parsed command-line arguments to be output as a YAML record.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args: A namespace object containing all parsed command-line arguments.</span>
+<span class="sd">        all_subparsers: A dictionary mapping module names to subparser objects.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary containing configuration information extracted from `args` in a module-wise nested format that is YAML-friendly.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">args_dict</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">args_dict</span><span class="p">[</span><span class="s2">&quot;modules_to_run&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">modules_to_run</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">run_type</span> <span class="o">=</span> <span class="n">modules_to_run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">modules_to_run</span> <span class="o">==</span> <span class="n">PIPELINE</span><span class="p">:</span>
+        <span class="n">run_type</span> <span class="o">=</span> <span class="s2">&quot;pipeline&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid value for `modules_to_run`: </span><span class="si">{</span><span class="n">modules_to_run</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Generate a dictionary containing each module&#39;s name from the run, with all of its possible corresponding config args</span>
+    <span class="n">module_args</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">module_name</span><span class="p">:</span> <span class="p">[</span><span class="n">action</span><span class="o">.</span><span class="n">dest</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">all_subparsers</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">_actions</span> <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">dest</span> <span class="o">!=</span> <span class="s2">&quot;help&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">modules_to_run</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Use the flat namespace to populate a nested (by module) dictionary of config args and values</span>
+    <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">modules_to_run</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">module_args</span><span class="p">[</span><span class="n">module_name</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">out_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">module_name</span><span class="p">):</span>
+                    <span class="n">out_dict</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">out_dict</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)}</span>
+
+    <span class="c1"># Assemble the final dictionary in YAML-compliant form</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="o">**</span><span class="p">({</span><span class="s2">&quot;run_type&quot;</span><span class="p">:</span> <span class="n">run_type</span><span class="p">}</span> <span class="k">if</span> <span class="n">run_type</span> <span class="k">else</span> <span class="p">{}),</span>
+        <span class="o">**</span><span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;func&quot;</span><span class="p">,</span> <span class="s2">&quot;experiment_name&quot;</span><span class="p">,</span> <span class="s2">&quot;save_config&quot;</span><span class="p">,</span> <span class="s2">&quot;save_config_path&quot;</span><span class="p">}</span>
+        <span class="p">},</span>
+        <span class="o">**</span><span class="n">out_dict</span><span class="p">,</span>
+    <span class="p">}</span>
+</code></pre></div>
+        </details>
+    </div>
 
   </div>
 
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.config.get_default_and_required_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_default_and_required_args</span><span class="p">(</span><span class="n">top_parser</span><span class="p">,</span> <span class="n">module_parsers</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the default and required arguments for the top-level parser and the current run's corresponding list of module parsers.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>top_parser</code></td>
+        <td><code>ArgumentParser</code></td>
+        <td><p>The top-level parser.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>module_parsers</code></td>
+        <td><code>dict</code></td>
+        <td><p>The dict of module-level parsers mapped to their names.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>A tuple containing two elements</code></td>
+      <td><ul>
+<li>A dictionary containing all arguments and their default values.<ul>
+<li>A list of kvps of the required arguments and their associated module.</li>
+</ul>
+</li>
+</ul></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_default_and_required_args</span><span class="p">(</span>
+    <span class="n">top_parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span>
+    <span class="n">module_parsers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the default and required arguments for the top-level parser and the current run&#39;s corresponding list of module parsers.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        top_parser: The top-level parser.</span>
+<span class="sd">        module_parsers: The dict of module-level parsers mapped to their names.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A tuple containing two elements:</span>
+<span class="sd">            - A dictionary containing all arguments and their default values.</span>
+<span class="sd">            - A list of kvps of the required arguments and their associated module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_actions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;top-level&quot;</span><span class="p">:</span> <span class="n">top_parser</span><span class="o">.</span><span class="n">_actions</span><span class="p">,</span>
+        <span class="o">**</span><span class="p">{</span><span class="n">m</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">_actions</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">module_parsers</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+    <span class="p">}</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">required_args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">module</span><span class="p">,</span> <span class="n">actions</span> <span class="ow">in</span> <span class="n">all_actions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">dest</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;==SUPPRESS==&quot;</span><span class="p">]:</span>
+                <span class="n">defaults</span><span class="p">[</span><span class="n">action</span><span class="o">.</span><span class="n">dest</span><span class="p">]</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">default</span>
+                <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">required</span><span class="p">:</span>
+                    <span class="n">required_args</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;arg&quot;</span><span class="p">:</span> <span class="n">action</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span> <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="n">module</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">required_args</span>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.config.get_modules_to_run" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_modules_to_run</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the list of modules to run from the passed executor function.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>executor</code></td>
+        <td><code>Callable</code></td>
+        <td><p>The executor function to run.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list</code></td>
+      <td><p>A list of module names to run.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_modules_to_run</span><span class="p">(</span><span class="n">executor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the list of modules to run from the passed executor function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        executor: The executor function to run.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of module names to run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">executor</span> <span class="o">==</span> <span class="n">run_pipeline</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PIPELINE</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">get_key_by_value</span><span class="p">({</span><span class="n">mn</span><span class="p">:</span> <span class="n">mc</span><span class="o">.</span><span class="n">func</span> <span class="k">for</span> <span class="n">mn</span><span class="p">,</span> <span class="n">mc</span> <span class="ow">in</span> <span class="n">MODULE_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span> <span class="n">executor</span><span class="p">)]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.config.read_config" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">read_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Hierarchically assembles a config Namespace object for the inferred modules to run and executes.</p>
+<ol>
+<li>Load the YAML file containing the config to read from</li>
+<li>Check a valid <code>run_type</code> is specified or infer it and determine the list of <code>modules_to_run</code></li>
+<li>Establish the appropriate default config from the parser and <code>all_subparsers</code> for the <code>modules_to_run</code></li>
+<li>Overwrite this config with the specified subset (or full set) of config in the YAML file</li>
+<li>Overwrite again with passed command-line <code>args</code> (these are considered 'overrides')</li>
+<li>Run the appropriate module(s) or pipeline with the resulting config</li>
+</ol>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>Namespace</code></td>
+        <td><p>Namespace object containing arguments from the command line</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>ArgumentParser</code></td>
+        <td><p>top-level ArgumentParser object</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>all_subparsers</code></td>
+        <td><code>dict</code></td>
+        <td><p>dictionary of ArgumentParser objects, one for each module</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Namespace</code></td>
+      <td><p>Namespace object containing the assembled configuration settings</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>AssertionError</code></td>
+        <td><p>if any required arguments are missing from the configuration file</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span>
+    <span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span>
+    <span class="n">all_subparsers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hierarchically assembles a config Namespace object for the inferred modules to run and executes.</span>
+
+<span class="sd">    1. Load the YAML file containing the config to read from</span>
+<span class="sd">    2. Check a valid `run_type` is specified or infer it and determine the list of `modules_to_run`</span>
+<span class="sd">    3. Establish the appropriate default config from the parser and `all_subparsers` for the `modules_to_run`</span>
+<span class="sd">    4. Overwrite this config with the specified subset (or full set) of config in the YAML file</span>
+<span class="sd">    5. Overwrite again with passed command-line `args` (these are considered &#39;overrides&#39;)</span>
+<span class="sd">    6. Run the appropriate module(s) or pipeline with the resulting config</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args: Namespace object containing arguments from the command line</span>
+<span class="sd">        parser: top-level ArgumentParser object</span>
+<span class="sd">        all_subparsers: dictionary of ArgumentParser objects, one for each module</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Namespace object containing the assembled configuration settings</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: if any required arguments are missing from the configuration file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Open the passed yaml file and load into a dictionary</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;config/</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">input_config</span><span class="si">}</span><span class="s2">.yaml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+
+    <span class="n">valid_run_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_subparsers</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s2">&quot;config&quot;</span><span class="p">]</span>
+
+    <span class="n">run_type</span> <span class="o">=</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;run_type&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">run_type</span> <span class="o">==</span> <span class="s2">&quot;pipeline&quot;</span><span class="p">:</span>
+        <span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">PIPELINE</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">modules_to_run</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">|</span> <span class="p">{</span><span class="n">run_type</span><span class="p">}</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">valid_run_types</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">custom_pipeline</span><span class="p">:</span>
+            <span class="n">modules_to_run</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">modules_to_run</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">PIPELINE</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">modules_to_run</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Missing or invalid `run_type` and / or module specification hierarchy in `config/</span><span class="si">{args.input_config}</span><span class="s2">.yaml`, defaulting to a full run of the pipeline&quot;</span>
+        <span class="p">)</span>
+        <span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">PIPELINE</span>
+
+    <span class="c1"># Get all possible default arguments by scraping the top level `parser` and the appropriate sub-parser for the `run_type`</span>
+    <span class="n">args_dict</span><span class="p">,</span> <span class="n">required_args</span> <span class="o">=</span> <span class="n">get_default_and_required_args</span><span class="p">(</span>
+        <span class="n">parser</span><span class="p">,</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">all_subparsers</span><span class="p">,</span> <span class="n">modules_to_run</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Find the non-default arguments amongst passed `args` by seeing which of them are different to the entries of `args_dict`</span>
+    <span class="n">non_default_passed_args_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;input_config&quot;</span><span class="p">,</span> <span class="s2">&quot;custom_pipeline&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="p">(</span><span class="n">k</span> <span class="ow">in</span> <span class="n">args_dict</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;func&quot;</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">args_dict</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Overwrite the default arguments with the ones from the yaml file</span>
+    <span class="n">args_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">flatten_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">))</span>
+
+    <span class="c1"># Overwrite the result of the above with any non-default CLI args</span>
+    <span class="n">args_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">non_default_passed_args_dict</span><span class="p">)</span>
+
+    <span class="c1"># Create a new Namespace using the assembled dictionary</span>
+    <span class="n">new_args</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="o">**</span><span class="n">args_dict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">new_args</span><span class="p">,</span> <span class="n">req_arg</span><span class="p">[</span><span class="s2">&quot;arg&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">req_arg</span> <span class="ow">in</span> <span class="n">required_args</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Required arguments are missing from the passed config file: </span><span class="si">{</span><span class="p">[</span><span class="n">ra</span><span class="p">[</span><span class="s1">&#39;module&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;:&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ra</span><span class="p">[</span><span class="s1">&#39;arg&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ra</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">required_args</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nb">getattr</span><span class="p">(</span><span class="n">new_args</span><span class="p">,</span><span class="w"> </span><span class="n">ra</span><span class="p">[</span><span class="s1">&#39;arg&#39;</span><span class="p">])]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Run the appropriate execution function(s)</span>
+    <span class="n">new_args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">modules_to_run</span>
+    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">new_args</span><span class="o">.</span><span class="n">modules_to_run</span><span class="p">:</span>
+        <span class="n">MODULE_MAP</span><span class="p">[</span><span class="n">module</span><span class="p">]</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">new_args</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_args</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.config.write_config" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">write_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Assembles a configuration dictionary from the run config and writes it to a YAML file at the location specified by <code>args.save_config_path</code>.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>Namespace</code></td>
+        <td><p>A namespace containing the run's configuration.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>all_subparsers</code></td>
+        <td><code>dict</code></td>
+        <td><p>A dictionary containing all subparsers for the config args.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">write_config</span><span class="p">(</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span>
+    <span class="n">all_subparsers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assembles a configuration dictionary from the run config and writes it to a YAML file at the location specified by `args.save_config_path`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args: A namespace containing the run&#39;s configuration.</span>
+<span class="sd">        all_subparsers: A dictionary containing all subparsers for the config args.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">args</span><span class="o">.</span><span class="n">synthesizer</span>
+    <span class="n">args_dict</span> <span class="o">=</span> <span class="n">assemble_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">yaml_file</span><span class="p">:</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">args_dict</span><span class="p">,</span> <span class="n">yaml_file</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-module">
+
+
+
+<h2 id="nhssynth.cli.module_arguments" class="doc doc-heading">
+        <code>module_arguments</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_arguments.add_dataloader_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_dataloader_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds arguments to an existing dataloader module sub-parser instance.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_arguments.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_dataloader_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds arguments to an existing dataloader module sub-parser instance.&quot;&quot;&quot;</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-i&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--input&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">override</span><span class="p">),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the name of the `.csv` file to prepare&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_prepared&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;where to write the prepared data, defaults to `experiments/&lt;args.experiment_name&gt;/&lt;args.input_file&gt;_prepared\{.csv/.pkl\}`, only used when `--write-all` is provided and/or this is a full pipeline run / one that involves the `model` module&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--metadata&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_metadata&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;metadata for the input data, defaults to `&lt;args.input_dir&gt;/&lt;args.input_file&gt;_metadata.yaml`&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--discard-metadata&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;discard the generated metadata file (not recommended, this is required for reproducibility)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--metatransformer&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_metatransformer&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of the file to dump the `metatransformer` object used on the input data, defaults to `experiments/&lt;args.experiment_name&gt;/&lt;args.input_file&gt;_metatransformer.pkl`, only used when `--write-all` is provided and/or this is a full pipeline run / one that involves the `model` module&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--data-dir&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;./data&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the directory to read and write data from and to&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--index-col&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;indicate whether the csv file&#39;s 0th column is an index column, such that pandas can ignore it&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--sdv-workflow&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;utilise the SDV synthesizer workflow for transformation and metadata, rather than a `HyperTransformer` from RDT&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--allow-null-transformers&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;allow null / None transformers, i.e. leave some columns as they are&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--collapse-yaml&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;use aliases and anchors in the output metadata yaml, this will make it much more compact&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># TODO might be good to have something like this, needs some thought in how to only apply to appropriate transformers, without overriding metadata</span>
+    <span class="c1"># parser.add_argument(</span>
+    <span class="c1">#     &quot;--imputation-strategy&quot;,</span>
+    <span class="c1">#     default=None,</span>
+    <span class="c1">#     help=&quot;imputation strategy for missing values, pick one of None, `mean`, `mode`, or a number&quot;,</span>
+    <span class="c1"># )</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--synthesizer&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;TVAE&quot;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;pick a synthesizer to use (note this can also be specified in the model module, these must match)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_arguments.add_evaluation_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_evaluation_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds arguments to an existing evaluation module sub-parser instance.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_arguments.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_evaluation_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds arguments to an existing evaluation module sub-parser instance.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_arguments.add_model_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_model_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds arguments to an existing model module sub-parser instance.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_arguments.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_model_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds arguments to an existing model module sub-parser instance.&quot;&quot;&quot;</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-r&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--real-data&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of the dataset, only REQUIRED when this module is run on its own&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-p&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--prepared-data&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_prepared&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of the prepared dataset to load from `experiments/&lt;args.experiment_name&gt;/`, defaults to `&lt;args.real_data&gt;_prepared.pkl`, only REQUIRED when this module is run on its own&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--real-metatransformer&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_metatransformer&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of the `.pkl` file of the MetaTransformer used on the prepared data to load from `experiments/&lt;args.experiment_name&gt;/`, defaults to `&lt;args.real_data&gt;_metatransformer.pkl` only REQUIRED when this module is run on its own&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--model-file&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_model&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;specify the filename of the model to be saved in `experiments/&lt;args.experiment_name&gt;/`, defaults to `&lt;args.real_data&gt;_model.pt`&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--discard-model&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;discard the model after training&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--synthetic-data&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;_synthetic&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;specify the filename of the synthetic data to be written in `experiments/&lt;args.experiment_name&gt;/`, defaults to `&lt;args.real_data&gt;_synthetic.csv`&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--discard-synthetic&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;do not output the synthetic data generated during the run&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--batch-size&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the batch size for the model&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--latent-dim&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the latent dimension of the model&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--hidden-dim&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the hidden dimension of the model&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--num-epochs&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;number of epochs to train for&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--patience&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;how many epochs the model is allowed to train for without improvement&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--delta&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the difference in successive ELBO values that register as an &#39;improvement&#39;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--non-private-training&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;train the model in a non-private way&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--max-grad-norm&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the clipping threshold for gradients (only relevant under differential privacy)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--target-epsilon&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the target epsilon for differential privacy&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--target-delta&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the target delta for differential privacy&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_arguments.add_plotting_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_plotting_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds arguments to an existing plotting module sub-parser instance.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_arguments.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_plotting_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds arguments to an existing plotting module sub-parser instance.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_arguments.add_top_level_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_top_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds top-level arguments to an existing ArgumentParser instance.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_arguments.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_top_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds top-level arguments to an existing ArgumentParser instance.&quot;&quot;&quot;</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-e&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--experiment-name&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">TIME</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;name the experiment run to affect logging, config, and default-behaviour io, defaults to current time, i.e. `</span><span class="si">{</span><span class="n">TIME</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-sc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--save-config&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;save the config provided via the cli&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--save-config-path&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;where to save the config when `-sc` is provided, defaults to `experiments/&lt;experiment_name&gt;/config_&lt;experiment_name&gt;.yaml`&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--seed&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;specify a seed for reproducibility&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-w&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--write-all&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;write all outputs to disk, including those that are not strictly necessary i.e. intermediary outputs in a full pipeline run&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-module">
+
+
+
+<h2 id="nhssynth.cli.module_setup" class="doc doc-heading">
+        <code>module_setup</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h3 id="nhssynth.cli.module_setup.ModuleConfig" class="doc doc-heading">
+        <code>
+ModuleConfig        </code>
+
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_setup.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ModuleConfig</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">add_args_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Represents a module&#39;s configuration, containing the following attributes:</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func: A callable that executes the module&#39;s functionality.</span>
+<span class="sd">            add_args_func: A callable that populates the module&#39;s sub-parser arguments.</span>
+<span class="sd">            description: A description of the module&#39;s functionality.</span>
+<span class="sd">            help: A help message for the module&#39;s command-line interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_func</span> <span class="o">=</span> <span class="n">add_args_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">help</span> <span class="o">=</span> <span class="n">help</span>
+</code></pre></div>
+        </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h4 id="nhssynth.cli.module_setup.ModuleConfig.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">add_args_func</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">help</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h4>
+
+    <div class="doc doc-contents ">
+
+      <p>Represents a module's configuration, containing the following attributes:</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>func</code></td>
+        <td><code>Callable[..., Any]</code></td>
+        <td><p>A callable that executes the module's functionality.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>add_args_func</code></td>
+        <td><code>Callable[..., Any]</code></td>
+        <td><p>A callable that populates the module's sub-parser arguments.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>description</code></td>
+        <td><code>str</code></td>
+        <td><p>A description of the module's functionality.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>help</code></td>
+        <td><code>str</code></td>
+        <td><p>A help message for the module's command-line interface.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/module_setup.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">add_args_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">help</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a module&#39;s configuration, containing the following attributes:</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func: A callable that executes the module&#39;s functionality.</span>
+<span class="sd">        add_args_func: A callable that populates the module&#39;s sub-parser arguments.</span>
+<span class="sd">        description: A description of the module&#39;s functionality.</span>
+<span class="sd">        help: A help message for the module&#39;s command-line interface.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_args_func</span> <span class="o">=</span> <span class="n">add_args_func</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">help</span> <span class="o">=</span> <span class="n">help</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_setup.add_config_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_config_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds arguments to a <code>parser</code> relating to configuration file handling and module-specific config overrides.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_setup.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_config_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds arguments to a `parser` relating to configuration file handling and module-specific config overrides.&quot;&quot;&quot;</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-c&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--input-config&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;specify the config file name&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-cp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--custom-pipeline&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;infer a custom pipeline running order of modules from the config&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">VALID_MODULES</span><span class="p">:</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2"> overrides&quot;</span><span class="p">)</span>
+        <span class="n">MODULE_MAP</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">add_args_func</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_setup.add_pipeline_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_pipeline_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds arguments to a <code>parser</code> for each module in the pipeline.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_setup.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_pipeline_args</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds arguments to a `parser` for each module in the pipeline.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">PIPELINE</span><span class="p">:</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">module_name</span><span class="p">)</span>
+        <span class="n">MODULE_MAP</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">add_args_func</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_setup.add_subparser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_subparser</span><span class="p">(</span><span class="n">subparsers</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Add a subparser to an argparse argument parser.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>subparsers</code></td>
+        <td><code>_SubParsersAction</code></td>
+        <td><p>The subparsers action to which the subparser will be added.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the subparser.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>config</code></td>
+        <td><code>ModuleConfig</code></td>
+        <td><p>A ModuleConfig object containing information about the subparser, including a function to execute and a function to add arguments.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ArgumentParser</code></td>
+      <td><p>The newly created subparser.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>cli/module_setup.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_subparser</span><span class="p">(</span>
+    <span class="n">subparsers</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">_SubParsersAction</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">ModuleConfig</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a subparser to an argparse argument parser.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        subparsers: The subparsers action to which the subparser will be added.</span>
+<span class="sd">        name: The name of the subparser.</span>
+<span class="sd">        config: A ModuleConfig object containing information about the subparser, including a function to execute and a function to add arguments.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The newly created subparser.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">help</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentDefaultsHelpFormatter</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">add_args_func</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.module_setup.run_pipeline" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">run_pipeline</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Runs the specified pipeline of modules with the passed configuration <code>args</code>.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/module_setup.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">run_pipeline</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Runs the specified pipeline of modules with the passed configuration `args`.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running full pipeline...&quot;</span><span class="p">)</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">PIPELINE</span>
+    <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">PIPELINE</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">MODULE_MAP</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-module">
+
+
+
+<h2 id="nhssynth.cli.run" class="doc doc-heading">
+        <code>run</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 id="nhssynth.cli.run.run" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">run</span><span class="p">()</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>CLI for preparing, training and evaluating a synthetic data generator.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cli/run.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">run</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;&quot;&quot;</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">prog</span><span class="o">=</span><span class="s2">&quot;nhssynth&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">add_top_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Below we instantiate one subparser for each module + one for running with a config file and one for</span>
+    <span class="c1"># doing a full pipeline run with CLI-specified config</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># TODO can probably do this better as we dont actually need the `pipeline` or `config` subparsers in this dict</span>
+    <span class="n">all_subparsers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="n">add_subparser</span><span class="p">(</span><span class="n">subparsers</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span> <span class="ow">in</span> <span class="n">MODULE_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Use get to return None when no function has been set, i.e. user made no running choice</span>
+    <span class="n">executor</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;func&quot;</span><span class="p">)</span>
+
+    <span class="c1"># If `config` is the specified running choice, we mutate `args` in `read_config`</span>
+    <span class="c1"># else we execute according to the user&#39;s choice</span>
+    <span class="c1"># else we return `--help` if no choice has been passed, i.e. executor is None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">get_modules_to_run</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
+        <span class="n">executor</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;--help&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Whenever either are specified, we want to dump the configuration to allow for this run to be replicated</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;experiments/</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">/config_</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
+        <span class="n">write_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Complete!&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
 
   <hr>
 <div class="md-source-file">

@@ -1037,11 +1037,11 @@
 
 <div class="doc doc-object doc-module">
 
-
 <a id="nhssynth.common.common"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
+
 
   <div class="doc doc-children">
 
@@ -1052,57 +1052,42 @@
 
 
 
-
-<div class="doc doc-object doc-function">
+  <div class="doc doc-object doc-function">
 
 
 
 <h2 id="nhssynth.common.common.set_seed" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">set_seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
+
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Set the seed for numpy and torch.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>seed</code></td>
+        <td><code>None | int</code></td>
+        <td><p>The seed to set.</p></td>
+        <td><code>None</code></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>seed</code></td>
-          <td>
-                <code>None | int</code>
-          </td>
-          <td><p>The seed to set.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/common/common.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 5</span>
-<span class="normal"> 6</span>
-<span class="normal"> 7</span>
-<span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>common/common.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set the seed for numpy and torch.</span>
 
@@ -1112,19 +1097,22 @@
     <span class="k">if</span> <span class="n">seed</span><span class="p">:</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-
+</code></pre></div>
+        </details>
+    </div>
 
   </div>
 
+
+
+
+
+
   </div>
 
-</div>
+    </div>
+
+  </div>
 
   <hr>
 <div class="md-source-file">

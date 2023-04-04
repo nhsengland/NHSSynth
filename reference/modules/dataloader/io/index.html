@@ -1053,11 +1053,11 @@
 
 <div class="doc doc-object doc-module">
 
-
 <a id="nhssynth.modules.dataloader.io"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
+
 
   <div class="doc doc-children">
 
@@ -1068,388 +1068,273 @@
 
 
 
-
-<div class="doc doc-object doc-function">
+  <div class="doc doc-object doc-function">
 
 
 
 <h2 id="nhssynth.modules.dataloader.io.check_input_paths" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">check_input_paths</span><span class="p">(</span><span class="n">fn_data</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dir_data</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">check_input_paths</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dir_data</span><span class="p">)</span></code>
+
 
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Formats the input and output filenames and directories for an experiment.</p>
+      <p>Formats the input filenames and directory for an experiment.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>fn_input</code></td>
+        <td><code>str</code></td>
+        <td><p>The input data filename.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>fn_in</code></td>
-          <td>
-          </td>
-          <td><p>The input data filename.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>fn_metadata</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The metadata filename / suffix to append to <code>fn_in</code>.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>dir_data</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The directory that should contain both of the above.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
       <tr>
-        <th>Type</th>
-        <th>Description</th>
+        <td><code>fn_metadata</code></td>
+        <td><code>str</code></td>
+        <td><p>The metadata filename / suffix to append to <code>fn_input</code>.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>tuple[<span title="nhssynth.common.io.Path">Path</span>, str, str]</code>
-          </td>
-          <td><p>A tuple containing the formatted input, output, and metadata (in and out) paths.</p></td>
-        </tr>
-    </tbody>
-  </table>
+      <tr>
+        <td><code>dir_data</code></td>
+        <td><code>str</code></td>
+        <td><p>The directory that should contain both of the above.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>tuple</code></td>
+      <td><p>A tuple containing the correct directory path, input data filename and metadata filename (used for both in and out).</p></td>
+    </tr>
+  </tbody>
+</table>      <p>!!! warnings
+    Raises a UserWarning when the path to <code>fn_input</code> includes directory separators, as this is not supported and may not work as intended.
+    Raises a UserWarning when the path to <code>fn_metadata</code> includes directory separators, as this is not supported and may not work as intended.</p>
 
-<details class="warnings">
-  <summary>Warnings</summary>
-  <p>Raises a UserWarning when the path to <code>fn_in</code> includes directory separators, as this is not supported and may not work as intended.
-Raises a UserWarning when the path to <code>fn_metadata</code> includes directory separators, as this is not supported and may not work as intended.</p>
-</details>
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/io.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span>
-<span class="normal">16</span>
-<span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span>
-<span class="normal">20</span>
-<span class="normal">21</span>
-<span class="normal">22</span>
-<span class="normal">23</span>
-<span class="normal">24</span>
-<span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
-<span class="normal">33</span>
-<span class="normal">34</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_input_paths</span><span class="p">(</span>
-    <span class="n">fn_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/io.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">check_input_paths</span><span class="p">(</span>
+    <span class="n">fn_input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">fn_metadata</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dir_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Formats the input and output filenames and directories for an experiment.</span>
+<span class="sd">    Formats the input filenames and directory for an experiment.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        fn_in: The input data filename.</span>
-<span class="sd">        fn_metadata: The metadata filename / suffix to append to `fn_in`.</span>
+<span class="sd">        fn_input: The input data filename.</span>
+<span class="sd">        fn_metadata: The metadata filename / suffix to append to `fn_input`.</span>
 <span class="sd">        dir_data: The directory that should contain both of the above.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A tuple containing the formatted input, output, and metadata (in and out) paths.</span>
+<span class="sd">        A tuple containing the correct directory path, input data filename and metadata filename (used for both in and out).</span>
 
 <span class="sd">    Warnings:</span>
-<span class="sd">        Raises a UserWarning when the path to `fn_in` includes directory separators, as this is not supported and may not work as intended.</span>
+<span class="sd">        Raises a UserWarning when the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.</span>
 <span class="sd">        Raises a UserWarning when the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fn_data</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_data</span><span class="p">,</span> <span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="s2">&quot;.yaml&quot;</span><span class="p">)</span>
+    <span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="s2">&quot;.yaml&quot;</span><span class="p">)</span>
     <span class="n">dir_data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dir_data</span><span class="p">)</span>
-    <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="n">fn_data</span><span class="p">)</span>
-    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_data</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
-    <span class="n">check_exists</span><span class="p">([</span><span class="n">fn_data</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">dir_data</span><span class="p">,</span> <span class="n">fn_data</span><span class="p">,</span> <span class="n">fn_metadata</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+    <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">)</span>
+    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
+    <span class="n">check_exists</span><span class="p">([</span><span class="n">fn_input</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dir_data</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-function">
 
 
 
 <h2 id="nhssynth.modules.dataloader.io.check_output_paths" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_in</span><span class="p">,</span> <span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+
 
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
-      <p>Formats the output filenames and directories for an experiment.</p>
+      <p>Formats the output filenames for an experiment.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>fn_input</code></td>
+        <td><code>str</code></td>
+        <td><p>The input data filename.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>fn_in</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The input data filename.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>fn_out</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The output data filename / suffix to append to <code>fn_in</code>.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>fn_transformer</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The transformer filename / suffix to append to <code>fn_in</code>.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
       <tr>
-        <th>Type</th>
-        <th>Description</th>
+        <td><code>fn_output</code></td>
+        <td><code>str</code></td>
+        <td><p>The output data filename/suffix to append to <code>fn_input</code>.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code>tuple[str, str]</code>
-          </td>
-          <td><p>A tuple containing the formatted output and transformer (in and out) paths.</p></td>
-        </tr>
-    </tbody>
-  </table>
+      <tr>
+        <td><code>fn_transformer</code></td>
+        <td><code>str</code></td>
+        <td><p>The transformer filename/suffix to append to <code>fn_input</code>.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>dir_experiment</code></td>
+        <td><code>Path</code></td>
+        <td><p>The experiment directory to write the outputs to.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>tuple</code></td>
+      <td><p>A tuple containing the formatted output filenames.</p></td>
+    </tr>
+  </tbody>
+</table>      <p>!!! warnings
+    Raises a UserWarning when the path to <code>fn_output</code> includes directory separators, as this is not supported and may not work as intended.
+    Raises a UserWarning when the path to <code>fn_transformer</code> includes directory separators, as this is not supported and may not work as intended.</p>
 
-<details class="warnings">
-  <summary>Warnings</summary>
-  <p>Raises a UserWarning when the path to <code>fn_out</code> includes directory separators, as this is not supported and may not work as intended.
-Raises a UserWarning when the path to <code>fn_transformer</code> includes directory separators, as this is not supported and may not work as intended.</p>
-</details>
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/io.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
-<span class="normal">38</span>
-<span class="normal">39</span>
-<span class="normal">40</span>
-<span class="normal">41</span>
-<span class="normal">42</span>
-<span class="normal">43</span>
-<span class="normal">44</span>
-<span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_output_paths</span><span class="p">(</span>
-    <span class="n">fn_in</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">fn_out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/io.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">check_output_paths</span><span class="p">(</span>
+    <span class="n">fn_input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fn_output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Formats the output filenames and directories for an experiment.</span>
+<span class="sd">    Formats the output filenames for an experiment.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        fn_in: The input data filename.</span>
-<span class="sd">        fn_out: The output data filename / suffix to append to `fn_in`.</span>
-<span class="sd">        fn_transformer: The transformer filename / suffix to append to `fn_in`.</span>
+<span class="sd">        fn_input: The input data filename.</span>
+<span class="sd">        fn_output: The output data filename/suffix to append to `fn_input`.</span>
+<span class="sd">        fn_transformer: The transformer filename/suffix to append to `fn_input`.</span>
+<span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A tuple containing the formatted output and transformer (in and out) paths.</span>
+<span class="sd">        A tuple containing the formatted output filenames.</span>
 
 <span class="sd">    Warnings:</span>
-<span class="sd">        Raises a UserWarning when the path to `fn_out` includes directory separators, as this is not supported and may not work as intended.</span>
+<span class="sd">        Raises a UserWarning when the path to `fn_output` includes directory separators, as this is not supported and may not work as intended.</span>
 <span class="sd">        Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_out</span><span class="p">),</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">)</span>
-    <span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_in</span><span class="p">),</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_in</span><span class="p">)</span>
-    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_transformer</span>
-</code></pre></div></td></tr></table></div>
-      </details>
+    <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_output</span><span class="p">),</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">)</span>
+    <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">),</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">)</span>
+    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span>
+</code></pre></div>
+        </details>
+    </div>
+
   </div>
 
-</div>
 
-<div class="doc doc-object doc-function">
+
+  <div class="doc doc-object doc-function">
 
 
 
 <h2 id="nhssynth.modules.dataloader.io.write_data_outputs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">write_data_outputs</span><span class="p">(</span><span class="n">transformed_input</span><span class="p">,</span> <span class="n">metatransformer</span><span class="p">,</span> <span class="n">fn_out</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">write_data_outputs</span><span class="p">(</span><span class="n">transformed_input</span><span class="p">,</span> <span class="n">metatransformer</span><span class="p">,</span> <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+
 
 </h2>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-  
       <p>Writes the transformed data and metatransformer to disk.</p>
 
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
       <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
+        <td><code>transformed_input</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The prepared version of the input data.</p></td>
+        <td><em>required</em></td>
       </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>transformed_input</code></td>
-          <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td><p>The prepared version of the input data.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>metatransformer</code></td>
-          <td>
-                <code><a class="autorefs autorefs-internal" title="nhssynth.modules.dataloader.metatransformer.MetaTransformer" href="../metatransformer/#nhssynth.modules.dataloader.metatransformer.MetaTransformer">MetaTransformer</a></code>
-          </td>
-          <td><p>The metatransformer used to transform the data into its prepared state.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>fn_out</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The filename to dump the prepared data to.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>fn_transformer</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The filename to dump the metatransformer to.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>dir_experiment</code></td>
-          <td>
-                <code><span title="nhssynth.common.io.Path">Path</span></code>
-          </td>
-          <td><p>The experiment directory to write the outputs to.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-      <details class="quote">
-        <summary>Source code in <code>src/nhssynth/modules/dataloader/io.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">write_data_outputs</span><span class="p">(</span>
+      <tr>
+        <td><code>metatransformer</code></td>
+        <td><code>MetaTransformer</code></td>
+        <td><p>The metatransformer used to transform the data into its prepared state.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fn_output</code></td>
+        <td><code>str</code></td>
+        <td><p>The filename to dump the prepared data to.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fn_transformer</code></td>
+        <td><code>str</code></td>
+        <td><p>The filename to dump the metatransformer to.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>dir_experiment</code></td>
+        <td><code>Path</code></td>
+        <td><p>The experiment directory to write the outputs to.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/dataloader/io.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">write_data_outputs</span><span class="p">(</span>
     <span class="n">transformed_input</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
     <span class="n">metatransformer</span><span class="p">:</span> <span class="n">MetaTransformer</span><span class="p">,</span>
-    <span class="n">fn_out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fn_output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1459,27 +1344,30 @@ Raises a UserWarning when the path to <code>fn_transformer</code> includes direc
 <span class="sd">    Args:</span>
 <span class="sd">        transformed_input: The prepared version of the input data.</span>
 <span class="sd">        metatransformer: The metatransformer used to transform the data into its prepared state.</span>
-<span class="sd">        fn_out: The filename to dump the prepared data to.</span>
+<span class="sd">        fn_output: The filename to dump the prepared data to.</span>
 <span class="sd">        fn_transformer: The filename to dump the metatransformer to.</span>
 <span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">transformed_input</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_out</span><span class="p">)</span>
-    <span class="n">transformed_input</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_out</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">transformed_input</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_output</span><span class="p">)</span>
+    <span class="n">transformed_input</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_output</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-</code></pre></div></td></tr></table></div>
-      </details>
-  </div>
-
-</div>
-
-
+</code></pre></div>
+        </details>
+    </div>
 
   </div>
 
+
+
+
+
+
   </div>
 
-</div>
+    </div>
+
+  </div>
 
   <hr>
 <div class="md-source-file">
