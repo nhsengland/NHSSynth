@@ -1,5 +1,5 @@
 import argparse
-from typing import Any, Callable
+from typing import Any, Callable, Final
 
 from nhssynth.cli.module_arguments import *
 from nhssynth.modules import dataloader, evaluation, model, plotting, structure
@@ -21,9 +21,6 @@ class ModuleConfig:
             add_args_func: A callable that populates the module's sub-parser arguments.
             description: A description of the module's functionality.
             help: A help message for the module's command-line interface.
-
-        Returns:
-            None
         """
         self.func = func
         self.add_args_func = add_args_func
@@ -34,8 +31,9 @@ class ModuleConfig:
 def run_pipeline(args: argparse.Namespace) -> None:
     """Runs the specified pipeline of modules with the passed configuration `args`."""
     print("Running full pipeline...")
+    args.modules_to_run = PIPELINE
     for module_name in PIPELINE:
-        MODULE_MAP[module_name].func(args)
+        args = MODULE_MAP[module_name].func(args)
 
 
 def add_pipeline_args(parser: argparse.ArgumentParser) -> None:
@@ -66,14 +64,14 @@ def add_config_args(parser: argparse.ArgumentParser) -> None:
 
 ### EDIT BELOW HERE TO ADD MODULES / ALTER PIPELINE BEHAVIOUR
 
-PIPELINE = [
+PIPELINE: Final = [
     "dataloader",
     "model",
     "evaluation",
     "plotting",
 ]  # NOTE this determines the order of a pipeline run
 
-MODULE_MAP = {
+MODULE_MAP: Final = {
     "dataloader": ModuleConfig(
         dataloader.run,
         add_dataloader_args,

@@ -1,0 +1,4 @@
+seed: 1
+experiment_name: test
+model:
+  real_data: MIMIC_small

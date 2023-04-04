@@ -1,36 +1,40 @@
 import argparse
 import warnings
-from typing import Any
+from typing import Any, Callable
 
-import nhssynth.cli.module_setup as ms
 import yaml
-from nhssynth.utils import flatten_dict, get_key_by_value
+from nhssynth.cli.module_setup import MODULE_MAP, PIPELINE, run_pipeline
+from nhssynth.common.dicts import *
 
 
 def get_default_and_required_args(
     top_parser: argparse.ArgumentParser,
-    module_parsers: list[argparse.ArgumentParser],
+    module_parsers: dict[str, argparse.ArgumentParser],
 ) -> tuple[dict[str, Any], list[str]]:
     """
     Get the default and required arguments for the top-level parser and the current run's corresponding list of module parsers.
 
     Args:
         top_parser: The top-level parser.
-        module_parsers: The list of module-level parsers.
+        module_parsers: The dict of module-level parsers mapped to their names.
 
     Returns:
         A tuple containing two elements:
             - A dictionary containing all arguments and their default values.
-            - A list of the names of the required arguments.
+            - A list of kvps of the required arguments and their associated module.
     """
-    all_actions = top_parser._actions + [action for sub_parser in module_parsers for action in sub_parser._actions]
+    all_actions = {
+        "top-level": top_parser._actions,
+        **{m: p._actions for m, p in module_parsers.items()},
+    }
     defaults = {}
     required_args = []
-    for action in all_actions:
-        if action.dest not in ["help", "==SUPPRESS=="]:
-            defaults[action.dest] = action.default
-            if action.required:
-                required_args.append(action.dest)
+    for module, actions in all_actions.items():
+        for action in actions:
+            if action.dest not in ["help", "==SUPPRESS=="]:
+                defaults[action.dest] = action.default
+                if action.required:
+                    required_args.append({"arg": action.dest, "module": module})
     return defaults, required_args
 
 
@@ -67,30 +71,30 @@ def read_config(
     valid_run_types = [x for x in all_subparsers.keys() if x != "config"]
 
     run_type = config_dict.pop("run_type", None)
-    # TODO Check this covers all bases
+
     if run_type == "pipeline":
-        modules_to_run = ms.PIPELINE
+        modules_to_run = PIPELINE
     else:
         modules_to_run = [x for x in config_dict.keys() | {run_type} if x in valid_run_types]
         if not args.custom_pipeline:
-            modules_to_run = sorted(modules_to_run, key=lambda x: ms.PIPELINE.index(x))
+            modules_to_run = sorted(modules_to_run, key=lambda x: PIPELINE.index(x))
 
     if not modules_to_run:
         warnings.warn(
             "Missing or invalid `run_type` and / or module specification hierarchy in `config/{args.input_config}.yaml`, defaulting to a full run of the pipeline"
         )
-        modules_to_run = ms.PIPELINE
+        modules_to_run = PIPELINE
 
     # Get all possible default arguments by scraping the top level `parser` and the appropriate sub-parser for the `run_type`
     args_dict, required_args = get_default_and_required_args(
-        parser, [all_subparsers[module_name] for module_name in modules_to_run]
+        parser, filter_dict(all_subparsers, modules_to_run, include=True)
     )
 
     # Find the non-default arguments amongst passed `args` by seeing which of them are different to the entries of `args_dict`
     non_default_passed_args_dict = {
         k: v
         for k, v in vars(args).items()
-        if k in ["input_config", "custom_pipeline"] or (k != "func" and v != args_dict[k])
+        if k in ["input_config", "custom_pipeline"] or (k in args_dict and k != "func" and v != args_dict[k])
     }
 
     # Overwrite the default arguments with the ones from the yaml file
@@ -102,15 +106,31 @@ def read_config(
     # Create a new Namespace using the assembled dictionary
     new_args = argparse.Namespace(**args_dict)
     assert all(
-        getattr(new_args, req_arg) for req_arg in required_args
-    ), "Required arguments are missing from the passed config file"
+        getattr(new_args, req_arg["arg"]) for req_arg in required_args
+    ), f"Required arguments are missing from the passed config file: {[ra['module'] + ':' + ra['arg'] for ra in required_args if not getattr(new_args, ra['arg'])]}"
 
     # Run the appropriate execution function(s)
-    for module in modules_to_run:
-        ms.MODULE_MAP[module].func(new_args)
-
     new_args.modules_to_run = modules_to_run
+    for module in new_args.modules_to_run:
+        MODULE_MAP[module].func(new_args)
+
     return new_args
+
+
+def get_modules_to_run(executor: Callable) -> list[str]:
+    """
+    Get the list of modules to run from the passed executor function.
+
+    Args:
+        executor: The executor function to run.
+
+    Returns:
+        A list of module names to run.
+    """
+    if executor == run_pipeline:
+        return PIPELINE
+    else:
+        return [get_key_by_value({mn: mc.func for mn, mc in MODULE_MAP.items()}, executor)]
 
 
 def assemble_config(
@@ -131,13 +151,10 @@ def assemble_config(
         ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.
     """
     args_dict = vars(args)
-    modules_to_run = args_dict.pop("modules_to_run", None)
-    if not modules_to_run:
-        run_type = get_key_by_value({mn: mc.func for mn, mc in ms.MODULE_MAP.items()}, args_dict["func"])
-        modules_to_run = ms.PIPELINE if run_type == "pipeline" else run_type
-    elif len(modules_to_run) == 1:
+    modules_to_run = args_dict["modules_to_run"]
+    if len(modules_to_run) == 1:
         run_type = modules_to_run[0]
-    elif modules_to_run == ms.PIPELINE:
+    elif modules_to_run == PIPELINE:
         run_type = "pipeline"
     else:
         raise ValueError(f"Invalid value for `modules_to_run`: {modules_to_run}")
@@ -161,7 +178,11 @@ def assemble_config(
     # Assemble the final dictionary in YAML-compliant form
     return {
         **({"run_type": run_type} if run_type else {}),
-        **{k: v for k, v in args_dict.items() if k not in {"func", "run_name", "save_config", "save_config_path"}},
+        **{
+            k: v
+            for k, v in args_dict.items()
+            if k not in {"func", "experiment_name", "save_config", "save_config_path"}
+        },
         **out_dict,
     }
 
@@ -176,11 +197,7 @@ def write_config(
     Args:
         args: A namespace containing the run's configuration.
         all_subparsers: A dictionary containing all subparsers for the config args.
-
-    Returns:
-        None
     """
-    # TODO Maybe build a function that does this kind of filtering
     if args.sdv_workflow:
         del args.synthesizer
     args_dict = assemble_config(args, all_subparsers)
