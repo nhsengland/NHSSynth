@@ -9,17 +9,17 @@
       
       
       
-        <link rel="prev" href="../module_setup/">
+        <link rel="prev" href="../dicts/">
       
       
-        <link rel="next" href="../../common/">
+        <link rel="next" href="../../modules/">
       
       <link rel="icon" href="../../../assets/NHS.svg">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
     
     
       
-        <title>run - Generating Useful Synthetic Data</title>
+        <title>io - Generating Useful Synthetic Data</title>
       
     
     
@@ -73,7 +73,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nhssynth.cli.run" class="md-skip">
+        <a href="#nhssynth.common.io" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              run
+              io
             
           </span>
         </div>
@@ -231,7 +231,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../" class="md-tabs__link md-tabs__link--active">
+      <a href="../../cli/" class="md-tabs__link md-tabs__link--active">
         Code Reference
       </a>
     </li>
@@ -354,23 +354,21 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
       
       
       
         
         
         <div class="md-nav__link md-nav__link--index ">
-          <a href="../">cli</a>
+          <a href="../../cli/">cli</a>
           
             <label for="__nav_3_1">
               <span class="md-nav__icon md-icon"></span>
@@ -378,7 +376,7 @@
           
         </div>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3_1">
           <span class="md-nav__icon md-icon"></span>
           cli
@@ -391,7 +389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../config/" class="md-nav__link">
+      <a href="../../cli/config/" class="md-nav__link">
         config
       </a>
     </li>
@@ -405,7 +403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../module_arguments/" class="md-nav__link">
+      <a href="../../cli/module_arguments/" class="md-nav__link">
         module_arguments
       </a>
     </li>
@@ -419,8 +417,106 @@
   
   
     <li class="md-nav__item">
-      <a href="../module_setup/" class="md-nav__link">
+      <a href="../../cli/module_setup/" class="md-nav__link">
         module_setup
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/run/" class="md-nav__link">
+        run
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+      
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">common</a>
+          
+            <label for="__nav_3_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          common
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common/" class="md-nav__link">
+        common
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../constants/" class="md-nav__link">
+        constants
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dicts/" class="md-nav__link">
+        dicts
       </a>
     </li>
   
@@ -441,12 +537,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          run
+          io
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        run
+        io
       </a>
       
         
@@ -463,15 +559,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nhssynth.cli.run" class="md-nav__link">
-    nhssynth.cli.run
+  <a href="#nhssynth.common.io" class="md-nav__link">
+    nhssynth.common.io
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#nhssynth.cli.run.run" class="md-nav__link">
-    run()
+  <a href="#nhssynth.common.io.check_exists" class="md-nav__link">
+    check_exists()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.common.io.consistent_ending" class="md-nav__link">
+    consistent_ending()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.common.io.experiment_io" class="md-nav__link">
+    experiment_io()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.common.io.potential_suffix" class="md-nav__link">
+    potential_suffix()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.common.io.warn_if_path_supplied" class="md-nav__link">
+    warn_if_path_supplied()
   </a>
   
 </li>
@@ -480,102 +604,6 @@
   
 </nav>
       
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
-      
-      
-      
-        
-        
-        <div class="md-nav__link md-nav__link--index ">
-          <a href="../../common/">common</a>
-          
-            <label for="__nav_3_2">
-              <span class="md-nav__icon md-icon"></span>
-            </label>
-          
-        </div>
-      
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_3_2">
-          <span class="md-nav__icon md-icon"></span>
-          common
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../common/common/" class="md-nav__link">
-        common
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../common/constants/" class="md-nav__link">
-        constants
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../common/dicts/" class="md-nav__link">
-        dicts
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../common/io/" class="md-nav__link">
-        io
-      </a>
     </li>
   
 
@@ -1017,7 +1045,7 @@
                   
 
   
-    <a href="https://github.com/nhsx/NHSSynth/edit/main/src/nhssynth/cli/run.py" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsx/NHSSynth/edit/main/src/nhssynth/common/io.py" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
     </a>
@@ -1026,19 +1054,19 @@
     
       
     
-    <a href="https://github.com/nhsx/NHSSynth/raw/main/src/nhssynth/cli/run.py" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsx/NHSSynth/raw/main/src/nhssynth/common/io.py" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5Z"/></svg>
     </a>
   
 
 
-  <h1>run</h1>
+  <h1>io</h1>
 
 <div class="doc doc-object doc-module">
 
 
-<a id="nhssynth.cli.run"></a>
+<a id="nhssynth.common.io"></a>
   <div class="doc doc-contents first">
 
   
@@ -1057,32 +1085,171 @@
 
 
 
-<h2 id="nhssynth.cli.run.run" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">run</span><span class="p">()</span></code>
+<h2 id="nhssynth.common.io.check_exists" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_exists</span><span class="p">(</span><span class="n">fns</span><span class="p">,</span> <span class="nb">dir</span><span class="p">)</span></code>
 
 </h2>
 
 
   <div class="doc doc-contents ">
   
-      <p>CLI for preparing, training and evaluating a synthetic data generator.</p>
+      <p>Checks if the files in <code>fns</code> exist in <code>dir</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>fns</code></td>
+          <td>
+                <code>list[str]</code>
+          </td>
+          <td><p>The list of files to check.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dir_experiment</code></td>
+          <td>
+          </td>
+          <td><p>The directory the files should exist in.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>FileNotFoundError</code>
+          </td>
+          <td><p>If any of the files in <code>fns</code> do not exist in <code>dir_experiment</code>.</p></td>
+        </tr>
+    </tbody>
+  </table>
 
       <details class="quote">
-        <summary>Source code in <code>src/nhssynth/cli/run.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span>
-<span class="normal">16</span>
-<span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span>
-<span class="normal">20</span>
-<span class="normal">21</span>
+        <summary>Source code in <code>src/nhssynth/common/io.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">check_exists</span><span class="p">(</span><span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if the files in `fns` exist in `dir`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fns: The list of files to check.</span>
+<span class="sd">        dir_experiment: The directory the files should exist in.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        FileNotFoundError: If any of the files in `fns` do not exist in `dir_experiment`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">dir</span> <span class="o">/</span> <span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2"> does not exist at </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.common.io.consistent_ending" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="s1">&#39;.pkl&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Ensures that the filename <code>fn</code> ends with <code>ending</code>. If not, removes any existing ending and appends <code>ending</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>fn</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The filename to check.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ending</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The desired ending to check for. Default is ".pkl".</p></td>
+          <td>
+                <code>&#39;.pkl&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The filename with the correct ending.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>src/nhssynth/common/io.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">21</span>
 <span class="normal">22</span>
 <span class="normal">23</span>
 <span class="normal">24</span>
@@ -1097,10 +1264,198 @@
 <span class="normal">33</span>
 <span class="normal">34</span>
 <span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span>
-<span class="normal">38</span>
-<span class="normal">39</span>
+<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ending</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures that the filename `fn` ends with `ending`. If not, removes any existing ending and appends `ending`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fn: The filename to check.</span>
+<span class="sd">        ending: The desired ending to check for. Default is &quot;.pkl&quot;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The filename with the correct ending.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path_fn</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="n">ending</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fn</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="n">ending</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.common.io.experiment_io" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">experiment_io</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">,</span> <span class="n">dir_experiments</span><span class="o">=</span><span class="s1">&#39;experiments&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create an experiment's directory and return the path.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>experiment_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The name of the experiment.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dir_experiments</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The name of the directory containing all experiments.</p></td>
+          <td>
+                <code>&#39;experiments&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The path to the experiment directory.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>src/nhssynth/common/io.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">experiment_io</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dir_experiments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;experiments&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an experiment&#39;s directory and return the path.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        experiment_name: The name of the experiment.</span>
+<span class="sd">        dir_experiments: The name of the directory containing all experiments.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The path to the experiment directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dir_experiment</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dir_experiments</span><span class="p">)</span> <span class="o">/</span> <span class="n">experiment_name</span>
+    <span class="n">dir_experiment</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dir_experiment</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.common.io.potential_suffix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn_base</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Checks if <code>fn</code> is a suffix (starts with an underscore) to append to <code>fn_base</code>, or a filename in its own right.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>fn</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The filename / potential suffix to append to <code>fn_base</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fn_base</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The name of the file the suffix would attach to.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The appropriately processed <code>fn</code></p></td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>src/nhssynth/common/io.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
@@ -1108,46 +1463,122 @@
 <span class="normal">44</span>
 <span class="normal">45</span>
 <span class="normal">46</span>
-<span class="normal">47</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">run</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;&quot;&quot;</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">potential_suffix</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn_base</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if `fn` is a suffix (starts with an underscore) to append to `fn_base`, or a filename in its own right.</span>
 
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">prog</span><span class="o">=</span><span class="s2">&quot;nhssynth&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;CLI for preparing, training and evaluating a synthetic data generator.&quot;</span>
-    <span class="p">)</span>
-    <span class="n">add_top_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+<span class="sd">    Args:</span>
+<span class="sd">        fn: The filename / potential suffix to append to `fn_base`.</span>
+<span class="sd">        fn_base: The name of the file the suffix would attach to.</span>
 
-    <span class="c1"># Below we instantiate one subparser for each module + one for running with a config file and one for</span>
-    <span class="c1"># doing a full pipeline run with CLI-specified config</span>
-    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
-
-    <span class="c1"># TODO can probably do this better as we dont actually need the `pipeline` or `config` subparsers in this dict</span>
-    <span class="n">all_subparsers</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">name</span><span class="p">:</span> <span class="n">add_subparser</span><span class="p">(</span><span class="n">subparsers</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_config</span> <span class="ow">in</span> <span class="n">MODULE_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-    <span class="p">}</span>
-
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-
-    <span class="c1"># Use get to return None when no function has been set, i.e. user made no running choice</span>
-    <span class="n">executor</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;func&quot;</span><span class="p">)</span>
-
-    <span class="c1"># If `config` is the specified running choice, we mutate `args` in `read_config`</span>
-    <span class="c1"># else we execute according to the user&#39;s choice</span>
-    <span class="c1"># else we return `--help` if no choice has been passed, i.e. executor is None</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="p">:</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">executor</span><span class="p">:</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">=</span> <span class="n">get_modules_to_run</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
-        <span class="n">executor</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        The appropriately processed `fn`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fn_base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_base</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+    <span class="k">if</span> <span class="n">fn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;_&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fn_base</span> <span class="o">+</span> <span class="n">fn</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;--help&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fn</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
 
-    <span class="c1"># Whenever either are specified, we want to dump the configuration to allow for this run to be replicated</span>
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span><span class="p">:</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">save_config_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;experiments/</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">/config_</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
-        <span class="n">write_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">all_subparsers</span><span class="p">)</span>
+</div>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Complete!&quot;</span><span class="p">)</span>
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.common.io.warn_if_path_supplied" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">warn_if_path_supplied</span><span class="p">(</span><span class="n">fns</span><span class="p">,</span> <span class="nb">dir</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Warns if the files in <code>fns</code> include directory separators.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>fns</code></td>
+          <td>
+                <code>list[str]</code>
+          </td>
+          <td><p>The list of files to check.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dir</code></td>
+          <td>
+                <code><span title="pathlib.Path">Path</span></code>
+          </td>
+          <td><p>The directory the files should exist in.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="warnings">
+  <summary>Warnings</summary>
+  <p>Raises a UserWarning when the path to any of the files in <code>fns</code> includes directory separators, as this may not work as intended.</p>
+</details>
+      <details class="quote">
+        <summary>Source code in <code>src/nhssynth/common/io.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">warn_if_path_supplied</span><span class="p">(</span><span class="n">fns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Warns if the files in `fns` include directory separators.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fns: The list of files to check.</span>
+<span class="sd">        dir: The directory the files should exist in.</span>
+
+<span class="sd">    Warnings:</span>
+<span class="sd">        Raises a UserWarning when the path to any of the files in `fns` includes directory separators, as this may not work as intended.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Using the path supplied appended to </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">, i.e. attempting to read data from </span><span class="si">{</span><span class="nb">dir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="ne">UserWarning</span><span class="p">,</span>
+            <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>
@@ -1198,7 +1629,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../module_setup/" class="md-footer__link md-footer__link--prev" aria-label="Previous: module_setup" rel="prev">
+          <a href="../dicts/" class="md-footer__link md-footer__link--prev" aria-label="Previous: dicts" rel="prev">
             <div class="md-footer__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
             </div>
@@ -1207,20 +1638,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                module_setup
+                dicts
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../common/" class="md-footer__link md-footer__link--next" aria-label="Next: common" rel="next">
+          <a href="../../modules/" class="md-footer__link md-footer__link--next" aria-label="Next: modules" rel="next">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                common
+                modules
               </div>
             </div>
             <div class="md-footer__button md-icon">
