@@ -13,7 +13,6 @@ def add_top_level_args(parser: argparse.ArgumentParser) -> None:
         help=f"name the experiment run to affect logging, config, and default-behaviour io, defaults to current time, i.e. `{TIME}`",
     )
     parser.add_argument(
-        "-sc",
         "--save-config",
         action="store_true",
         help="save the config provided via the cli",
@@ -30,7 +29,6 @@ def add_top_level_args(parser: argparse.ArgumentParser) -> None:
         help="specify a seed for reproducibility",
     )
     parser.add_argument(
-        "-w",
         "--write-all",
         action="store_true",
         help="write all outputs to disk, including those that are not strictly necessary i.e. intermediary outputs in a full pipeline run",
@@ -165,6 +163,12 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         "--use-gpu",
         action="store_true",
         help="use the GPU for training",
+    )
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=1e-3,
+        help="the learning rate for the model",
     )
     parser.add_argument(
         "--batch-size",

@@ -198,8 +198,12 @@ def write_config(
         args: A namespace containing the run's configuration.
         all_subparsers: A dictionary containing all subparsers for the config args.
     """
+    if not args.save_config_path:
+        args.save_config_path = f"experiments/{args.experiment_name}/config_{args.experiment_name}.yaml"
+
     if args.sdv_workflow:
         del args.synthesizer
+
     args_dict = assemble_config(args, all_subparsers)
     with open(f"{args.save_config_path}", "w") as yaml_file:
         yaml.dump(args_dict, yaml_file, default_flow_style=False, sort_keys=False)

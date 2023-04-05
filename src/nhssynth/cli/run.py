@@ -17,7 +17,6 @@ def run() -> None:
     # doing a full pipeline run with CLI-specified config
     subparsers = parser.add_subparsers()
 
-    # TODO can probably do this better as we dont actually need the `pipeline` or `config` subparsers in this dict
     all_subparsers = {
         name: add_subparser(subparsers, name, option_config) for name, option_config in MODULE_MAP.items()
     }
@@ -27,21 +26,16 @@ def run() -> None:
     # Use get to return None when no function has been set, i.e. user made no running choice
     executor = vars(args).get("func")
 
-    # If `config` is the specified running choice, we mutate `args` in `read_config`
-    # else we execute according to the user's choice
-    # else we return `--help` if no choice has been passed, i.e. executor is None
-    if not executor:
-        args = read_config(args, parser, all_subparsers)
-    elif executor:
+    if executor:
         args.modules_to_run = get_modules_to_run(executor)
         executor(args)
+    elif hasattr(args, "input_config"):
+        args = read_config(args, parser, all_subparsers)
     else:
-        parser.parse_args(["--help"])
+        parser.print_help()
 
     # Whenever either are specified, we want to dump the configuration to allow for this run to be replicated
     if args.save_config or args.save_config_path:
-        if not args.save_config_path:
-            args.save_config_path = f"experiments/{args.experiment_name}/config_{args.experiment_name}.yaml"
         write_config(args, all_subparsers)
 
     print("Complete!")
