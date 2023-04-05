@@ -29,8 +29,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         pin_memory=True,
     )
 
-    print(f"Train, generate and evaluate {'' if args.non_private_training else 'DP'}VAE...")
-
     encoder = Encoder(ncols, args.latent_dim, hidden_dim=args.hidden_dim)
     decoder = Decoder(args.latent_dim, onehots=onehots, singles=singles, hidden_dim=args.hidden_dim)
     vae = VAE(encoder, decoder)

@@ -299,9 +299,7 @@ class MetaTransformer:
         single_idxs = []
         for cn, cd in self.assembled_metadata.items():
             if cd["transformer"].get("name") == "OneHotEncoder":
-                print(cn)
                 onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn).columns).tolist())
-                print(onehot_idxs)
             else:
                 single_idxs.append(data.columns.get_loc(cn))
         return onehot_idxs, single_idxs
