@@ -42,9 +42,8 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     # TODO Probably some way to ensure modules_to_run exists in args
     if "model" in args.modules_to_run:
         args.dataloader_output = {
-            "fn_data": fn_input_data,
+            "fn_base": fn_input_data,
             "data": transformed_input,
-            "categorical_metadata": mt.get_categoricals(),
             "metatransformer": mt,
         }
 

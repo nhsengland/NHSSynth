@@ -17,14 +17,11 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     dir_experiment = experiment_io(args.experiment_name)
 
-    print(args)
-
-    fn_real_data, data, metatransformer = load_required_data(args, dir_experiment)
-    data, categoricals, num_continuous = metatransformer.order(data)
-
+    fn_base, data, mt = load_required_data(args, dir_experiment)
+    data, categoricals, num_continuous = mt.order(data)
     nrows, ncols = data.shape
-    torch_data = TensorDataset(torch.Tensor(data.to_numpy().astype("float32")))
 
+    torch_data = TensorDataset(torch.Tensor(data.to_numpy()))
     sample_rate = args.batch_size / nrows
     data_loader = DataLoader(
         torch_data,
@@ -56,9 +53,9 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         synthetic_data = synthetic_data.cpu()
 
     synthetic_data = pd.DataFrame(synthetic_data.detach(), columns=data.columns)
-    fn_output, fn_model = check_output_paths(fn_real_data, args.synthetic_data, args.model_file, dir_experiment)
+    fn_output, fn_model = check_output_paths(fn_base, args.synthetic_data, args.model_file, dir_experiment)
     if not args.discard_data:
-        # synthetic_data = metatransformer.inverse_apply(synthetic_data)
+        synthetic_data = mt.inverse_apply(synthetic_data)
         synthetic_data.to_csv(dir_experiment / fn_output, index=False)
     if not args.discard_model:
         vae.save(dir_experiment / fn_model)

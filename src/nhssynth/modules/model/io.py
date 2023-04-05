@@ -66,7 +66,7 @@ def load_required_data(
     """
     if getattr(args, "dataloader_output", None):
         return (
-            args.dataloader_output["fn_real_data"],
+            args.dataloader_output["fn_base"],
             args.dataloader_output["data"],
             args.dataloader_output["metatransformer"],
         )
@@ -75,13 +75,13 @@ def load_required_data(
             raise ValueError(
                 "You must provide `--real-data` when running this module on its own, please provide this (a prepared version and corresponding MetaTransformer must also exist in {dir_experiment})"
             )
-        fn_real_data, fn_prepared_data, fn_metatransformer = check_input_paths(
+        fn_base, fn_prepared_data, fn_metatransformer = check_input_paths(
             args.real_data, args.prepared_data, args.real_metatransformer, dir_experiment
         )
 
         with open(dir_experiment / fn_prepared_data, "rb") as f:
             data = pickle.load(f)
         with open(dir_experiment / fn_metatransformer, "rb") as f:
-            metatransformer = pickle.load(f)
+            mt = pickle.load(f)
 
-        return fn_real_data, data, metatransformer
+        return fn_base, data, mt
