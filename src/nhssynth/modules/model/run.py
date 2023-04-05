@@ -18,7 +18,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     dir_experiment = experiment_io(args.experiment_name)
 
     fn_base, data, mt = load_required_data(args, dir_experiment)
-    data, categoricals, num_continuous = mt.order(data)
+    onehots, singles = mt.get_onehots_and_singles()
     nrows, ncols = data.shape
 
     torch_data = TensorDataset(torch.Tensor(data.to_numpy()))
@@ -32,7 +32,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     print(f"Train, generate and evaluate {'' if args.non_private_training else 'DP'}VAE...")
 
     encoder = Encoder(ncols, args.latent_dim, hidden_dim=args.hidden_dim)
-    decoder = Decoder(args.latent_dim, num_continuous, num_categories=categoricals, hidden_dim=args.hidden_dim)
+    decoder = Decoder(args.latent_dim, onehots=onehots, singles=singles, hidden_dim=args.hidden_dim)
     vae = VAE(encoder, decoder)
     if not args.non_private_training:
         results = vae.diff_priv_train(
@@ -54,7 +54,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     synthetic_data = pd.DataFrame(synthetic_data.detach(), columns=data.columns)
     fn_output, fn_model = check_output_paths(fn_base, args.synthetic_data, args.model_file, dir_experiment)
-    if not args.discard_data:
+    if not args.discard_synthetic:
         synthetic_data = mt.inverse_apply(synthetic_data)
         synthetic_data.to_csv(dir_experiment / fn_output, index=False)
     if not args.discard_model:

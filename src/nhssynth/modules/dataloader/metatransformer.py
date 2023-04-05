@@ -82,22 +82,22 @@ class MetaTransformer:
     Attributes:
         metatransformer (HyperTransformer | self.Synthesizer): An instanatiated `HyperTransformer` or `self.Synthesizer` object, ready to use on data.
         assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.
-        categoricals (dict[str, int]): A dictionary mapping categorical columns to the number of levels in the variable.
-        num_continuous (int): The number of continuous columns.
+        onehots (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
+        singles (list[int]): The indices of non-one-hotted columns.
 
     **Methods:**
 
-    - `get_assembled_metadata()`: Return the assembled metadata.
-    - `order(prepared_data)`: Order the prepared data according to the MetaTransformer's `categoricals` and `num_continuous` attributes.
+    - `get_assembled_metadata()`: Returns the assembled metadata.
+    - `get_onehots_and_singles()`: Returns the values of the MetaTransformer's `onehots` and `singles` attributes.
     - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.
 
-    Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.infer_categoricals`,
-    `mt.infer_num_continuous`, and finally `mt.prepare` in sequence on a given raw dataset. Along the way it assigns the attributes listed above.
+    Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.prepare` and finally
+    `mt.count_onehots_and_singles` in sequence on a given raw dataset. Along the way it assigns the attributes listed above.
+
     This workflow is highly encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.
     """
 
     def __init__(self, metadata, sdv_workflow, allow_null_transformers, synthesizer) -> None:
-        # self.metadata: dict[str, dict[str, Any]] = metadata
         self.sdv_workflow: bool = sdv_workflow
         self.allow_null_transformers: bool = allow_null_transformers
         self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZER_CHOICES[synthesizer]
@@ -227,7 +227,13 @@ class MetaTransformer:
                 - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
                     - name: The name of the transformer.
                     - Any other properties of the transformer that we want to record in output.
+        Raises:
+            ValueError: If the metatransformer has not yet been instantiated.
         """
+        if not self.metatransformer:
+            raise ValueError(
+                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
+            )
         if self.sdv_workflow:
             sdmetadata = self.metatransformer.metadata
             transformers = self.metatransformer.get_transformers()
@@ -252,38 +258,53 @@ class MetaTransformer:
                 for cn, cd in config["sdtypes"].items()
             }
 
-    def infer_categoricals(self, data: pd.DataFrame) -> dict[str, int]:
-        """
-        Uses the (assembled) metadata to identify the categorical columns from the data and count the number of levels each categorical variable has.
-
-        Args:
-            data: The data to infer the categorical columns from using `self.assembled_metadata`
-
-        Returns:
-            A dictionary mapping column names to the number of unique values in the column (if the column is categorical).
-        """
-        return {cn: data[cn].nunique() for cn, cd in self.assembled_metadata.items() if cd["sdtype"] == "categorical"}
-
-    def infer_num_continuous(self) -> int:
-        """
-        Uses the (assembled) metadata to infers the number of continuous columns in the data.
-
-        Returns:
-            The number of continuous columns
-        """
-        return sum([cd["sdtype"] != "categorical" for cd in self.assembled_metadata.values()])
-
     def prepare(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Prepares the data by processing it via the metatransformer.
 
         Args:
             data: The data to fit and apply the transformer to.
+
+        Returns:
+            The transformed data.
+
+        Raises:
+            ValueError: If the metatransformer has not yet been instantiated.
         """
+        if not self.metatransformer:
+            raise ValueError(
+                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
+            )
         if self.sdv_workflow:
             return self.metatransformer.preprocess(data)
         else:
             return self.metatransformer.fit_transform(data)
+
+    def count_onehots_and_singles(self, data: pd.DataFrame) -> tuple[list[list[int]], list[int]]:
+        """
+        Uses the assembled metadata to identify and record the indices of one-hotted column groups.
+        Also records the indices of non-one-hotted columns in a separate list.
+
+        Args:
+            data: The data to extract column indices from.
+
+        Returns:
+            A pair of lists:
+                - One-hotted column index groups (i.e. one inner list with all corresponding indices per categorical variable)
+                - Non-one-hotted column indices
+        """
+        if not self.assembled_metadata:
+            self.assembled_metadata = self.assemble()
+        onehot_idxs = []
+        single_idxs = []
+        for cn, cd in self.assembled_metadata.items():
+            if cd["transformer"].get("name") == "OneHotEncoder":
+                print(cn)
+                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn).columns).tolist())
+                print(onehot_idxs)
+            else:
+                single_idxs.append(data.columns.get_loc(cn))
+        return onehot_idxs, single_idxs
 
     def apply(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -298,9 +319,9 @@ class MetaTransformer:
         typed_data = self.apply_dtypes(data)
         self.metatransformer = self.instantiate(typed_data)
         self.assembled_metadata = self.assemble()
-        self.categoricals = self.infer_categoricals(typed_data)
-        self.num_continuous = self.infer_num_continuous()
-        return self.prepare(typed_data)
+        prepared_data = self.prepare(typed_data)
+        self.onehots, self.singles = self.count_onehots_and_singles(prepared_data)
+        return prepared_data
 
     def get_assembled_metadata(self) -> dict[str, dict[str, Any]]:
         """
@@ -319,41 +340,26 @@ class MetaTransformer:
             ValueError: If the metadata has not yet been assembled.
         """
         if not self.assembled_metadata:
-            raise ValueError(
-                "Metadata has not yet been assembled. Call `MetaTransformer.apply` (or `MetaTransformer.assemble`) first."
-            )
+            raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
         return self.assembled_metadata
 
-    def order(self, data: pd.DataFrame) -> tuple[pd.DataFrame, list[int], int]:
+    def get_onehots_and_singles(self) -> tuple[list[list[int]], list[int]]:
         """
-        Orders the data based on the inferred categorical and continuous columns.
-
-        Args:
-            data: The data to order.
+        Get the values of the MetaTransformer's `onehots` and `singles` attributes.
 
         Returns:
-            A tuple containing the ordered data, a list of the number of unique values for each categorical column, and the number of continuous columns.
+            A pair of lists:
+                - One-hotted column index groups (i.e. one inner list with all corresponding indices per categorical variable)
+                - Non-one-hotted column indices
 
         Raises:
-            ValueError: If the metadata has not yet been finalised and assembled or `categoricals` and/or `num_continuous` have yet to be inferred.
-            ValueError: If a column in `self.assembled_metadata` is not found in the passed data.
+            ValueError: If `self.onehots` and `self.singles` have yet to be counted.
         """
-        if not self.categoricals or not self.num_continuous or not self.assembled_metadata:
+        if not self.onehots or not self.singles:
             raise ValueError(
-                "Some metadata is missing. Call `mt.apply(data)` first (or `mt.[assemble(),infer_categoricals(data),infer_num_continuous()]` in sequence)."
+                "Some metadata is missing. Call `mt.apply(data)` first (or `mt.count_onehots_and_singles(data)`)."
             )
-        categorical_ordering = []
-        continuous_ordering = []
-        for cn, cd in self.assembled_metadata.items():
-            if cd["transformer"] and cd["transformer"]["name"] == "OneHotEncoder":
-                idx = data.columns.get_loc(cn + ".value0")
-                categorical_ordering += [*range(idx, idx + self.categoricals[cn])]
-            elif cn not in data.columns:
-                raise ValueError(f"The {cn} column was not found in the passed data.")
-            else:
-                continuous_ordering.append(data.columns.get_loc(cn))
-        ordering = categorical_ordering + continuous_ordering
-        return data.iloc[:, ordering], list(self.categoricals.values()), self.num_continuous
+        return self.onehots, self.singles
 
     def inverse_apply(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -364,7 +370,14 @@ class MetaTransformer:
 
         Returns:
             The original data.
+
+        Raises:
+            ValueError: If the metatransformer has not yet been instantiated.
         """
+        if not self.metatransformer:
+            raise ValueError(
+                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
+            )
         if self.sdv_workflow:
             return self.metatransformer._data_processor.reverse_transform(data)
         else:

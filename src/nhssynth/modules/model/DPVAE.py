@@ -54,17 +54,17 @@ class Decoder(nn.Module):
     def __init__(
         self,
         latent_dim,
-        num_continuous,
-        num_categories=[0],
+        onehots=[[]],
+        singles=[],
         hidden_dim=32,
         activation=nn.Tanh,
         device="gpu",
     ):
         super().__init__()
 
-        output_dim = num_continuous + sum(num_categories)
-        self.num_continuous = num_continuous
-        self.num_categories = num_categories
+        output_dim = len(singles) + sum([len(x) for x in onehots])
+        self.singles = singles
+        self.onehots = onehots
 
         if device == "gpu":
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -86,9 +86,9 @@ class Decoder(nn.Module):
 
 
 class Noiser(nn.Module):
-    def __init__(self, num_continuous):
+    def __init__(self, num_singles):
         super().__init__()
-        self.output_logsigma_fn = nn.Linear(num_continuous, num_continuous, bias=True)
+        self.output_logsigma_fn = nn.Linear(num_singles, num_singles, bias=True)
         torch.nn.init.zeros_(self.output_logsigma_fn.weight)
         torch.nn.init.zeros_(self.output_logsigma_fn.bias)
         self.output_logsigma_fn.weight.requires_grad = False
@@ -105,9 +105,9 @@ class VAE(nn.Module):
         self.encoder = encoder.to(encoder.device)
         self.decoder = decoder.to(decoder.device)
         self.device = encoder.device
-        self.num_categories = self.decoder.num_categories
-        self.num_continuous = self.decoder.num_continuous
-        self.noiser = Noiser(self.num_continuous).to(decoder.device)
+        self.onehots = self.decoder.onehots
+        self.singles = self.decoder.singles
+        self.noiser = Noiser(len(self.singles)).to(decoder.device)
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         self.lr = lr
 
@@ -121,17 +121,15 @@ class VAE(nn.Module):
         z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim)), device=self.device)
         x_gen = self.decoder(z_samples)
         x_gen_ = torch.ones_like(x_gen, device=self.device)
-        i = 0
 
-        for v in range(len(self.num_categories)):
-            x_gen_[:, i : (i + self.num_categories[v])] = torch.distributions.one_hot_categorical.OneHotCategorical(
-                logits=x_gen[:, i : (i + self.num_categories[v])]
+        for cat_idxs in self.onehots:
+            x_gen_[:, cat_idxs] = torch.distributions.one_hot_categorical.OneHotCategorical(
+                logits=x_gen[:, cat_idxs]
             ).sample()
-            i = i + self.num_categories[v]
 
-        x_gen_[:, -self.num_continuous :] = x_gen[:, -self.num_continuous :] + torch.exp(
-            self.noiser(x_gen[:, -self.num_continuous :])
-        ) * torch.randn_like(x_gen[:, -self.num_continuous :])
+        x_gen_[:, self.singles] = x_gen[:, self.singles] + torch.exp(
+            self.noiser(x_gen[:, self.singles])
+        ) * torch.randn_like(x_gen[:, self.singles])
         return x_gen_
 
     def loss(self, X):
@@ -148,25 +146,21 @@ class VAE(nn.Module):
         x_recon = self.decoder(z_samples)
 
         categoric_loglik = 0
-        if sum(self.num_categories) != 0:
-            i = 0
-
-            for v in range(len(self.num_categories)):
-
+        if len(self.onehots):
+            for cat_idxs in self.onehots:
                 categoric_loglik += -torch.nn.functional.cross_entropy(
-                    x_recon[:, i : (i + self.num_categories[v])],
-                    torch.max(X[:, i : (i + self.num_categories[v])], 1)[1],
+                    x_recon[:, cat_idxs],
+                    torch.max(X[:, cat_idxs], 1)[1],
                 ).sum()
-                i = i + self.decoder.num_categories[v]
 
         gauss_loglik = 0
-        if self.decoder.num_continuous != 0:
+        if len(self.singles):
             gauss_loglik = (
                 Normal(
-                    loc=x_recon[:, -self.num_continuous :],
-                    scale=torch.exp(self.noiser(x_recon[:, -self.num_continuous :])),
+                    loc=x_recon[:, self.singles],
+                    scale=torch.exp(self.noiser(x_recon[:, self.singles])),
                 )
-                .log_prob(X[:, -self.num_continuous :])
+                .log_prob(X[:, self.singles])
                 .sum()
             )
 
@@ -195,9 +189,7 @@ class VAE(nn.Module):
 
         # EARLY STOPPING #
         min_elbo = 0.0  # For early stopping workflow
-        patience = patience  # How many epochs patience we give for early stopping
         stop_counter = 0  # Counter for stops
-        delta = delta  # Difference in elbo value
 
         for epoch in range(num_epochs):
 
