@@ -57,9 +57,10 @@ def make_transformer_dict(transformer: BaseTransformer) -> dict[str, Any]:
 # TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
 class MetaTransformer:
     """
-    A metatransformer object that can wrap either a `HyperTransformer` from RDT or a `BaseSingleTableSynthesizer` from SDV. The metatransformer
-    is responsible for transforming input data into a format that can be used by the model module, and transforming the module's output back to
-    the original format of the input data.
+    A metatransformer object that can wrap either a [`HyperTransformer`](https://docs.sdv.dev/rdt/usage/hypertransformer) from RDT or a
+    [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers) from SDV. The metatransformer is
+    responsible for transforming input data into a format that can be used by the model module, and transforming the module's output back
+    to the original format of the input data.
 
     Args:
         metadata: A dictionary mapping column names to their metadata.
