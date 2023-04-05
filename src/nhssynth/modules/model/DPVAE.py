@@ -1,13 +1,20 @@
+import warnings
 from random import gauss
 
 import torch
 import torch.nn as nn
 from opacus import PrivacyEngine
-from pandas import Categorical
-
-# from torch.distributions.bernoulli import Bernoulli
 from torch.distributions.normal import Normal
 from tqdm import tqdm
+
+
+def setup_device(use_gpu):
+    if use_gpu:
+        if torch.cuda.is_available():
+            return torch.device("cuda:0")
+        else:
+            warnings.warn("using CPU as `use_gpu` was specified but no GPU is available")
+    return torch.device("cpu")
 
 
 class Encoder(nn.Module):
@@ -22,17 +29,15 @@ class Encoder(nn.Module):
         latent_dim,
         hidden_dim=32,
         activation=nn.Tanh,
-        device="gpu",
+        use_gpu=False,
     ):
+
         super().__init__()
-        if device == "gpu":
-            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-            print(f"Encoder: {device} specified, {self.device} used")
-        else:
-            self.device = torch.device("cpu")
-            print(f"Encoder: {device} specified, {self.device} used")
+
+        self.device = setup_device(use_gpu)
         output_dim = 2 * latent_dim
         self.latent_dim = latent_dim
+
         self.net = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             activation(),
@@ -58,20 +63,15 @@ class Decoder(nn.Module):
         singles=[],
         hidden_dim=32,
         activation=nn.Tanh,
-        device="gpu",
+        use_gpu=False,
     ):
+
         super().__init__()
 
+        self.device = setup_device(use_gpu)
         output_dim = len(singles) + sum([len(x) for x in onehots])
         self.singles = singles
         self.onehots = onehots
-
-        if device == "gpu":
-            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-            print(f"Decoder: {device} specified, {self.device} used")
-        else:
-            self.device = torch.device("cpu")
-            print(f"Decoder: {device} specified, {self.device} used")
 
         self.net = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
@@ -138,7 +138,7 @@ class VAE(nn.Module):
         p = Normal(torch.zeros_like(mu_z), torch.ones_like(mu_z))
         q = Normal(mu_z, torch.exp(logsigma_z))
 
-        divergence_loss = torch.sum(torch.distributions.kl_divergence(q, p))
+        kld = torch.sum(torch.distributions.kl_divergence(q, p))
 
         s = torch.randn_like(mu_z)
         z_samples = mu_z + s * torch.exp(logsigma_z)
@@ -164,17 +164,16 @@ class VAE(nn.Module):
                 .sum()
             )
 
-        reconstruct_loss = -(categoric_loglik + gauss_loglik)
+        reconstruction_loss = -(categoric_loglik + gauss_loglik)
 
-        elbo = divergence_loss + reconstruct_loss
+        elbo = kld + reconstruction_loss
 
-        return (elbo, reconstruct_loss, divergence_loss, categoric_loglik, gauss_loglik)
+        return (elbo, reconstruction_loss, kld, categoric_loglik, gauss_loglik)
 
     def train(
         self,
         x_dataloader,
         num_epochs,
-        logging_freq=1,
         patience=5,
         delta=10,
         filepath=None,
@@ -191,31 +190,35 @@ class VAE(nn.Module):
         min_elbo = 0.0  # For early stopping workflow
         stop_counter = 0  # Counter for stops
 
-        for epoch in range(num_epochs):
+        stats_bar_1 = tqdm(total=0, desc="", position=0, bar_format="{desc}", leave=True)
+        stats_bar_2 = tqdm(total=0, desc="", position=1, bar_format="{desc}", leave=True)
+        stats_bar_3 = tqdm(total=0, desc="", position=2, bar_format="{desc}", leave=True)
+        stats_bar_4 = tqdm(total=0, desc="", position=3, bar_format="{desc}", leave=True)
+        stats_bar_5 = tqdm(total=0, desc="", position=4, bar_format="{desc}", leave=True)
 
-            train_loss = 0.0
-            divergence_epoch_loss = 0.0
-            reconstruction_epoch_loss = 0.0
-            categorical_epoch_reconstruct = 0.0
-            numerical_epoch_reconstruct = 0.0
-
-            for batch_idx, (Y_subset,) in enumerate(tqdm(x_dataloader)):
+        for epoch in tqdm(range(num_epochs), desc="Epochs", position=5, leave=False):
+            elbo_e = 0.0
+            kld_e = 0.0
+            reconstruction_e = 0.0
+            categorical_e = 0.0
+            numerical_e = 0.0
+            for (Y_subset,) in tqdm(x_dataloader, desc="Batches", position=6, leave=False):
                 self.optimizer.zero_grad()
                 (
                     elbo,
-                    reconstruct_loss,
-                    divergence_loss,
-                    categorical_reconstruc,
-                    numerical_reconstruct,
+                    reconstruction_loss,
+                    kld,
+                    categorical_loss,
+                    numerical_loss,
                 ) = self.loss(Y_subset.to(self.encoder.device))
                 elbo.backward()
                 self.optimizer.step()
 
-                train_loss += elbo.item()
-                divergence_epoch_loss += divergence_loss.item()
-                reconstruction_epoch_loss += reconstruct_loss.item()
-                categorical_epoch_reconstruct += categorical_reconstruc.item()
-                numerical_epoch_reconstruct += numerical_reconstruct.item()
+                elbo_e += elbo.item()
+                kld_e += kld.item()
+                reconstruction_e += reconstruction_loss.item()
+                categorical_e += categorical_loss.item()
+                numerical_e += numerical_loss.item()
 
                 # counter += 1
                 # l2_norm = 0
@@ -225,41 +228,38 @@ class VAE(nn.Module):
                 #         l2_norm += p_norm.item() ** 2
                 # l2_norm = l2_norm ** 0.5  # / Y_subset.shape[0]
                 # mean_norm = (mean_norm * (counter - 1) + l2_norm) / counter
+            stats_bar_1.set_description_str(f"ELBO: \t\t\t{elbo_e:.2f}")
+            stats_bar_2.set_description_str(f"KLD: \t\t\t{kld_e:.2f}")
+            stats_bar_3.set_description_str(f"Reconstruction Loss: \t{reconstruction_e:.2f}")
+            stats_bar_4.set_description_str(f"Categorical Loss: \t{categorical_e:.2f}")
+            stats_bar_5.set_description_str(f"Numerical Loss: \t{numerical_e:.2f}")
 
-            log_elbo.append(train_loss)
-            log_reconstruct.append(reconstruction_epoch_loss)
-            log_divergence.append(divergence_epoch_loss)
-            log_cat_loss.append(categorical_epoch_reconstruct)
-            log_num_loss.append(numerical_epoch_reconstruct)
+            log_elbo.append(elbo_e)
+            log_reconstruct.append(reconstruction_e)
+            log_divergence.append(kld_e)
+            log_cat_loss.append(categorical_e)
+            log_num_loss.append(numerical_e)
 
             if epoch == 0:
+                min_elbo = elbo_e
 
-                min_elbo = train_loss
-
-            if train_loss < (min_elbo - delta):
-
-                min_elbo = train_loss
+            if elbo_e < (min_elbo - delta):
+                min_elbo = elbo_e
                 stop_counter = 0  # Set counter to zero
                 if filepath != None:
                     self.save(filepath)  # Save best model if we want to
-
             else:  # elbo has not improved
-
                 stop_counter += 1
 
-            if epoch % logging_freq == 0:
-                print(
-                    f"\tEpoch: {epoch:2}. Elbo: {train_loss:11.2f}. Reconstruction Loss: {reconstruction_epoch_loss:11.2f}. KL Divergence: {divergence_epoch_loss:11.2f}. Categorical Loss: {categorical_epoch_reconstruct:11.2f}. Numerical Loss: {numerical_epoch_reconstruct:11.2f}"
-                )
-                # print(f"\tMean norm: {mean_norm}")
-            # self.mean_norm = mean_norm
-
             if stop_counter == patience:
-
                 num_epochs = epoch + 1
-
                 break
 
+        stats_bar_1.close()
+        stats_bar_2.close()
+        stats_bar_3.close()
+        stats_bar_4.close()
+        stats_bar_5.close()
         return (
             num_epochs,
             log_elbo,
@@ -316,11 +316,11 @@ class VAE(nn.Module):
         delta = delta  # Difference in elbo value
 
         for epoch in range(num_epochs):
-            train_loss = 0.0
-            divergence_epoch_loss = 0.0
-            reconstruction_epoch_loss = 0.0
-            categorical_epoch_reconstruct = 0.0
-            numerical_epoch_reconstruct = 0.0
+            elbo_e = 0.0
+            kld_e = 0.0
+            reconstruction_e = 0.0
+            categorical_e = 0.0
+            numerical_e = 0.0
             # print(self.get_privacy_spent(target_delta))
 
             for batch_idx, (Y_subset,) in enumerate(tqdm(x_dataloader)):
@@ -328,36 +328,36 @@ class VAE(nn.Module):
                 self.optimizer.zero_grad()
                 (
                     elbo,
-                    reconstruct_loss,
-                    divergence_loss,
-                    categorical_reconstruct,
-                    numerical_reconstruct,
+                    reconstruction_loss,
+                    kld,
+                    categorical_loss,
+                    numerical_loss,
                 ) = self.loss(Y_subset.to(self.encoder.device))
                 elbo.backward()
                 self.optimizer.step()
 
-                train_loss += elbo.item()
-                divergence_epoch_loss += divergence_loss.item()
-                reconstruction_epoch_loss += reconstruct_loss.item()
-                categorical_epoch_reconstruct += categorical_reconstruct.item()
-                numerical_epoch_reconstruct += numerical_reconstruct.item()
+                elbo_e += elbo.item()
+                kld_e += kld.item()
+                reconstruction_e += reconstruction_loss.item()
+                categorical_e += categorical_loss.item()
+                numerical_e += numerical_loss.item()
 
                 # print(self.get_privacy_spent(target_delta))
                 # print(loss.item())
 
-            log_elbo.append(train_loss)
-            log_reconstruct.append(reconstruction_epoch_loss)
-            log_divergence.append(divergence_epoch_loss)
-            log_cat_loss.append(categorical_epoch_reconstruct)
-            log_num_loss.append(numerical_epoch_reconstruct)
+            log_elbo.append(elbo_e)
+            log_reconstruct.append(reconstruction_e)
+            log_divergence.append(kld_e)
+            log_cat_loss.append(categorical_e)
+            log_num_loss.append(numerical_e)
 
             if epoch == 0:
 
-                min_elbo = train_loss
+                min_elbo = elbo_e
 
-            if train_loss < (min_elbo - delta):
+            if elbo_e < (min_elbo - delta):
 
-                min_elbo = train_loss
+                min_elbo = elbo_e
                 stop_counter = 0  # Set counter to zero
                 if filepath != None:
                     self.save(filepath)  # Save best model if we want to
@@ -368,7 +368,7 @@ class VAE(nn.Module):
 
             if epoch % logging_freq == 0:
                 print(
-                    f"\tEpoch: {epoch:2}. Elbo: {train_loss:11.2f}. Reconstruction Loss: {reconstruction_epoch_loss:11.2f}. KL Divergence: {divergence_epoch_loss:11.2f}. Categorical Loss: {categorical_epoch_reconstruct:11.2f}. Numerical Loss: {numerical_epoch_reconstruct:11.2f}"
+                    f"\tEpoch: {epoch:2}. Elbo: {elbo_e:11.2f}. Reconstruction Loss: {reconstruction_e:11.2f}. KL Divergence: {kld_e:11.2f}. Categorical Loss: {categorical_e:11.2f}. Numerical Loss: {numerical_e:11.2f}"
                 )
                 # print(f"\tMean norm: {mean_norm}")
 

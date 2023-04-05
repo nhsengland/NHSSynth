@@ -162,6 +162,11 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         help="do not output the synthetic data generated during the run",
     )
     parser.add_argument(
+        "--use-gpu",
+        action="store_true",
+        help="use the GPU for training",
+    )
+    parser.add_argument(
         "--batch-size",
         type=int,
         default=32,
