@@ -127,6 +127,24 @@ class MetaTransformer:
             self.dtypes.update({cn: data[cn].dtype for cn, cv in self.dtypes.items() if not cv})
         return data.astype(self.dtypes)
 
+    def _instantiate_ohe_component_transformers(
+        self, transformers: dict[str, BaseTransformer | None]
+    ) -> dict[str, BaseTransformer]:
+        """
+        Instantiates a OneHotEncoder for each resulting `*.component` column that arises from a ClusterBasedNormalizer.
+
+        Args:
+            transformers: A dictionary mapping column names to their assigned transformers.
+
+        Returns:
+            A dictionary mapping each `*.component` column to a OneHotEncoder.
+        """
+        return {
+            f"{cn}.component": OneHotEncoder()
+            for cn, transformer in transformers.items()
+            if transformer.get_name() == "ClusterBasedNormalizer"
+        }
+
     def _instantiate_synthesizer(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
         """
         Instantiates a `self.Synthesizer` object from the given metadata and data. Infers missing metadata (sdtypes and transformers).
@@ -135,7 +153,7 @@ class MetaTransformer:
             data: The input DataFrame.
 
         Returns:
-            A fully instantiated `self.Synthesizer` object.
+            A fully instantiated `self.Synthesizer` object and a transformer for the `*.component` columns.
 
         Raises:
             UserWarning: If the metadata is incomplete and `self.allow_null_transformers` is `False`.
@@ -162,7 +180,9 @@ class MetaTransformer:
         synthesizer.update_transformers(
             self.transformers if self.allow_null_transformers else {k: v for k, v in self.transformers.items() if v}
         )
-        return synthesizer
+        # TODO this is a hacky way to get the component columns we want to apply OneHotEncoder to
+        component_transformer = self._instantiate_ohe_component_transformers(synthesizer.get_transformers())
+        return synthesizer, component_transformer
 
     def _instantiate_hypertransformer(self, data: pd.DataFrame) -> HyperTransformer:
         """
@@ -172,7 +192,7 @@ class MetaTransformer:
             data: The input DataFrame.
 
         Returns:
-            A fully instantiated `HyperTransformer` object.
+            A fully instantiated `HyperTransformer` object and a transformer for the `*.component` columns.
 
         Raises:
             UserWarning: If the metadata is incomplete.
@@ -195,7 +215,9 @@ class MetaTransformer:
             ht.update_transformers(
                 self.transformers if self.allow_null_transformers else {k: v for k, v in self.transformers.items() if v}
             )
-        return ht
+        # TODO this is a hacky way to get the component columns we want to apply OneHotEncoder to
+        component_transformer = self._instantiate_ohe_component_transformers(ht.get_config()["transformers"])
+        return ht, component_transformer
 
     def instantiate(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer | HyperTransformer:
         """
@@ -277,9 +299,13 @@ class MetaTransformer:
                 "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
             )
         if self.sdv_workflow:
-            return self.metatransformer.preprocess(data)
+            prepared_data = self.metatransformer.preprocess(data)
         else:
-            return self.metatransformer.fit_transform(data)
+            prepared_data = self.metatransformer.fit_transform(data)
+        # TODO this is kind of a hacky way to solve the component column problem
+        for cn, transformer in self.component_transformer.items():
+            prepared_data = transformer.fit_transform(prepared_data, cn)
+        return prepared_data
 
     def count_onehots_and_singles(self, data: pd.DataFrame) -> tuple[list[list[int]], list[int]]:
         """
@@ -301,6 +327,9 @@ class MetaTransformer:
         for cn, cd in self.assembled_metadata.items():
             if cd["transformer"].get("name") == "OneHotEncoder":
                 onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn).columns).tolist())
+            elif cd["transformer"].get("name") == "ClusterBasedNormalizer":
+                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".component").columns).tolist())
+                single_idxs.append(data.columns.get_loc(cn + ".normalized"))
             else:
                 single_idxs.append(data.columns.get_loc(cn))
         return onehot_idxs, single_idxs
@@ -316,7 +345,7 @@ class MetaTransformer:
             The transformed data.
         """
         typed_data = self.apply_dtypes(data)
-        self.metatransformer = self.instantiate(typed_data)
+        self.metatransformer, self.component_transformer = self.instantiate(typed_data)
         self.assembled_metadata = self.assemble()
         prepared_data = self.prepare(typed_data)
         self.onehots, self.singles = self.count_onehots_and_singles(prepared_data)
@@ -377,6 +406,8 @@ class MetaTransformer:
             raise ValueError(
                 "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
             )
+        for transformer in self.component_transformer.values():
+            data = transformer.reverse_transform(data)
         if self.sdv_workflow:
             return self.metatransformer._data_processor.reverse_transform(data)
         else:
