@@ -150,6 +150,9 @@ def assemble_config(
     Raises:
         ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.
     """
+    if args.sdv_workflow:
+        del args.synthesizer
+
     args_dict = vars(args)
     modules_to_run = args_dict.pop("modules_to_run")
     if len(modules_to_run) == 1:
@@ -178,11 +181,9 @@ def assemble_config(
     # Assemble the final dictionary in YAML-compliant form
     return {
         **({"run_type": run_type} if run_type else {}),
-        **{
-            k: v
-            for k, v in args_dict.items()
-            if k not in {"func", "experiment_name", "save_config", "save_config_path"}
-        },
+        **filter_dict(
+            args_dict, {"func", "experiment_name", "save_config", "save_config_path", "model_input", "evaluation_input"}
+        ),
         **out_dict,
     }
 
@@ -200,9 +201,6 @@ def write_config(
     """
     if not args.save_config_path:
         args.save_config_path = f"experiments/{args.experiment_name}/config_{args.experiment_name}.yaml"
-
-    if args.sdv_workflow:
-        del args.synthesizer
 
     args_dict = assemble_config(args, all_subparsers)
     with open(f"{args.save_config_path}", "w") as yaml_file:
