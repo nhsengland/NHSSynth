@@ -330,7 +330,7 @@ class MetaTransformer:
             elif cd["transformer"].get("name") == "ClusterBasedNormalizer":
                 onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".component").columns).tolist())
                 single_idxs.append(data.columns.get_loc(cn + ".normalized"))
-            else:
+            elif cd["transformer"].get("name") != "RegexGenerator":
                 single_idxs.append(data.columns.get_loc(cn))
         return onehot_idxs, single_idxs
 
