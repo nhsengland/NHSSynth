@@ -1,5 +1,4 @@
 import warnings
-from random import gauss
 
 import opacus
 import torch
@@ -13,7 +12,7 @@ def setup_device(use_gpu):
         if torch.cuda.is_available():
             return torch.device("cuda:0")
         else:
-            warnings.warn("using CPU as `use_gpu` was specified but no GPU is available")
+            warnings.warn("`use_gpu` was provided but no GPU is available, using CPU")
     return torch.device("cpu")
 
 
