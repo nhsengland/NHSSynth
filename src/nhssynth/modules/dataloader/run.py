@@ -34,7 +34,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     # Write the transformed input to the appropriate file
     fn_output_typed, fn_output_prepared, fn_transformer = check_output_paths(
-        fn_input, args.output, args.metatransformer, dir_experiment
+        fn_input, args.output_typed, args.output_prepared, args.metatransformer, dir_experiment
     )
     if "model" not in args.modules_to_run or args.write_all:
         write_data_outputs(prepared_input, mt, fn_output_prepared, fn_transformer, dir_experiment)
