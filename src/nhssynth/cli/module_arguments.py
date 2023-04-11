@@ -165,16 +165,21 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         help="use the GPU for training",
     )
     parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=1e-3,
-        help="the learning rate for the model",
+        "--non-private-training",
+        action="store_true",
+        help="train the model in a non-private way",
     )
     parser.add_argument(
-        "--batch-size",
+        "--secure-rng",
+        action="store_true",
+        default=False,
+        help="Enable Secure RNG to have trustworthy privacy guarantees. Comes at a performance cost",
+    )
+    parser.add_argument(
+        "--num-epochs",
         type=int,
-        default=32,
-        help="the batch size for the model",
+        default=100,
+        help="number of epochs to train for",
     )
     parser.add_argument(
         "--latent-dim",
@@ -189,10 +194,16 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         help="the hidden dimension of the model",
     )
     parser.add_argument(
-        "--num-epochs",
+        "--learning-rate",
+        type=float,
+        default=1e-3,
+        help="the learning rate for the model",
+    )
+    parser.add_argument(
+        "--batch-size",
         type=int,
-        default=100,
-        help="number of epochs to train for",
+        default=32,
+        help="the batch size for the model",
     )
     parser.add_argument(
         "--patience",
@@ -207,17 +218,6 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         help="the difference in successive ELBO values that register as an 'improvement'",
     )
     parser.add_argument(
-        "--non-private-training",
-        action="store_true",
-        help="train the model in a non-private way",
-    )
-    parser.add_argument(
-        "--max-grad-norm",
-        type=int,
-        default=10,
-        help="the clipping threshold for gradients (only relevant under differential privacy)",
-    )
-    parser.add_argument(
         "--target-epsilon",
         type=float,
         default=1.0,
@@ -228,6 +228,12 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         type=float,
         default=1e-5,
         help="the target delta for differential privacy",
+    )
+    parser.add_argument(
+        "--max-grad-norm",
+        type=int,
+        default=10,
+        help="the clipping threshold for gradients (only relevant under differential privacy)",
     )
 
 

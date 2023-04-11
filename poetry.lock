@@ -14,18 +14,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.26.105"
+version = "1.26.107"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.26.105-py3-none-any.whl", hash = "sha256:f4951f8162905b96fd045e32853ba8cf707042faac846a23910817c508ef27d7"},
-    {file = "boto3-1.26.105.tar.gz", hash = "sha256:2914776e0138530ec6464d0e2f05b4aa18e9212ac920c48472f8a93650feaed2"},
+    {file = "boto3-1.26.107-py3-none-any.whl", hash = "sha256:9de90a2c0b853f84436b032b28947fc8a765dc462573a8d543b13f16c6579b40"},
+    {file = "boto3-1.26.107.tar.gz", hash = "sha256:816a198a6cc4f283af6b21439d85be6dbe4b73c2232dd906c6bafb4fece28d19"},
 ]
 
 [package.dependencies]
-botocore = ">=1.29.105,<1.30.0"
+botocore = ">=1.29.107,<1.30.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -34,14 +34,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.105"
+version = "1.29.107"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.29.105-py3-none-any.whl", hash = "sha256:06a2838daad3f346cba5460d0d3deb198225b556ff9ca729798d787fadbdebde"},
-    {file = "botocore-1.29.105.tar.gz", hash = "sha256:17c82391dfd6aaa8f96fbbb08cad2c2431ef3cda0ece89e6e6ba444c5eed45c2"},
+    {file = "botocore-1.29.107-py3-none-any.whl", hash = "sha256:ee1e43e6cd0864cc6811ba3f05123647612ee3f07a286a4c94f5885aa86d6922"},
+    {file = "botocore-1.29.107.tar.gz", hash = "sha256:f63942b4b7248c0b3d6ecbc2852cf0787c23ace2a91a012f7ee0b3ae3eb08f4f"},
 ]
 
 [package.dependencies]
@@ -1110,43 +1110,23 @@ wheel = "*"
 
 [[package]]
 name = "opacus"
-version = "1.4.0"
+version = "0.14.0"
 description = "Train PyTorch models with Differential Privacy"
 category = "main"
 optional = false
-python-versions = ">=3.7.5"
+python-versions = ">=3.6.8"
 files = [
-    {file = "opacus-1.4.0-py3-none-any.whl", hash = "sha256:44b5b8536138a1eac6a604a35f59d7236dfc280bb543375725eb9eb299516c04"},
-    {file = "opacus-1.4.0.tar.gz", hash = "sha256:7a41d49c34af8e4308189bc8c2b22e65cf1edc0373477a02a43ccd957bac970d"},
+    {file = "opacus-0.14.0-py3-none-any.whl", hash = "sha256:4beb4519c86b4b8aec740cbe5ad97a12f0fb325044a8b2caeb74ce573a353276"},
+    {file = "opacus-0.14.0.tar.gz", hash = "sha256:851f4bb01b285dba1a38c06f7f146031e1b8fbe0bfa1129624beba8f1f6e77d3"},
 ]
 
 [package.dependencies]
 numpy = ">=1.15"
-opt-einsum = ">=3.3.0"
 scipy = ">=1.2"
-torch = ">=1.13"
+torch = ">=1.3"
 
 [package.extras]
-dev = ["black", "coverage", "datasets", "flake8", "hypothesis", "isort", "jsonargparse[signatures] (>=3.19.3)", "lightning-bolts", "mypy (>=0.760)", "pytest", "pytorch-lightning", "requests (>=2.25.1)", "scikit-learn", "sphinx", "sphinx-autodoc-typehints", "tensorboard", "torch", "torchvision (>=0.9.1)", "tqdm (>=4.40)", "transformers"]
-
-[[package]]
-name = "opt-einsum"
-version = "3.3.0"
-description = "Optimizing numpys einsum function"
-category = "main"
-optional = false
-python-versions = ">=3.5"
-files = [
-    {file = "opt_einsum-3.3.0-py3-none-any.whl", hash = "sha256:2455e59e3947d3c275477df7f5205b30635e266fe6dc300e3d9f9646bfcea147"},
-    {file = "opt_einsum-3.3.0.tar.gz", hash = "sha256:59f6475f77bbc37dcf7cd748519c0ec60722e91e63ca114e68821c0c54a46549"},
-]
-
-[package.dependencies]
-numpy = ">=1.7"
-
-[package.extras]
-docs = ["numpydoc", "sphinx (==1.2.3)", "sphinx-rtd-theme", "sphinxcontrib-napoleon"]
-tests = ["pytest", "pytest-cov", "pytest-pep8"]
+dev = ["black", "datasets", "flake8", "hypothesis", "isort", "mypy (>=0.760)", "pytest", "requests (>=2.25.1)", "scikit-learn", "sphinx", "sphinx-autodoc-typehints", "tensorboard", "torch (==1.8.1)", "torchcsprng", "torchvision (>=0.9.1)", "tqdm (>=4.40)", "transformers"]
 
 [[package]]
 name = "packaging"
@@ -1293,14 +1273,14 @@ tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "pa
 
 [[package]]
 name = "plotly"
-version = "5.14.0"
+version = "5.14.1"
 description = "An open-source, interactive data visualization library for Python"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "plotly-5.14.0-py2.py3-none-any.whl", hash = "sha256:2e3407d93a9700beebbef66d11f63992c58e058dd808442ee54af40f98fb4940"},
-    {file = "plotly-5.14.0.tar.gz", hash = "sha256:02e40264f145e524d9628fd516031976b60d74a33bbabce037ea28580bcd4e0c"},
+    {file = "plotly-5.14.1-py2.py3-none-any.whl", hash = "sha256:a63f3ad9e4cc2e02902a738e5e3e7f3d1307f2732ac71a6c28f1238ed3052826"},
+    {file = "plotly-5.14.1.tar.gz", hash = "sha256:bcac86d7fcba3eff7260c1eddc36ca34dae2aded10a0709808446565e0e53b93"},
 ]
 
 [package.dependencies]
@@ -2023,4 +2003,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.11"
-content-hash = "de32b85238a751499fe602a00655c604aea928c36f0219e12b2471efdc56fde7"
+content-hash = "73650d280e435ea1967ff9e5e88bda57140b2a206ab42b20832ab54910eb2e72"

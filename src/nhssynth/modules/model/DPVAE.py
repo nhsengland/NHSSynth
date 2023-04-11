@@ -1,9 +1,9 @@
 import warnings
 from random import gauss
 
+import opacus
 import torch
 import torch.nn as nn
-from opacus import PrivacyEngine
 from torch.distributions.normal import Normal
 from tqdm import tqdm
 
@@ -31,7 +31,6 @@ class Encoder(nn.Module):
         activation=nn.Tanh,
         use_gpu=False,
     ):
-
         super().__init__()
 
         self.device = setup_device(use_gpu)
@@ -65,7 +64,6 @@ class Decoder(nn.Module):
         activation=nn.Tanh,
         use_gpu=False,
     ):
-
         super().__init__()
 
         self.device = setup_device(use_gpu)
@@ -100,7 +98,7 @@ class Noiser(nn.Module):
 class VAE(nn.Module):
     """Combines encoder and decoder into full VAE model"""
 
-    def __init__(self, encoder, decoder, lr=1e-3):
+    def __init__(self, encoder, decoder):
         super().__init__()
         self.encoder = encoder.to(encoder.device)
         self.decoder = decoder.to(decoder.device)
@@ -108,8 +106,6 @@ class VAE(nn.Module):
         self.onehots = self.decoder.onehots
         self.singles = self.decoder.singles
         self.noiser = Noiser(len(self.singles)).to(decoder.device)
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        self.lr = lr
 
     def reconstruct(self, X):
         mu_z, logsigma_z = self.encoder(X)
@@ -130,7 +126,9 @@ class VAE(nn.Module):
         x_gen_[:, self.singles] = x_gen[:, self.singles] + torch.exp(
             self.noiser(x_gen[:, self.singles])
         ) * torch.randn_like(x_gen[:, self.singles])
-        return x_gen_
+        if torch.cuda.is_available():
+            x_gen_ = x_gen_.cpu()
+        return x_gen_.detach()
 
     def loss(self, X):
         mu_z, logsigma_z = self.encoder(X)
@@ -172,37 +170,44 @@ class VAE(nn.Module):
 
     def train(
         self,
-        x_dataloader,
-        num_epochs,
-        patience=5,
-        delta=10,
-        filepath=None,
+        x_dataloader: torch.utils.data.DataLoader,
+        num_epochs: int,
+        privacy_engine: opacus.PrivacyEngine = None,
+        patience: int = 5,
+        delta: int = 10,
     ):
-        # mean_norm = 0
-        # counter = 0
+        if privacy_engine is not None:
+            self.privacy_engine = privacy_engine
+            self.privacy_engine.attach(self.optimizer)
+        # EARLY STOPPING #
+        min_elbo = 0.0  # For early stopping workflow
+        stop_counter = 0  # Counter for stops
+
         log_elbo = []
         log_reconstruct = []
         log_divergence = []
         log_cat_loss = []
         log_num_loss = []
 
-        # EARLY STOPPING #
-        min_elbo = 0.0  # For early stopping workflow
-        stop_counter = 0  # Counter for stops
-
         stats_bar_1 = tqdm(total=0, desc="", position=0, bar_format="{desc}", leave=True)
         stats_bar_2 = tqdm(total=0, desc="", position=1, bar_format="{desc}", leave=True)
         stats_bar_3 = tqdm(total=0, desc="", position=2, bar_format="{desc}", leave=True)
         stats_bar_4 = tqdm(total=0, desc="", position=3, bar_format="{desc}", leave=True)
         stats_bar_5 = tqdm(total=0, desc="", position=4, bar_format="{desc}", leave=True)
+        position = 5
+        if self.privacy_engine is not None:
+            epsilon = []
+            stats_bar_6 = tqdm(total=0, desc="", position=5, bar_format="{desc}", leave=True)
+            position += 1
 
-        for epoch in tqdm(range(num_epochs), desc="Epochs", position=5, leave=False):
+        for epoch in tqdm(range(num_epochs), desc="Epochs", position=position, leave=False):
             elbo_e = 0.0
             kld_e = 0.0
             reconstruction_e = 0.0
             categorical_e = 0.0
             numerical_e = 0.0
-            for (Y_subset,) in tqdm(x_dataloader, desc="Batches", position=6, leave=False):
+
+            for (Y_subset,) in tqdm(x_dataloader, desc="Batches", position=position + 1, leave=False):
                 self.optimizer.zero_grad()
                 (
                     elbo,
@@ -220,19 +225,16 @@ class VAE(nn.Module):
                 categorical_e += categorical_loss.item()
                 numerical_e += numerical_loss.item()
 
-                # counter += 1
-                # l2_norm = 0
-                # for p in self.parameters():
-                #     if p.requires_grad:
-                #         p_norm = p.grad.detach().data.norm(2)
-                #         l2_norm += p_norm.item() ** 2
-                # l2_norm = l2_norm ** 0.5  # / Y_subset.shape[0]
-                # mean_norm = (mean_norm * (counter - 1) + l2_norm) / counter
             stats_bar_1.set_description_str(f"ELBO: \t\t\t{elbo_e:.2f}")
             stats_bar_2.set_description_str(f"KLD: \t\t\t{kld_e:.2f}")
             stats_bar_3.set_description_str(f"Reconstruction Loss: \t{reconstruction_e:.2f}")
             stats_bar_4.set_description_str(f"Categorical Loss: \t{categorical_e:.2f}")
             stats_bar_5.set_description_str(f"Numerical Loss: \t{numerical_e:.2f}")
+            if self.privacy_engine is not None:
+                epsilon_e = self.privacy_engine.get_privacy_spent()
+                # epsilon_e = self.privacy_engine.accountant.get_epsilon()
+                stats_bar_6.set_description_str(f"Epsilon and Best Alpha: \t{epsilon_e[0]:.2f}\t{epsilon_e[1]:.2f}")
+                epsilon.append(epsilon_e)
 
             log_elbo.append(elbo_e)
             log_reconstruct.append(reconstruction_e)
@@ -246,8 +248,6 @@ class VAE(nn.Module):
             if elbo_e < (min_elbo - delta):
                 min_elbo = elbo_e
                 stop_counter = 0  # Set counter to zero
-                if filepath != None:
-                    self.save(filepath)  # Save best model if we want to
             else:  # elbo has not improved
                 stop_counter += 1
 
@@ -260,123 +260,8 @@ class VAE(nn.Module):
         stats_bar_3.close()
         stats_bar_4.close()
         stats_bar_5.close()
-        return (
-            num_epochs,
-            log_elbo,
-            log_reconstruct,
-            log_divergence,
-            log_cat_loss,
-            log_num_loss,
-        )
-
-    def diff_priv_train(
-        self,
-        x_dataloader,
-        num_epochs,
-        C=1e16,
-        noise_scale=None,
-        target_epsilon=1,
-        target_delta=1e-5,
-        logging_freq=1,
-        sample_rate=0.1,
-        patience=5,
-        delta=10,
-        filepath=None,
-    ):
-        if noise_scale is not None:
-            self.privacy_engine = PrivacyEngine(
-                self,
-                sample_rate=sample_rate,
-                alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
-                noise_multiplier=noise_scale,
-                max_grad_norm=C,
-            )
-        else:
-            self.privacy_engine = PrivacyEngine(
-                self,
-                sample_rate=sample_rate,
-                alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
-                target_epsilonilon=target_epsilon,
-                target_delta=target_delta,
-                epochs=num_epochs,
-                max_grad_norm=C,
-            )
-        self.privacy_engine.attach(self.optimizer)
-
-        log_elbo = []
-        log_reconstruct = []
-        log_divergence = []
-        log_cat_loss = []
-        log_num_loss = []
-
-        # EARLY STOPPING #
-        min_elbo = 0.0  # For early stopping workflow
-        patience = patience  # How many epochs patience we give for early stopping
-        stop_counter = 0  # Counter for stops
-        delta = delta  # Difference in elbo value
-
-        for epoch in range(num_epochs):
-            elbo_e = 0.0
-            kld_e = 0.0
-            reconstruction_e = 0.0
-            categorical_e = 0.0
-            numerical_e = 0.0
-            # print(self.get_privacy_spent(target_delta))
-
-            for batch_idx, (Y_subset,) in enumerate(tqdm(x_dataloader)):
-
-                self.optimizer.zero_grad()
-                (
-                    elbo,
-                    reconstruction_loss,
-                    kld,
-                    categorical_loss,
-                    numerical_loss,
-                ) = self.loss(Y_subset.to(self.encoder.device))
-                elbo.backward()
-                self.optimizer.step()
-
-                elbo_e += elbo.item()
-                kld_e += kld.item()
-                reconstruction_e += reconstruction_loss.item()
-                categorical_e += categorical_loss.item()
-                numerical_e += numerical_loss.item()
-
-                # print(self.get_privacy_spent(target_delta))
-                # print(loss.item())
-
-            log_elbo.append(elbo_e)
-            log_reconstruct.append(reconstruction_e)
-            log_divergence.append(kld_e)
-            log_cat_loss.append(categorical_e)
-            log_num_loss.append(numerical_e)
-
-            if epoch == 0:
-
-                min_elbo = elbo_e
-
-            if elbo_e < (min_elbo - delta):
-
-                min_elbo = elbo_e
-                stop_counter = 0  # Set counter to zero
-                if filepath != None:
-                    self.save(filepath)  # Save best model if we want to
-
-            else:  # elbo has not improved
-
-                stop_counter += 1
-
-            if epoch % logging_freq == 0:
-                print(
-                    f"\tEpoch: {epoch:2}. Elbo: {elbo_e:11.2f}. Reconstruction Loss: {reconstruction_e:11.2f}. KL Divergence: {kld_e:11.2f}. Categorical Loss: {categorical_e:11.2f}. Numerical Loss: {numerical_e:11.2f}"
-                )
-                # print(f"\tMean norm: {mean_norm}")
-
-            if stop_counter == patience:
-
-                num_epochs = epoch + 1
-                break
-
+        if privacy_engine is not None:
+            stats_bar_6.close()
         return (
             num_epochs,
             log_elbo,

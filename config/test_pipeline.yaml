@@ -9,5 +9,6 @@ dataloader:
   collapse_yaml: false
   synthesizer: TVAE
 model:
-  num_epochs: 5
-  non_private_training: true
+  num_epochs: 50
+  target_epsilon: 1.0
+  secure_rng: true
