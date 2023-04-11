@@ -349,7 +349,7 @@ class MetaTransformer:
         self.assembled_metadata = self.assemble()
         prepared_data = self.prepare(typed_data)
         self.onehots, self.singles = self.count_onehots_and_singles(prepared_data)
-        return prepared_data
+        return typed_data, prepared_data
 
     def get_assembled_metadata(self) -> dict[str, dict[str, Any]]:
         """

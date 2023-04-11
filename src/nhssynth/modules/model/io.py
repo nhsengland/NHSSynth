@@ -45,7 +45,7 @@ def check_output_paths(fn_base: Path, fn_out: str, fn_model: str, dir_experiment
     Returns:
         The path to output the model.
     """
-    fn_out, fn_model = consistent_ending(fn_out, ".csv"), consistent_ending(fn_model, ".pt")
+    fn_out, fn_model = consistent_ending(fn_out), consistent_ending(fn_model, ".pt")
     fn_out, fn_model = potential_suffix(fn_out, fn_base), potential_suffix(fn_model, fn_base)
     warn_if_path_supplied([fn_out, fn_model], dir_experiment)
     return fn_out, fn_model
@@ -64,11 +64,11 @@ def load_required_data(
     Returns:
         The data, metadata and metatransformer.
     """
-    if getattr(args, "dataloader_output", None):
+    if getattr(args, "model_input", None):
         return (
-            args.dataloader_output["fn_base"],
-            args.dataloader_output["data"],
-            args.dataloader_output["metatransformer"],
+            args.model_input["fn_base"],
+            args.model_input["prepared_data"],
+            args.model_input["metatransformer"],
         )
     else:
         if not args.real_data:

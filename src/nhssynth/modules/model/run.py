@@ -17,15 +17,12 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    fn_base, data, mt = load_required_data(args, dir_experiment)
+    fn_base, prepared_data, mt = load_required_data(args, dir_experiment)
     onehots, singles = mt.get_onehots_and_singles()
-    print(onehots)
-    print(singles)
-    print(data.shape)
-    nrows, ncols = data.shape
+    nrows, ncols = prepared_data.shape
 
     # Should the data also all be turned into floats?
-    torch_data = TensorDataset(torch.Tensor(data.to_numpy()))
+    torch_data = TensorDataset(torch.Tensor(prepared_data.to_numpy()))
     sample_rate = args.batch_size / nrows
     model = VAE(
         Encoder(input_dim=ncols, latent_dim=args.latent_dim, hidden_dim=args.hidden_dim, use_gpu=args.use_gpu),
@@ -64,16 +61,22 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         results = model.train(data_loader, args.num_epochs, privacy_engine=privacy_engine)
     else:
         results = model.train(data_loader, args.num_epochs)
-    synthetic_data = pd.DataFrame(model.generate(nrows), columns=data.columns)
+
+    synthetic_data = pd.DataFrame(model.generate(nrows), columns=prepared_data.columns)
+    synthetic_data = mt.inverse_apply(synthetic_data)
 
     fn_output, fn_model = check_output_paths(fn_base, args.synthetic_data, args.model_file, dir_experiment)
-    if not args.discard_synthetic:
-        synthetic_data = mt.inverse_apply(synthetic_data)
-        synthetic_data.to_csv(dir_experiment / fn_output, index=False)
-    if not args.discard_model:
+    if "evaluation" not in args.modules_to_run or not args.discard_synthetic:
+        synthetic_data.to_pickle(dir_experiment / fn_output)
+        synthetic_data.to_csv(dir_experiment / (fn_output[:-3] + "csv"), index=False)
+    if args.write_all:
         model.save(dir_experiment / fn_model)
 
-    if args.modules_to_run and "evaluation" in args.modules_to_run:
-        args.model_output = {"results": results}
+    if "evaluation" in args.modules_to_run:
+        evaluation_input = {"fn_base": fn_base, "results": results, "synthetic_data": synthetic_data}
+        if args.evaluation_input:
+            args.evaluation_input.update(evaluation_input)
+        else:
+            args.evaluation_input = evaluation_input
 
     return args

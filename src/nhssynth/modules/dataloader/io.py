@@ -36,16 +36,18 @@ def check_input_paths(
 
 def check_output_paths(
     fn_input: str,
-    fn_output: str,
+    fn_typed: str,
+    fn_prepared: str,
     fn_transformer: str,
     dir_experiment: Path,
-) -> tuple[str, str]:
+) -> tuple[str, str, str]:
     """
     Formats the output filenames for an experiment.
 
     Args:
         fn_input: The input data filename.
-        fn_output: The output data filename/suffix to append to `fn_input`.
+        fn_typed: The typed input data filename/suffix to append to `fn_input`.
+        fn_prepared: The output data filename/suffix to append to `fn_input`.
         fn_transformer: The transformer filename/suffix to append to `fn_input`.
         dir_experiment: The experiment directory to write the outputs to.
 
@@ -53,19 +55,27 @@ def check_output_paths(
         A tuple containing the formatted output filenames.
 
     Warnings:
-        Raises a UserWarning when the path to `fn_output` includes directory separators, as this is not supported and may not work as intended.
+        Raises a UserWarning when the path to `fn_prepared` includes directory separators, as this is not supported and may not work as intended.
         Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.
     """
-    fn_output, fn_transformer = consistent_ending(fn_output), consistent_ending(fn_transformer)
-    fn_output, fn_transformer = potential_suffix(fn_output, fn_input), potential_suffix(fn_transformer, fn_input)
-    warn_if_path_supplied([fn_output, fn_transformer], dir_experiment)
-    return fn_output, fn_transformer
+    fn_typed, fn_prepared, fn_transformer = (
+        consistent_ending(fn_typed),
+        consistent_ending(fn_prepared),
+        consistent_ending(fn_transformer),
+    )
+    fn_typed, fn_prepared, fn_transformer = (
+        potential_suffix(fn_typed, fn_input),
+        potential_suffix(fn_prepared, fn_input),
+        potential_suffix(fn_transformer, fn_input),
+    )
+    warn_if_path_supplied([fn_typed, fn_prepared, fn_transformer], dir_experiment)
+    return fn_typed, fn_prepared, fn_transformer
 
 
 def write_data_outputs(
-    transformed_input: pd.DataFrame,
+    prepared_input: pd.DataFrame,
     metatransformer: MetaTransformer,
-    fn_output: str,
+    fn_prepared: str,
     fn_transformer: str,
     dir_experiment: Path,
 ) -> None:
@@ -73,13 +83,13 @@ def write_data_outputs(
     Writes the transformed data and metatransformer to disk.
 
     Args:
-        transformed_input: The prepared version of the input data.
+        prepared_input: The prepared version of the input data.
         metatransformer: The metatransformer used to transform the data into its prepared state.
-        fn_output: The filename to dump the prepared data to.
+        fn_prepared: The filename to dump the prepared data to.
         fn_transformer: The filename to dump the metatransformer to.
         dir_experiment: The experiment directory to write the outputs to.
     """
-    transformed_input.to_pickle(dir_experiment / fn_output)
-    transformed_input.to_csv(dir_experiment / (fn_output[:-3] + "csv"), index=False)
+    prepared_input.to_pickle(dir_experiment / fn_prepared)
+    prepared_input.to_csv(dir_experiment / (fn_prepared[:-3] + "csv"), index=False)
     with open(dir_experiment / fn_transformer, "wb") as f:
         pickle.dump(metatransformer, f)

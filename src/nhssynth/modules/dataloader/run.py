@@ -19,31 +19,35 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    dir_input, fn_input_data, fn_metadata = check_input_paths(args.input, args.metadata, args.data_dir)
+    dir_input, fn_input, fn_metadata = check_input_paths(args.input, args.metadata, args.data_dir)
 
     # Load the dataset and accompanying metadata
-    input = pd.read_csv(dir_input / fn_input_data, index_col=args.index_col)
+    input = pd.read_csv(dir_input / fn_input, index_col=args.index_col)
     metadata = load_metadata(dir_input / fn_metadata, input)
 
     mt = MetaTransformer(metadata, args.sdv_workflow, args.allow_null_transformers, args.synthesizer)
-    transformed_input = mt.apply(input)
+    typed_input, prepared_input = mt.apply(input)
 
-    # Output the metadata corresponding to `transformed_input`, for reproducibility
+    # Output the metadata corresponding to `prepared_input`, for reproducibility
     if not args.discard_metadata:
         output_metadata(dir_experiment / fn_metadata, mt.get_assembled_metadata(), args.collapse_yaml)
 
     # Write the transformed input to the appropriate file
-    if not args.modules_to_run or args.modules_to_run == ["dataloader"] or args.write_all:
-        fn_output_data, fn_transformer = check_output_paths(
-            fn_input_data, args.output, args.metatransformer, dir_experiment
-        )
-        write_data_outputs(transformed_input, mt, fn_output_data, fn_transformer, dir_experiment)
+    fn_output_typed, fn_output_prepared, fn_transformer = check_output_paths(
+        fn_input, args.output, args.metatransformer, dir_experiment
+    )
+    if "model" not in args.modules_to_run or args.write_all:
+        write_data_outputs(prepared_input, mt, fn_output_prepared, fn_transformer, dir_experiment)
+    if "evaluation" not in args.modules_to_run or args.write_all:
+        typed_input.to_pickle(dir_experiment / fn_output_typed)
 
     if "model" in args.modules_to_run:
-        args.dataloader_output = {
-            "fn_base": fn_input_data,
-            "data": transformed_input,
+        args.model_input = {
+            "fn_base": fn_input,
+            "prepared_data": prepared_input,
             "metatransformer": mt,
         }
+    if "evaluation" in args.modules_to_run:
+        args.evaluation_input = {"typed_data": typed_input}
 
     return args

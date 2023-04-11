@@ -45,10 +45,16 @@ def add_dataloader_args(parser: argparse.ArgumentParser, override=False) -> None
         help="the name of the `.csv` file to prepare",
     )
     parser.add_argument(
-        "--output",
+        "--output-prepared",
         type=str,
         default="_prepared",
         help="where to write the prepared data, defaults to `experiments/<args.experiment_name>/<args.input_file>_prepared\{.csv/.pkl\}`, only used when `--write-all` is provided and/or this is a full pipeline run / one that involves the `model` module",
+    )
+    parser.add_argument(
+        "--output-typed",
+        type=str,
+        default="_typed",
+        help="where to write the prepared data, defaults to `experiments/<args.experiment_name>/<args.input_file>_typed.pkl`, only used when `--write-all` is provided and/or this is a full pipeline run / one that involves the `model` module",
     )
     parser.add_argument(
         "--metadata",
@@ -142,11 +148,6 @@ def add_model_args(parser: argparse.ArgumentParser, override=False) -> None:
         type=str,
         default="_model",
         help="specify the filename of the model to be saved in `experiments/<args.experiment_name>/`, defaults to `<args.real_data>_model.pt`",
-    )
-    parser.add_argument(
-        "--discard-model",
-        action="store_true",
-        help="discard the model after training",
     )
     parser.add_argument(
         "--synthetic-data",
