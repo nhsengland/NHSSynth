@@ -441,6 +441,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../cli/common_arguments/" class="md-nav__link">
+        common_arguments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../cli/config/" class="md-nav__link">
         config
       </a>
@@ -759,6 +773,20 @@
           evaluation
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation/io/" class="md-nav__link">
+        io
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -1193,7 +1221,7 @@
 
 
 <h3 id="nhssynth.modules.dataloader.io.check_output_paths" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
 
 
 </h3>
@@ -1220,7 +1248,13 @@
         <td><em>required</em></td>
       </tr>
       <tr>
-        <td><code>fn_output</code></td>
+        <td><code>fn_typed</code></td>
+        <td><code>str</code></td>
+        <td><p>The typed input data filename/suffix to append to <code>fn_input</code>.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fn_prepared</code></td>
         <td><code>str</code></td>
         <td><p>The output data filename/suffix to append to <code>fn_input</code>.</p></td>
         <td><em>required</em></td>
@@ -1254,37 +1288,47 @@
     </tr>
   </tbody>
 </table>      <p>!!! warnings
-    Raises a UserWarning when the path to <code>fn_output</code> includes directory separators, as this is not supported and may not work as intended.
+    Raises a UserWarning when the path to <code>fn_prepared</code> includes directory separators, as this is not supported and may not work as intended.
     Raises a UserWarning when the path to <code>fn_transformer</code> includes directory separators, as this is not supported and may not work as intended.</p>
 
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/io.py</code></summary>
           <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">check_output_paths</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">fn_input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">fn_output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">    Formats the output filenames for an experiment.</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">        fn_input: The input data filename.</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        fn_output: The output data filename/suffix to append to `fn_input`.</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">        fn_transformer: The transformer filename/suffix to append to `fn_input`.</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd">        A tuple containing the formatted output filenames.</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd">    Warnings:</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="sd">        Raises a UserWarning when the path to `fn_output` includes directory separators, as this is not supported and may not work as intended.</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="sd">        Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_output</span><span class="p">),</span> <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">)</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">),</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">)</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="k">return</span> <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">fn_typed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">fn_prepared</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Formats the output filenames for an experiment.</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        fn_input: The input data filename.</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">        fn_typed: The typed input data filename/suffix to append to `fn_input`.</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        fn_prepared: The output data filename/suffix to append to `fn_input`.</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        fn_transformer: The transformer filename/suffix to append to `fn_input`.</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd">        A tuple containing the formatted output filenames.</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="sd">    Warnings:</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="sd">        Raises a UserWarning when the path to `fn_prepared` includes directory separators, as this is not supported and may not work as intended.</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="sd">        Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_typed</span><span class="p">),</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_prepared</span><span class="p">),</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">),</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="p">)</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">),</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>        <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">),</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">),</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="p">)</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="k">return</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -1298,7 +1342,7 @@
 
 
 <h3 id="nhssynth.modules.dataloader.io.write_data_outputs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">write_data_outputs</span><span class="p">(</span><span class="n">transformed_input</span><span class="p">,</span> <span class="n">metatransformer</span><span class="p">,</span> <span class="n">fn_output</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">write_data_outputs</span><span class="p">(</span><span class="n">typed_dataset</span><span class="p">,</span> <span class="n">prepared_dataset</span><span class="p">,</span> <span class="n">metatransformer</span><span class="p">,</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
 
 
 </h3>
@@ -1319,9 +1363,15 @@
   </thead>
   <tbody>
       <tr>
-        <td><code>transformed_input</code></td>
+        <td><code>typed_dataset</code></td>
         <td><code>DataFrame</code></td>
-        <td><p>The prepared version of the input data.</p></td>
+        <td><p>The typed version of the input dataset.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>prepared_dataset</code></td>
+        <td><code>DataFrame</code></td>
+        <td><p>The prepared version of the input dataset.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -1331,15 +1381,15 @@
         <td><em>required</em></td>
       </tr>
       <tr>
-        <td><code>fn_output</code></td>
+        <td><code>fn_dataset</code></td>
         <td><code>str</code></td>
-        <td><p>The filename to dump the prepared data to.</p></td>
+        <td><p>The base dataset filename.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
-        <td><code>fn_transformer</code></td>
+        <td><code>fn_metadata</code></td>
         <td><code>str</code></td>
-        <td><p>The filename to dump the metatransformer to.</p></td>
+        <td><p>The metadata filename.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -1348,31 +1398,46 @@
         <td><p>The experiment directory to write the outputs to.</p></td>
         <td><em>required</em></td>
       </tr>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>Namespace</code></td>
+        <td><p>The parsed command line arguments.</p></td>
+        <td><em>required</em></td>
+      </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/io.py</code></summary>
           <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">write_data_outputs</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">transformed_input</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">MetaTransformer</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">fn_output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Writes the transformed data and metatransformer to disk.</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        transformed_input: The prepared version of the input data.</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">        metatransformer: The metatransformer used to transform the data into its prepared state.</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        fn_output: The filename to dump the prepared data to.</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        fn_transformer: The filename to dump the metatransformer to.</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">transformed_input</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_output</span><span class="p">)</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">transformed_input</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_output</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">typed_dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">prepared_dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">MetaTransformer</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">fn_dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">fn_metadata</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Writes the transformed data and metatransformer to disk.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        typed_dataset: The typed version of the input dataset.</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        prepared_dataset: The prepared version of the input dataset.</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">        metatransformer: The metatransformer used to transform the data into its prepared state.</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd">        fn_dataset: The base dataset filename.</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="sd">        fn_metadata: The metadata filename.</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="sd">        args: The parsed command line arguments.</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">check_output_paths</span><span class="p">(</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">prepared</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">dir_experiment</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="p">)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">output_metadata</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">metatransformer</span><span class="o">.</span><span class="n">get_assembled_metadata</span><span class="p">(),</span> <span class="n">args</span><span class="o">.</span><span class="n">collapse_yaml</span><span class="p">)</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">typed_dataset</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_typed</span><span class="p">)</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">prepared_dataset</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_prepared</span><span class="p">)</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n">prepared_dataset</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_prepared</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -2287,7 +2352,7 @@ to the original format of the input data.</p>
 </span><span id="__span-0-273"><a id="__codelineno-0-273" name="__codelineno-0-273" href="#__codelineno-0-273"></a>            <span class="k">elif</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;ClusterBasedNormalizer&quot;</span><span class="p">:</span>
 </span><span id="__span-0-274"><a id="__codelineno-0-274" name="__codelineno-0-274" href="#__codelineno-0-274"></a>                <span class="n">onehot_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_indexer</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">like</span><span class="o">=</span><span class="n">cn</span> <span class="o">+</span> <span class="s2">&quot;.component&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 </span><span id="__span-0-275"><a id="__codelineno-0-275" name="__codelineno-0-275" href="#__codelineno-0-275"></a>                <span class="n">single_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">cn</span> <span class="o">+</span> <span class="s2">&quot;.normalized&quot;</span><span class="p">))</span>
-</span><span id="__span-0-276"><a id="__codelineno-0-276" name="__codelineno-0-276" href="#__codelineno-0-276"></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-276"><a id="__codelineno-0-276" name="__codelineno-0-276" href="#__codelineno-0-276"></a>            <span class="k">elif</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;RegexGenerator&quot;</span><span class="p">:</span>
 </span><span id="__span-0-277"><a id="__codelineno-0-277" name="__codelineno-0-277" href="#__codelineno-0-277"></a>                <span class="n">single_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">cn</span><span class="p">))</span>
 </span><span id="__span-0-278"><a id="__codelineno-0-278" name="__codelineno-0-278" href="#__codelineno-0-278"></a>        <span class="k">return</span> <span class="n">onehot_idxs</span><span class="p">,</span> <span class="n">single_idxs</span>
 </span><span id="__span-0-279"><a id="__codelineno-0-279" name="__codelineno-0-279" href="#__codelineno-0-279"></a>
@@ -2306,7 +2371,7 @@ to the original format of the input data.</p>
 </span><span id="__span-0-292"><a id="__codelineno-0-292" name="__codelineno-0-292" href="#__codelineno-0-292"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
 </span><span id="__span-0-293"><a id="__codelineno-0-293" name="__codelineno-0-293" href="#__codelineno-0-293"></a>        <span class="n">prepared_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
 </span><span id="__span-0-294"><a id="__codelineno-0-294" name="__codelineno-0-294" href="#__codelineno-0-294"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">onehots</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">singles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_onehots_and_singles</span><span class="p">(</span><span class="n">prepared_data</span><span class="p">)</span>
-</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295" href="#__codelineno-0-295"></a>        <span class="k">return</span> <span class="n">prepared_data</span>
+</span><span id="__span-0-295"><a id="__codelineno-0-295" name="__codelineno-0-295" href="#__codelineno-0-295"></a>        <span class="k">return</span> <span class="n">typed_data</span><span class="p">,</span> <span class="n">prepared_data</span>
 </span><span id="__span-0-296"><a id="__codelineno-0-296" name="__codelineno-0-296" href="#__codelineno-0-296"></a>
 </span><span id="__span-0-297"><a id="__codelineno-0-297" name="__codelineno-0-297" href="#__codelineno-0-297"></a>    <span class="k">def</span> <span class="nf">get_assembled_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 </span><span id="__span-0-298"><a id="__codelineno-0-298" name="__codelineno-0-298" href="#__codelineno-0-298"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2450,7 +2515,7 @@ to the original format of the input data.</p>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assembled_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assemble</span><span class="p">()</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">prepared_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">typed_data</span><span class="p">)</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">onehots</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">singles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_onehots_and_singles</span><span class="p">(</span><span class="n">prepared_data</span><span class="p">)</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="k">return</span> <span class="n">prepared_data</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="k">return</span> <span class="n">typed_data</span><span class="p">,</span> <span class="n">prepared_data</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -2720,7 +2785,7 @@ Also records the indices of non-one-hotted columns in a separate list.</p>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="k">elif</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;ClusterBasedNormalizer&quot;</span><span class="p">:</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>            <span class="n">onehot_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_indexer</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">like</span><span class="o">=</span><span class="n">cn</span> <span class="o">+</span> <span class="s2">&quot;.component&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>            <span class="n">single_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">cn</span> <span class="o">+</span> <span class="s2">&quot;.normalized&quot;</span><span class="p">))</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="k">elif</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;RegexGenerator&quot;</span><span class="p">:</span>
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>            <span class="n">single_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">cn</span><span class="p">))</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="k">return</span> <span class="n">onehot_idxs</span><span class="p">,</span> <span class="n">single_idxs</span>
 </span></code></pre></div>
@@ -3369,7 +3434,7 @@ Also records the indices of non-one-hotted columns in a separate list.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Runs the main workflow of the dataloader module, transforming the input data and writing the output and transformer used to file.</p>
+      <p>Runs the main workflow of the dataloader module, transforms the dataset and writes the output and transformer used to disk.</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -3394,7 +3459,7 @@ Also records the indices of non-one-hotted columns in a separate list.</p>
           <summary>Source code in <code>modules/dataloader/run.py</code></summary>
           <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Runs the main workflow of the dataloader module, transforming the input data and writing the output and transformer used to file.</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Runs the main workflow of the dataloader module, transforms the dataset and writes the output and transformer used to disk.</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        args: An argparse Namespace containing the command line arguments.</span>
@@ -3404,34 +3469,27 @@ Also records the indices of non-one-hotted columns in a separate list.</p>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">set_seed</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">dir_experiment</span> <span class="o">=</span> <span class="n">experiment_io</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">experiment_name</span><span class="p">)</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">dir_input</span><span class="p">,</span> <span class="n">fn_input_data</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">check_input_paths</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">dir_input</span><span class="p">,</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">check_input_paths</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="c1"># Load the dataset and accompanying metadata</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="nb">input</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">dir_input</span> <span class="o">/</span> <span class="n">fn_input_data</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">index_col</span><span class="p">)</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">metadata</span> <span class="o">=</span> <span class="n">load_metadata</span><span class="p">(</span><span class="n">dir_input</span> <span class="o">/</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="nb">input</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">dir_input</span> <span class="o">/</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">index_col</span><span class="p">)</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">metadata</span> <span class="o">=</span> <span class="n">load_metadata</span><span class="p">(</span><span class="n">dir_input</span> <span class="o">/</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">mt</span> <span class="o">=</span> <span class="n">MetaTransformer</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">sdv_workflow</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">synthesizer</span><span class="p">)</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">transformed_input</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">typed_dataset</span><span class="p">,</span> <span class="n">prepared_dataset</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="c1"># Output the metadata corresponding to `transformed_input`, for reproducibility</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">discard_metadata</span><span class="p">:</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="n">output_metadata</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">mt</span><span class="o">.</span><span class="n">get_assembled_metadata</span><span class="p">(),</span> <span class="n">args</span><span class="o">.</span><span class="n">collapse_yaml</span><span class="p">)</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="c1"># Write the transformed input to the appropriate file</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;dataloader&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">write_all</span><span class="p">:</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="n">fn_output_data</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">check_output_paths</span><span class="p">(</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="n">fn_input_data</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">dir_experiment</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="p">)</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">write_data_outputs</span><span class="p">(</span><span class="n">transformed_input</span><span class="p">,</span> <span class="n">mt</span><span class="p">,</span> <span class="n">fn_output_data</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">write_data_outputs</span><span class="p">(</span><span class="n">typed_dataset</span><span class="p">,</span> <span class="n">prepared_dataset</span><span class="p">,</span> <span class="n">mt</span><span class="p">,</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="k">if</span> <span class="s2">&quot;model&quot;</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span><span class="p">:</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="n">args</span><span class="o">.</span><span class="n">model_input</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>            <span class="s2">&quot;fn_dataset&quot;</span><span class="p">:</span> <span class="n">fn_dataset</span><span class="p">,</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>            <span class="s2">&quot;prepared_dataset&quot;</span><span class="p">:</span> <span class="n">prepared_dataset</span><span class="p">,</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="s2">&quot;metatransformer&quot;</span><span class="p">:</span> <span class="n">mt</span><span class="p">,</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="p">}</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="k">if</span> <span class="s2">&quot;evaluation&quot;</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span><span class="p">:</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="n">args</span><span class="o">.</span><span class="n">evaluation_input</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;typed_data&quot;</span><span class="p">:</span> <span class="n">typed_dataset</span><span class="p">}</span>
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="k">if</span> <span class="s2">&quot;model&quot;</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">modules_to_run</span><span class="p">:</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>        <span class="n">args</span><span class="o">.</span><span class="n">dataloader_output</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>            <span class="s2">&quot;fn_base&quot;</span><span class="p">:</span> <span class="n">fn_input_data</span><span class="p">,</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">transformed_input</span><span class="p">,</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>            <span class="s2">&quot;metatransformer&quot;</span><span class="p">:</span> <span class="n">mt</span><span class="p">,</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>        <span class="p">}</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    <span class="k">return</span> <span class="n">args</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="k">return</span> <span class="n">args</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -3463,7 +3521,7 @@ Also records the indices of non-one-hotted columns in a separate list.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 11, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 12, 2023</span>
       
     
   </small>
