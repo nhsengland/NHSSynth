@@ -21,7 +21,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     dir_input, fn_dataset, fn_metadata = check_input_paths(args.dataset, args.metadata, args.data_dir)
 
-    # Load the dataset and accompanying metadata
     dataset = pd.read_csv(dir_input / fn_dataset, index_col=args.index_col)
     metadata = load_metadata(dir_input / fn_metadata, dataset)
 
@@ -31,12 +30,14 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     write_data_outputs(typed_dataset, prepared_dataset, mt, fn_dataset, fn_metadata, dir_experiment, args)
 
     if "model" in args.modules_to_run:
-        args.model_input = {
-            "fn_dataset": fn_dataset,
-            "prepared_dataset": prepared_dataset,
-            "metatransformer": mt,
-        }
+        args.module_handover.update(
+            {
+                "fn_dataset": fn_dataset,
+                "prepared_dataset": prepared_dataset,
+                "metatransformer": mt,
+            }
+        )
     if "evaluation" in args.modules_to_run:
-        args.evaluation_input = {"typed_data": typed_dataset}
+        args.module_handover.update({"typed_dataset": typed_dataset, "sdtypes": mt.get_sdtypes()})
 
     return args

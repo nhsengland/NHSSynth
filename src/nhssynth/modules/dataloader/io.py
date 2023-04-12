@@ -28,7 +28,7 @@ def check_input_paths(
         Raises a UserWarning when the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.
         Raises a UserWarning when the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.
     """
-    fn_input, fn_metadata = consistent_ending(fn_input, ".csv"), consistent_ending(fn_metadata, ".yaml")
+    fn_input, fn_metadata = consistent_endings([(fn_input, ".csv"), (fn_metadata, ".yaml")])
     dir_data = Path(dir_data)
     fn_metadata = potential_suffix(fn_metadata, fn_input)
     warn_if_path_supplied([fn_input, fn_metadata], dir_data)
@@ -60,16 +60,8 @@ def check_output_paths(
         Raises a UserWarning when the path to `fn_prepared` includes directory separators, as this is not supported and may not work as intended.
         Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.
     """
-    fn_typed, fn_prepared, fn_transformer = (
-        consistent_ending(fn_typed),
-        consistent_ending(fn_prepared),
-        consistent_ending(fn_transformer),
-    )
-    fn_typed, fn_prepared, fn_transformer = (
-        potential_suffix(fn_typed, fn_input),
-        potential_suffix(fn_prepared, fn_input),
-        potential_suffix(fn_transformer, fn_input),
-    )
+    fn_typed, fn_prepared, fn_transformer = consistent_endings([fn_typed, fn_prepared, fn_transformer])
+    fn_typed, fn_prepared, fn_transformer = potential_suffixes([fn_typed, fn_prepared, fn_transformer], fn_input)
     warn_if_path_supplied([fn_typed, fn_prepared, fn_transformer], dir_experiment)
     return fn_typed, fn_prepared, fn_transformer
 

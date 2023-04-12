@@ -5,9 +5,11 @@ dataset: MIMIC_small
 dataloader:
   data_dir: data/.nosync
   sdv_workflow: false
-  allow_null_transformers: false
-  collapse_yaml: false
+  collapse_yaml: true
 model:
-  num_epochs: 5
+  num_epochs: 50
   target_epsilon: 1.0
   secure_rng: true
+evaluation:
+  diagnostic: true
+  quality: true

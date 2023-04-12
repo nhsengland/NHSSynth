@@ -114,6 +114,7 @@ def read_config(
 
     # Run the appropriate execution function(s)
     new_args.modules_to_run = modules_to_run
+    new_args.module_handover = {}
     for module in new_args.modules_to_run:
         MODULE_MAP[module].func(new_args)
 
@@ -184,9 +185,7 @@ def assemble_config(
     # Assemble the final dictionary in YAML-compliant form
     return {
         **({"run_type": run_type} if run_type else {}),
-        **filter_dict(
-            args_dict, {"func", "experiment_name", "save_config", "save_config_path", "model_input", "evaluation_input"}
-        ),
+        **filter_dict(args_dict, {"func", "experiment_name", "save_config", "save_config_path", "module_handover"}),
         **out_dict,
     }
 

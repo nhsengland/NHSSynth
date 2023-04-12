@@ -1,0 +1,7 @@
+seed: 1
+experiment_name: test
+run_type: evaluation
+dataset: MIMIC_small
+evaluation:
+  diagnostic: true
+  quality: true

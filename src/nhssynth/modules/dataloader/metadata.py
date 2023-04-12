@@ -83,7 +83,6 @@ def collapse(metadata: dict) -> dict:
     t_index = 1
     transformers = {}
     for cn, cd in metadata.items():
-
         if cd not in column_types.values():
             column_types[c_index] = cd.copy()
             metadata[cn] = column_types[c_index]
@@ -120,3 +119,23 @@ def output_metadata(
         metadata = collapse(metadata)
     with open(out_path, "w") as yaml_file:
         yaml.safe_dump(metadata, yaml_file, default_flow_style=False, sort_keys=False)
+
+
+def get_sdtypes(metadata: dict[str, dict[str, Any]]) -> dict[str, dict[str, dict[str, str]]]:
+    """
+    Extracts the `sdtype` for each column from a valid assembled metadata dictionary and reformats them the correct format for use with SDMetrics.
+
+    Args:
+        metadata: The metadata dictionary to extract the `sdtype`s from.
+
+    Returns:
+        A dictionary mapping column names to a dict containing `sdtype` value for that column.
+    """
+    return {
+        "columns": {
+            cn: {
+                "sdtype": cd["sdtype"],
+            }
+            for cn, cd in metadata.items()
+        }
+    }

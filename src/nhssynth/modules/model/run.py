@@ -10,6 +10,7 @@ from opacus.utils.uniform_sampler import UniformWithReplacementSampler
 from torch.utils.data import DataLoader, TensorDataset
 
 
+# TODO clean this up when we move beyond the old DPVAE
 def run(args: argparse.Namespace) -> argparse.Namespace:
     """Run the model architecture module."""
     print("Running model architecture module...")
@@ -73,10 +74,8 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     model.save(dir_experiment / fn_model)
 
     if "evaluation" in args.modules_to_run:
-        evaluation_input = {"fn_dataset": fn_dataset, "results": results, "synthetic": synthetic}
-        if args.evaluation_input:
-            args.evaluation_input.update(evaluation_input)
-        else:
-            args.evaluation_input = evaluation_input
+        args.module_handover.update({"fn_dataset": fn_dataset, "synthetic": synthetic})
+    if "plotting" in args.modules_to_run:
+        args.module_handover.update({"results": results, "num_epochs": num_epochs})
 
     return args

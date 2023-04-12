@@ -22,37 +22,30 @@ def check_input_paths(
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_dataset, fn_prepared, fn_metatransformer = (
-        consistent_ending(fn_dataset),
-        consistent_ending(fn_prepared),
-        consistent_ending(fn_metatransformer),
-    )
-    fn_prepared, fn_metatransformer = (
-        potential_suffix(fn_prepared, fn_dataset),
-        potential_suffix(fn_metatransformer, fn_dataset),
-    )
+    fn_dataset, fn_prepared, fn_metatransformer = consistent_endings([fn_dataset, fn_prepared, fn_metatransformer])
+    fn_prepared, fn_metatransformer = potential_suffixes([fn_prepared, fn_metatransformer], fn_dataset)
     warn_if_path_supplied([fn_dataset, fn_prepared, fn_metatransformer], dir_experiment)
     check_exists([fn_prepared, fn_metatransformer], dir_experiment)
     return fn_dataset, fn_prepared, fn_metatransformer
 
 
-def check_output_paths(fn_dataset: Path, fn_synth: str, fn_model: str, dir_experiment: Path) -> tuple[str, str]:
+def check_output_paths(fn_dataset: Path, fn_synthetic: str, fn_model: str, dir_experiment: Path) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
 
     Args:
         fn_dataset: The base name of the dataset.
-        fn_synth: The name of the synthetic data file.
+        fn_synthetic: The name of the synthetic data file.
         fn_model: The name of the model file.
         dir_experiment: The path to the experiment output directory.
 
     Returns:
         The path to output the model.
     """
-    fn_synth, fn_model = consistent_ending(fn_synth), consistent_ending(fn_model, ".pt")
-    fn_synth, fn_model = potential_suffix(fn_synth, fn_dataset), potential_suffix(fn_model, fn_dataset)
-    warn_if_path_supplied([fn_synth, fn_model], dir_experiment)
-    return fn_synth, fn_model
+    fn_synthetic, fn_model = consistent_endings([fn_synthetic, (fn_model, ".pt")])
+    fn_synthetic, fn_model = potential_suffixes([fn_synthetic, fn_model], fn_dataset)
+    warn_if_path_supplied([fn_synthetic, fn_model], dir_experiment)
+    return fn_synthetic, fn_model
 
 
 def load_required_data(
@@ -68,18 +61,18 @@ def load_required_data(
     Returns:
         The data, metadata and metatransformer.
     """
-    if getattr(args, "model_input", None):
+    if all(x in args.module_handover for x in ["fn_dataset", "prepared_dataset", "metatransformer"]):
         return (
-            args.model_input["fn_dataset"],
-            args.model_input["prepared_dataset"],
-            args.model_input["metatransformer"],
+            args.module_handover["fn_dataset"],
+            args.module_handover["prepared_dataset"],
+            args.module_handover["metatransformer"],
         )
     else:
-        fn_dataset, fn_prepared_dataset, fn_metatransformer = check_input_paths(
+        fn_dataset, fn_prepared, fn_metatransformer = check_input_paths(
             args.dataset, args.prepared, args.metatransformer, dir_experiment
         )
 
-        with open(dir_experiment / fn_prepared_dataset, "rb") as f:
+        with open(dir_experiment / fn_prepared, "rb") as f:
             data = pickle.load(f)
         with open(dir_experiment / fn_metatransformer, "rb") as f:
             mt = pickle.load(f)

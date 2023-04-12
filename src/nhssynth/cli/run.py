@@ -23,9 +23,9 @@ def run() -> None:
 
     # Use get to return None when no function has been set, i.e. user made no running choice
     executor = vars(args).get("func")
-
     if executor:
         args.modules_to_run = get_modules_to_run(executor)
+        args.module_handover = {}
         executor(args)
     elif hasattr(args, "input_config"):
         args = read_config(args, parser, all_subparsers)

@@ -36,6 +36,10 @@ def consistent_ending(fn: str, ending: str = ".pkl") -> str:
         return str(path_fn.parent / path_fn.stem) + ending
 
 
+def consistent_endings(args: list[str | tuple[str, str]]) -> list[str]:
+    return list(consistent_ending(arg) if isinstance(arg, str) else consistent_ending(*arg) for arg in args)
+
+
 def potential_suffix(fn: str, fn_base: str) -> str:
     """
     Checks if `fn` is a suffix (starts with an underscore) to append to `fn_base`, or a filename in its own right.
@@ -52,6 +56,10 @@ def potential_suffix(fn: str, fn_base: str) -> str:
         return fn_base + fn
     else:
         return fn
+
+
+def potential_suffixes(fns: list[str], fn_base: str) -> list[str]:
+    return list(potential_suffix(fn, fn_base) for fn in fns)
 
 
 def check_exists(fns: list[str], dir: Path) -> None:

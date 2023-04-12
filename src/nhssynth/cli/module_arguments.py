@@ -150,25 +150,23 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
 def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
     """Adds arguments to an existing evaluation module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
-    # group.add_argument(
-    #     "--prepared-data",
-    #     type=str,
-    #     default="_typed",
-    #     help="specify the filename of the synthetic data to be read in `experiments/<EXPERIMENT_NAME>/`, defaults to `<args.real_data>_typed.pkl`",
-    # )
-    # group.add_argument(
-    #     "--synthetic-data",
-    #     type=str,
-    #     default="_synthetic",
-    #     help="specify the filename of the synthetic data to be read in `experiments/<EXPERIMENT_NAME>/`, defaults to `<args.real_data>_synthetic.pkl`",
-    # )
     group.add_argument(
-        "--detection-metrics",
-        type=str,
-        default=None,
-        nargs="+",
-        choices=list(SDV_DETECTION_METRIC_CHOICES.keys()),
+        "--diagnostic",
+        action="store_true",
+        help="run the diagnostic evaluation",
     )
+    group.add_argument(
+        "--quality",
+        action="store_true",
+        help="run the quality evaluation",
+    )
+    # group.add_argument(
+    #     "--detection-metrics",
+    #     type=str,
+    #     default=None,
+    #     nargs="+",
+    #     choices=list(SDV_DETECTION_METRIC_CHOICES.keys()),
+    # )
 
 
 def add_plotting_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:

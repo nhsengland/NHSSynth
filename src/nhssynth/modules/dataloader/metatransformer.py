@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from nhssynth.common.constants import SDV_SYNTHESIZER_CHOICES
 from nhssynth.common.dicts import filter_dict
+from nhssynth.modules.dataloader.metadata import get_sdtypes
 from rdt import HyperTransformer
 from rdt.transformers import *
 from sdv.metadata import SingleTableMetadata
@@ -89,6 +90,7 @@ class MetaTransformer:
     **Methods:**
 
     - `get_assembled_metadata()`: Returns the assembled metadata.
+    - `get_sdtypes()`: Returns the sdtypes from the assembled metadata in the correct format for SDMetrics.
     - `get_onehots_and_singles()`: Returns the values of the MetaTransformer's `onehots` and `singles` attributes.
     - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.
 
@@ -370,6 +372,20 @@ class MetaTransformer:
         if not self.assembled_metadata:
             raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
         return self.assembled_metadata
+
+    def get_sdtypes(self) -> dict[str, dict[str, dict[str, str]]]:
+        """
+        Returns the sdtypes extracted from the assembled metadata for SDMetrics.
+
+        Returns:
+            A dictionary mapping column names to sdtypes.
+
+        Raises:
+            ValueError: If the metadata has not yet been assembled.
+        """
+        if not self.assembled_metadata:
+            raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
+        return get_sdtypes(self.assembled_metadata)
 
     def get_onehots_and_singles(self) -> tuple[list[list[int]], list[int]]:
         """
