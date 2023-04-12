@@ -165,12 +165,19 @@ class VAE(nn.Module):
 
         elbo = kld + reconstruction_loss
 
-        return (elbo, reconstruction_loss, kld, categoric_loglik, gauss_loglik)
+        return {
+            "ELBO": elbo,
+            "ReconstructionLoss": reconstruction_loss,
+            "KLD": kld,
+            "CategoricalLoss": categoric_loglik,
+            "NumericalLoss": gauss_loglik,
+        }
 
     def train(
         self,
         x_dataloader: torch.utils.data.DataLoader,
         num_epochs: int,
+        tracked_metrics: list[str] = ["ELBO"],
         privacy_engine: opacus.PrivacyEngine = None,
         patience: int = 5,
         delta: int = 10,
@@ -178,74 +185,50 @@ class VAE(nn.Module):
         if privacy_engine is not None:
             self.privacy_engine = privacy_engine
             self.privacy_engine.attach(self.optimizer)
-        # EARLY STOPPING #
+        elif "Privacy" in tracked_metrics:
+            tracked_metrics.remove("Privacy")
+
         min_elbo = 0.0  # For early stopping workflow
         stop_counter = 0  # Counter for stops
 
-        log_elbo = []
-        log_reconstruct = []
-        log_divergence = []
-        log_cat_loss = []
-        log_num_loss = []
+        metrics = {metric: [] for metric in tracked_metrics}
+        stats_bars = {
+            metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
+            for i, metric in enumerate(tracked_metrics)
+        }
+        max_length = max(len(s) for s in tracked_metrics) + 1
 
-        stats_bar_1 = tqdm(total=0, desc="", position=0, bar_format="{desc}", leave=True)
-        stats_bar_2 = tqdm(total=0, desc="", position=1, bar_format="{desc}", leave=True)
-        stats_bar_3 = tqdm(total=0, desc="", position=2, bar_format="{desc}", leave=True)
-        stats_bar_4 = tqdm(total=0, desc="", position=3, bar_format="{desc}", leave=True)
-        stats_bar_5 = tqdm(total=0, desc="", position=4, bar_format="{desc}", leave=True)
-        position = 5
-        if self.privacy_engine is not None:
-            epsilon = []
-            stats_bar_6 = tqdm(total=0, desc="", position=5, bar_format="{desc}", leave=True)
-            position += 1
+        for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(stats_bars), leave=False):
+            for key in metrics.keys():
+                if key != "Privacy":
+                    metrics[key].append(0.0)
 
-        for epoch in tqdm(range(num_epochs), desc="Epochs", position=position, leave=False):
-            elbo_e = 0.0
-            kld_e = 0.0
-            reconstruction_e = 0.0
-            categorical_e = 0.0
-            numerical_e = 0.0
-
-            for (Y_subset,) in tqdm(x_dataloader, desc="Batches", position=position + 1, leave=False):
+            for (Y_subset,) in tqdm(x_dataloader, desc="Batches", position=len(stats_bars) + 1, leave=False):
                 self.optimizer.zero_grad()
-                (
-                    elbo,
-                    reconstruction_loss,
-                    kld,
-                    categorical_loss,
-                    numerical_loss,
-                ) = self.loss(Y_subset.to(self.encoder.device))
-                elbo.backward()
+                losses = self.loss(Y_subset.to(self.encoder.device))
+                losses["ELBO"].backward()
                 self.optimizer.step()
 
-                elbo_e += elbo.item()
-                kld_e += kld.item()
-                reconstruction_e += reconstruction_loss.item()
-                categorical_e += categorical_loss.item()
-                numerical_e += numerical_loss.item()
+                for key in metrics.keys():
+                    if key in losses:
+                        metrics[key][-1] += losses[key].item()
 
-            stats_bar_1.set_description_str(f"ELBO: \t\t\t{elbo_e:.2f}")
-            stats_bar_2.set_description_str(f"KLD: \t\t\t{kld_e:.2f}")
-            stats_bar_3.set_description_str(f"Reconstruction Loss: \t{reconstruction_e:.2f}")
-            stats_bar_4.set_description_str(f"Categorical Loss: \t{categorical_e:.2f}")
-            stats_bar_5.set_description_str(f"Numerical Loss: \t{numerical_e:.2f}")
-            if self.privacy_engine is not None:
-                epsilon_e = self.privacy_engine.get_privacy_spent()
-                # epsilon_e = self.privacy_engine.accountant.get_epsilon()
-                stats_bar_6.set_description_str(f"Epsilon and Best Alpha: \t{epsilon_e[0]:.2f}\t{epsilon_e[1]:.2f}")
-                epsilon.append(epsilon_e)
-
-            log_elbo.append(elbo_e)
-            log_reconstruct.append(reconstruction_e)
-            log_divergence.append(kld_e)
-            log_cat_loss.append(categorical_e)
-            log_num_loss.append(numerical_e)
+            for key, stats_bar in stats_bars.items():
+                if key == "Privacy" and privacy_engine is not None:
+                    epsilon_e = self.privacy_engine.get_privacy_spent()
+                    # epsilon_e = self.privacy_engine.accountant.get_epsilon()
+                    stats_bar.set_description_str(
+                        f"{(key + ':').ljust(max_length)}  \u03B5 = {epsilon_e[0]:.2f}\tbest \u03B1 = {epsilon_e[1]:.2f}"
+                    )
+                    metrics["Privacy"].append(epsilon_e)
+                else:
+                    stats_bar.set_description_str(f"{(key + ':').ljust(max_length)}  {metrics[key][-1]:.2f}")
 
             if epoch == 0:
-                min_elbo = elbo_e
+                min_elbo = metrics["ELBO"][-1]
 
-            if elbo_e < (min_elbo - delta):
-                min_elbo = elbo_e
+            if metrics["ELBO"][-1] < (min_elbo - delta):
+                min_elbo = metrics["ELBO"][-1]
                 stop_counter = 0  # Set counter to zero
             else:  # elbo has not improved
                 stop_counter += 1
@@ -254,21 +237,10 @@ class VAE(nn.Module):
                 num_epochs = epoch + 1
                 break
 
-        stats_bar_1.close()
-        stats_bar_2.close()
-        stats_bar_3.close()
-        stats_bar_4.close()
-        stats_bar_5.close()
-        if privacy_engine is not None:
-            stats_bar_6.close()
-        return (
-            num_epochs,
-            log_elbo,
-            log_reconstruct,
-            log_divergence,
-            log_cat_loss,
-            log_num_loss,
-        )
+        for stats_bar in stats_bars.values():
+            stats_bar.close()
+
+        return (num_epochs, metrics)
 
     def get_privacy_spent(self, delta):
         if hasattr(self, "privacy_engine"):
