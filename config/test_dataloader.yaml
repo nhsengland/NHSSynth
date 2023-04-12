@@ -1,7 +1,7 @@
 seed: 1
 experiment_name: test
+dataset: MIMIC_small
 dataloader:
-  input: MIMIC_small
   data_dir: data/.nosync
   sdv_workflow: false
   allow_null_transformers: false

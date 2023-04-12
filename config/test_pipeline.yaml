@@ -1,14 +1,13 @@
 seed: 1
 experiment_name: test
 run_type: pipeline
+dataset: MIMIC_small
 dataloader:
-  input: MIMIC_small
   data_dir: data/.nosync
   sdv_workflow: false
   allow_null_transformers: false
   collapse_yaml: false
-  synthesizer: TVAE
 model:
-  num_epochs: 50
+  num_epochs: 5
   target_epsilon: 1.0
   secure_rng: true

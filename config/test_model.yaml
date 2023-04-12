@@ -1,6 +1,6 @@
 seed: 1
 experiment_name: test
+dataset: MIMIC_small
 model:
-  real_data: MIMIC_small
   num_epochs: 5
   non_private_training: true
