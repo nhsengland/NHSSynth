@@ -17,12 +17,12 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    fn_base, prepared_data, mt = load_required_data(args, dir_experiment)
+    fn_dataset, prepared_dataset, mt = load_required_data(args, dir_experiment)
     onehots, singles = mt.get_onehots_and_singles()
-    nrows, ncols = prepared_data.shape
+    nrows, ncols = prepared_dataset.shape
 
     # Should the data also all be turned into floats?
-    torch_data = TensorDataset(torch.Tensor(prepared_data.to_numpy()))
+    torch_data = TensorDataset(torch.Tensor(prepared_dataset.to_numpy()))
     sample_rate = args.batch_size / nrows
     model = VAE(
         Encoder(input_dim=ncols, latent_dim=args.latent_dim, hidden_dim=args.hidden_dim, use_gpu=args.use_gpu),
@@ -58,22 +58,22 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         # )
         # print(model)
         # print(f"Using sigma={optimizer.noise_multiplier} and C={args.max_grad_norm}")
-        results = model.train(data_loader, args.num_epochs, privacy_engine=privacy_engine)
+        num_epochs, results = model.train(
+            data_loader, args.num_epochs, args.tracked_metrics, privacy_engine=privacy_engine
+        )
     else:
-        results = model.train(data_loader, args.num_epochs)
+        num_epochs, results = model.train(data_loader, args.num_epochs, args.tracked_metrics)
 
-    synthetic_data = pd.DataFrame(model.generate(nrows), columns=prepared_data.columns)
-    synthetic_data = mt.inverse_apply(synthetic_data)
+    synthetic = pd.DataFrame(model.generate(nrows), columns=prepared_dataset.columns)
+    synthetic = mt.inverse_apply(synthetic)
 
-    fn_output, fn_model = check_output_paths(fn_base, args.synthetic_data, args.model_file, dir_experiment)
-    if "evaluation" not in args.modules_to_run or not args.discard_synthetic:
-        synthetic_data.to_pickle(dir_experiment / fn_output)
-        synthetic_data.to_csv(dir_experiment / (fn_output[:-3] + "csv"), index=False)
-    if args.write_all:
-        model.save(dir_experiment / fn_model)
+    fn_output, fn_model = check_output_paths(fn_dataset, args.synthetic, args.model_file, dir_experiment)
+    synthetic.to_pickle(dir_experiment / fn_output)
+    synthetic.to_csv(dir_experiment / (fn_output[:-3] + "csv"), index=False)
+    model.save(dir_experiment / fn_model)
 
     if "evaluation" in args.modules_to_run:
-        evaluation_input = {"fn_base": fn_base, "results": results, "synthetic_data": synthetic_data}
+        evaluation_input = {"fn_dataset": fn_dataset, "results": results, "synthetic": synthetic}
         if args.evaluation_input:
             args.evaluation_input.update(evaluation_input)
         else:

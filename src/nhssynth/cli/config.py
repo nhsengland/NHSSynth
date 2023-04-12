@@ -105,6 +105,9 @@ def read_config(
 
     # Create a new Namespace using the assembled dictionary
     new_args = argparse.Namespace(**args_dict)
+    assert getattr(
+        new_args, "dataset"
+    ), "No dataset specified in the passed config file, provide one with the `--dataset` argument or add it to the config file"
     assert all(
         getattr(new_args, req_arg["arg"]) for req_arg in required_args
     ), f"Required arguments are missing from the passed config file: {[ra['module'] + ':' + ra['arg'] for ra in required_args if not getattr(new_args, ra['arg'])]}"
@@ -150,7 +153,7 @@ def assemble_config(
     Raises:
         ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.
     """
-    if args.sdv_workflow:
+    if hasattr(args, "sdv_workflow") and not args.sdv_workflow:
         del args.synthesizer
 
     args_dict = vars(args)
@@ -172,7 +175,7 @@ def assemble_config(
     out_dict = {}
     for module_name in modules_to_run:
         for k in args_dict.copy().keys():
-            if k in module_args[module_name]:
+            if k in module_args[module_name] and k not in {"dataset", "experiment_name", "seed", "save_config"}:
                 if out_dict.get(module_name):
                     out_dict[module_name].update({k: args_dict.pop(k)})
                 else:
@@ -199,9 +202,7 @@ def write_config(
         args: A namespace containing the run's configuration.
         all_subparsers: A dictionary containing all subparsers for the config args.
     """
-    if not args.save_config_path:
-        args.save_config_path = f"experiments/{args.experiment_name}/config_{args.experiment_name}.yaml"
-
+    experiment_name = args.experiment_name
     args_dict = assemble_config(args, all_subparsers)
-    with open(f"{args.save_config_path}", "w") as yaml_file:
+    with open(f"experiments/{experiment_name}/config_{experiment_name}.yaml", "w") as yaml_file:
         yaml.dump(args_dict, yaml_file, default_flow_style=False, sort_keys=False)

@@ -7,48 +7,52 @@ from nhssynth.common.io import *
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
-def check_input_paths(fn_base: str, fn_prepared: str, fn_metatransformer: str, dir_experiment: Path) -> tuple[str, str]:
+def check_input_paths(
+    fn_dataset: str, fn_prepared: str, fn_metatransformer: str, dir_experiment: Path
+) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
 
     Args:
-        fn_data: The name of the data file.
-        fn_metadata: The name of the metadata file.
+        fn_dataset: The base name of the dataset.
+        fn_prepared: The name of the prepared data file.
         fn_metatransformer: The name of the metatransformer file.
         dir_experiment: The path to the experiment directory.
 
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_base, fn_prepared, fn_metatransformer = (
-        consistent_ending(fn_base),
+    fn_dataset, fn_prepared, fn_metatransformer = (
+        consistent_ending(fn_dataset),
         consistent_ending(fn_prepared),
         consistent_ending(fn_metatransformer),
     )
     fn_prepared, fn_metatransformer = (
-        potential_suffix(fn_prepared, fn_base),
-        potential_suffix(fn_metatransformer, fn_base),
+        potential_suffix(fn_prepared, fn_dataset),
+        potential_suffix(fn_metatransformer, fn_dataset),
     )
-    warn_if_path_supplied([fn_base, fn_prepared, fn_metatransformer], dir_experiment)
+    warn_if_path_supplied([fn_dataset, fn_prepared, fn_metatransformer], dir_experiment)
     check_exists([fn_prepared, fn_metatransformer], dir_experiment)
-    return fn_base, fn_prepared, fn_metatransformer
+    return fn_dataset, fn_prepared, fn_metatransformer
 
 
-def check_output_paths(fn_base: Path, fn_out: str, fn_model: str, dir_experiment: Path) -> tuple[str, str]:
+def check_output_paths(fn_dataset: Path, fn_synth: str, fn_model: str, dir_experiment: Path) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
 
     Args:
+        fn_dataset: The base name of the dataset.
+        fn_synth: The name of the synthetic data file.
         fn_model: The name of the model file.
         dir_experiment: The path to the experiment output directory.
 
     Returns:
         The path to output the model.
     """
-    fn_out, fn_model = consistent_ending(fn_out), consistent_ending(fn_model, ".pt")
-    fn_out, fn_model = potential_suffix(fn_out, fn_base), potential_suffix(fn_model, fn_base)
-    warn_if_path_supplied([fn_out, fn_model], dir_experiment)
-    return fn_out, fn_model
+    fn_synth, fn_model = consistent_ending(fn_synth), consistent_ending(fn_model, ".pt")
+    fn_synth, fn_model = potential_suffix(fn_synth, fn_dataset), potential_suffix(fn_model, fn_dataset)
+    warn_if_path_supplied([fn_synth, fn_model], dir_experiment)
+    return fn_synth, fn_model
 
 
 def load_required_data(
@@ -66,22 +70,18 @@ def load_required_data(
     """
     if getattr(args, "model_input", None):
         return (
-            args.model_input["fn_base"],
-            args.model_input["prepared_data"],
+            args.model_input["fn_dataset"],
+            args.model_input["prepared_dataset"],
             args.model_input["metatransformer"],
         )
     else:
-        if not args.real_data:
-            raise ValueError(
-                "You must provide `--real-data` when running this module on its own, please provide this (a prepared version and corresponding MetaTransformer must also exist in {dir_experiment})"
-            )
-        fn_base, fn_prepared_data, fn_metatransformer = check_input_paths(
-            args.real_data, args.prepared_data, args.real_metatransformer, dir_experiment
+        fn_dataset, fn_prepared_dataset, fn_metatransformer = check_input_paths(
+            args.dataset, args.prepared, args.metatransformer, dir_experiment
         )
 
-        with open(dir_experiment / fn_prepared_data, "rb") as f:
+        with open(dir_experiment / fn_prepared_dataset, "rb") as f:
             data = pickle.load(f)
         with open(dir_experiment / fn_metatransformer, "rb") as f:
             mt = pickle.load(f)
 
-        return fn_base, data, mt
+        return fn_dataset, data, mt

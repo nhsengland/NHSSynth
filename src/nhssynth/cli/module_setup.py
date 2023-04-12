@@ -1,6 +1,7 @@
 import argparse
 from typing import Any, Callable, Final
 
+from nhssynth.cli.common_arguments import COMMON_PARSERS
 from nhssynth.cli.module_arguments import *
 from nhssynth.modules import dataloader, evaluation, model, plotting, structure
 
@@ -12,6 +13,7 @@ class ModuleConfig:
         add_args_func: Callable[..., Any],
         description: str,
         help: str,
+        module_common_parsers: list[str] = None,
     ) -> None:
         """
         Represents a module's configuration, containing the following attributes:
@@ -21,11 +23,15 @@ class ModuleConfig:
             add_args_func: A callable that populates the module's sub-parser arguments.
             description: A description of the module's functionality.
             help: A help message for the module's command-line interface.
+            module_common_parsers: A list of common parsers to add to the module's sub-parser.
         """
         self.func = func
         self.add_args_func = add_args_func
         self.description = description
         self.help = help
+        self.module_common_parsers = (
+            ["dataset", "core"] + module_common_parsers if module_common_parsers else ["dataset", "core"]
+        )
 
 
 def run_pipeline(args: argparse.Namespace) -> None:
@@ -39,8 +45,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
 def add_pipeline_args(parser: argparse.ArgumentParser) -> None:
     """Adds arguments to a `parser` for each module in the pipeline."""
     for module_name in PIPELINE:
-        group = parser.add_argument_group(title=module_name)
-        MODULE_MAP[module_name].add_args_func(group)
+        MODULE_MAP[module_name].add_args_func(parser, f"{module_name} options")
 
 
 def add_config_args(parser: argparse.ArgumentParser) -> None:
@@ -58,8 +63,7 @@ def add_config_args(parser: argparse.ArgumentParser) -> None:
         help="infer a custom pipeline running order of modules from the config",
     )
     for module_name in VALID_MODULES:
-        group = parser.add_argument_group(title=f"{module_name} overrides")
-        MODULE_MAP[module_name].add_args_func(group, override=True)
+        MODULE_MAP[module_name].add_args_func(parser, f"{module_name} option overrides", overrides=True)
 
 
 ### EDIT BELOW HERE TO ADD MODULES / ALTER PIPELINE BEHAVIOUR
@@ -73,46 +77,49 @@ PIPELINE: Final = [
 
 MODULE_MAP: Final = {
     "dataloader": ModuleConfig(
-        dataloader.run,
-        add_dataloader_args,
-        "Run the Data Loader module, to prepare data for use in other modules.",
-        "prepare input data",
+        func=dataloader.run,
+        add_args_func=add_dataloader_args,
+        description="Run the Data Loader module, to prepare the chosen dataset for use in other modules.",
+        help="prepare the dataset",
+        module_common_parsers=["metadata", "typed", "prepared"],
     ),
     "structure": ModuleConfig(
-        structure.run,
-        add_structure_args,
-        "Run the Structural Discovery module, to learn a structural model for use in training and evaluation.",
-        "discover structure",
+        func=structure.run,
+        add_args_func=add_structure_args,
+        description="Run the Structural Discovery module, to learn a structural model for use in training and evaluation.",
+        help="discover structure",
     ),
     "model": ModuleConfig(
-        model.run,
-        add_model_args,
-        "Run the Architecture module, to train a model.",
-        "train a model",
+        func=model.run,
+        add_args_func=add_model_args,
+        description="Run the Model Architecture module, to train a synthetic data generator.",
+        help="train a model",
+        module_common_parsers=["prepared", "synthetic"],
     ),
     "evaluation": ModuleConfig(
-        evaluation.run,
-        add_evaluation_args,
-        "Run the Evaluation module, to evaluate an experiment.",
-        "evaluate an experiment",
+        func=evaluation.run,
+        add_args_func=add_evaluation_args,
+        description="Run the Evaluation module, to evaluate an experiment.",
+        help="evaluate an experiment",
+        module_common_parsers=["metadata", "typed", "synthetic"],
     ),
     "plotting": ModuleConfig(
-        plotting.run,
-        add_plotting_args,
-        "Run the Plotting module, to generate plots for a given model and / or evaluation.",
-        "generate plots",
+        func=plotting.run,
+        add_args_func=add_plotting_args,
+        description="Run the Plotting module, to generate plots for a given model and / or evaluation.",
+        help="generate plots",
     ),
     "pipeline": ModuleConfig(
-        run_pipeline,
-        add_pipeline_args,
-        "Run the full pipeline.",
-        "run the full pipeline",
+        func=run_pipeline,
+        add_args_func=add_pipeline_args,
+        description="Run the full pipeline.",
+        help="run the full pipeline",
     ),
     "config": ModuleConfig(
-        None,
-        add_config_args,
-        "Run module(s) according to configuration specified by a file in `config/`. Note that you can override parts of the configuration on the fly by using the usual CLI flags.",
-        "run module(s) in line with a passed configuration file",
+        func=None,
+        add_args_func=add_config_args,
+        description="Run module(s) according to configuration specified by a file in `config/`. Note that you can override parts of the configuration on the fly by using the usual CLI flags.",
+        help="run module(s) in line with a passed configuration file",
     ),
 }
 
@@ -123,6 +130,14 @@ VALID_MODULES = {x for x in MODULE_MAP.keys() if x not in {"pipeline", "config"}
 assert (
     set(PIPELINE) <= VALID_MODULES
 ), f"Invalid `PIPELINE` specification, must only contain valid modules from `MODULE_MAP`: {str(VALID_MODULES)}"
+
+
+def get_parent_parsers(name: str, module_parsers: list[str]) -> list[argparse.ArgumentParser]:
+    """Get a list of parent parsers for a given module, based on the module's `common_parsers` attribute."""
+    if name in {"pipeline", "config"}:
+        return [p(name == "config") for p in COMMON_PARSERS.values()]
+    else:
+        return [COMMON_PARSERS[pn]() for pn in module_parsers]
 
 
 def add_subparser(
@@ -141,12 +156,17 @@ def add_subparser(
     Returns:
         The newly created subparser.
     """
+    parent_parsers = get_parent_parsers(name, config.module_common_parsers)
     parser = subparsers.add_parser(
         name=name,
         description=config.description,
         help=config.help,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        parents=parent_parsers,
     )
-    config.add_args_func(parser)
+    if name not in {"pipeline", "config"}:
+        config.add_args_func(parser, f"{name} options")
+    else:
+        config.add_args_func(parser)
     parser.set_defaults(func=config.func)
     return parser
