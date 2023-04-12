@@ -27,7 +27,10 @@ The following instructions specify how to extend this package with a new module:
 3. In the `cli` folder, add a corresponding function to `arguments.py` and populate with arguments you want to expose in the CLI:
 
     ```python
-    def add_mymodule_args(parser: argparse.ArgumentParser, override=False):
+    def add_mymodule_args(parser: argparse.ArgumentParser, group_title: str, overrides=False):
+        group = parser.add_argument_group(title=group_title)
+        group.add_argument(...)
+        group.add_argument(...)
         ...
     ```
 
@@ -37,24 +40,27 @@ The following instructions specify how to extend this package with a new module:
     from nhssynth.modules import ..., mymodule, ...
     ```
 
-    ```python hl_lines="3 4 5 6 7 8"
+    ```python hl_lines="3 4 5 6 7 8 9"
     MODULE_MAP = {
         ...
         "mymodule": ModuleConfig(
-            mymodule.myexecutor,
-            add_mymodule_args,
-            "<description>",
-            "<short help>",
+            func=mymodule.myexecutor,
+            add_args_func=add_mymodule_args,
+            description="...",
+            help="...",
+            common_parsers=[...]
         ),
         ...
     }
     ```
 
-    And (optionally) edit the following block if you want your module to be included in a full pipeline run:
+    Where `#!python common_parsers` is a subset of `#!python COMMON_PARSERS` defined in `common_arguments.py`. Note that the "dataset" and "core" parsers are added automatically, so you don't need to specify them. These parsers can be used to add arguments to your module that are common to multiple modules, e.g. the `dataloader` and `evaluation` modules both use `--typed` to specify the path of the typed input dataset.
+
+5. You can (optionally) also edit the following block if you want your module to be included in a full pipeline run:
 
     ```python
     PIPELINE = [..., mymodule, ...]  # NOTE this determines the order of a pipeline run
     ```
 
-5. Congrats, your module is implemented!
+6. Congrats, your module is implemented!
 

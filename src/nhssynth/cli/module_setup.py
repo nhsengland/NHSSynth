@@ -13,7 +13,7 @@ class ModuleConfig:
         add_args_func: Callable[..., Any],
         description: str,
         help: str,
-        module_common_parsers: list[str] = None,
+        common_parsers: list[str] = None,
     ) -> None:
         """
         Represents a module's configuration, containing the following attributes:
@@ -23,15 +23,23 @@ class ModuleConfig:
             add_args_func: A callable that populates the module's sub-parser arguments.
             description: A description of the module's functionality.
             help: A help message for the module's command-line interface.
-            module_common_parsers: A list of common parsers to add to the module's sub-parser.
+            common_parsers: A list of common parsers to add to the module's sub-parser.
         """
         self.func = func
         self.add_args_func = add_args_func
         self.description = description
         self.help = help
-        self.module_common_parsers = (
-            ["dataset", "core"] + module_common_parsers if module_common_parsers else ["dataset", "core"]
-        )
+        if common_parsers:
+            assert set(common_parsers) <= COMMON_PARSERS.keys(), "Invalid common parser(s) specified."
+            assert (
+                "dataset" not in common_parsers
+            ), "The 'dataset' parser is automatically added to all modules, remove it from the ModuleConfig."
+            assert (
+                "core" not in common_parsers
+            ), "The 'core' parser is automatically added to all modules, remove it from the ModuleConfig."
+            self.common_parsers = ["dataset", "core"] + common_parsers
+        else:
+            self.common_parsers = ["dataset", "core"]
 
 
 def run_pipeline(args: argparse.Namespace) -> None:
@@ -81,7 +89,7 @@ MODULE_MAP: Final = {
         add_args_func=add_dataloader_args,
         description="Run the Data Loader module, to prepare the chosen dataset for use in other modules.",
         help="prepare the dataset",
-        module_common_parsers=["metadata", "typed", "prepared"],
+        common_parsers=["metadata", "typed", "prepared"],
     ),
     "structure": ModuleConfig(
         func=structure.run,
@@ -94,14 +102,14 @@ MODULE_MAP: Final = {
         add_args_func=add_model_args,
         description="Run the Model Architecture module, to train a synthetic data generator.",
         help="train a model",
-        module_common_parsers=["prepared", "synthetic"],
+        common_parsers=["prepared", "synthetic"],
     ),
     "evaluation": ModuleConfig(
         func=evaluation.run,
         add_args_func=add_evaluation_args,
         description="Run the Evaluation module, to evaluate an experiment.",
         help="evaluate an experiment",
-        module_common_parsers=["metadata", "typed", "synthetic"],
+        common_parsers=["metadata", "typed", "synthetic"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,
@@ -143,7 +151,7 @@ def get_parent_parsers(name: str, module_parsers: list[str]) -> list[argparse.Ar
 def add_subparser(
     subparsers: argparse._SubParsersAction,
     name: str,
-    config: ModuleConfig,
+    module_config: ModuleConfig,
 ) -> argparse.ArgumentParser:
     """
     Add a subparser to an argparse argument parser.
@@ -151,22 +159,22 @@ def add_subparser(
     Args:
         subparsers: The subparsers action to which the subparser will be added.
         name: The name of the subparser.
-        config: A ModuleConfig object containing information about the subparser, including a function to execute and a function to add arguments.
+        module_config: A ModuleConfig object containing information about the subparser, including a function to execute and a function to add arguments.
 
     Returns:
         The newly created subparser.
     """
-    parent_parsers = get_parent_parsers(name, config.module_common_parsers)
+    parent_parsers = get_parent_parsers(name, module_config.common_parsers)
     parser = subparsers.add_parser(
         name=name,
-        description=config.description,
-        help=config.help,
+        description=module_config.description,
+        help=module_config.help,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         parents=parent_parsers,
     )
     if name not in {"pipeline", "config"}:
-        config.add_args_func(parser, f"{name} options")
+        module_config.add_args_func(parser, f"{name} options")
     else:
-        config.add_args_func(parser)
-    parser.set_defaults(func=config.func)
+        module_config.add_args_func(parser)
+    parser.set_defaults(func=module_config.func)
     return parser
