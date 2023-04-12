@@ -16,10 +16,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     if args.diagnostic:
         report = DiagnosticReport()
         report.generate(real_data, synthetic_data, metadata)
-        figs = [
-            report.get_visualization(property_name)
-            for property_name in report.get_properties()["Property"].unique().tolist()
-        ]
+        figs = [report.get_visualization(property_name) for property_name in report.get_properties().keys()]
         for fig in figs:
             fig.show()
 
