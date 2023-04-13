@@ -2,6 +2,5 @@ seed: 1
 experiment_name: test
 dataset: MIMIC_small
 dataloader:
-  data_dir: data/.nosync
   sdv_workflow: false
   collapse_yaml: true
