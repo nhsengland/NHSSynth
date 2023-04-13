@@ -44,66 +44,33 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
 COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `DATASET_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
 
 
-def get_metadata_parser(overrides=False) -> argparse.ArgumentParser:
-    metadata = argparse.ArgumentParser(add_help=False)
-    metadata_grp = metadata.add_argument_group(title=COMMON_TITLE)
-    metadata_grp.add_argument(
-        "-m",
-        "--metadata",
-        type=str,
-        default="_metadata",
-        help="filename of the metadata, NOTE that `dataloader` attempts to read this from `<DATA_DIR>`",
-    )
-    return metadata
+def suffix_parser_generator(name: str, help: str, required: bool = False) -> argparse.ArgumentParser:
+    def get_parser(overrides: bool = False) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(add_help=False)
+        parser_grp = parser.add_argument_group(title=COMMON_TITLE)
+        parser_grp.add_argument(
+            f"--{name}",
+            required=required and not overrides,
+            type=str,
+            default=f"_{name}",
+            help=help,
+        )
+        return parser
 
-
-def get_typed_parser(overrides=False) -> argparse.ArgumentParser:
-    typed = argparse.ArgumentParser(add_help=False)
-    typed_grp = typed.add_argument_group(title=COMMON_TITLE)
-    typed_grp.add_argument(
-        "--typed",
-        type=str,
-        default="_typed",
-        help="filename of the typed data",
-    )
-    return typed
-
-
-def get_prepared_parser(overrides=False) -> argparse.ArgumentParser:
-    prepared = argparse.ArgumentParser(add_help=False)
-    prepared_grp = prepared.add_argument_group(title=COMMON_TITLE)
-    prepared_grp.add_argument(
-        "--prepared",
-        type=str,
-        default="_prepared",
-        help="filename of the prepared data",
-    )
-    prepared_grp.add_argument(
-        "--metatransformer",
-        type=str,
-        default="_metatransformer",
-        help="filename of the `MetaTransformer` used to prepare the data",
-    )
-    return prepared
-
-
-def get_synthetic_parser(overrides=False) -> argparse.ArgumentParser:
-    synthetic = argparse.ArgumentParser(add_help=False)
-    synthetic_grp = synthetic.add_argument_group(title=COMMON_TITLE)
-    synthetic_grp.add_argument(
-        "--synthetic",
-        type=str,
-        default="_synthetic",
-        help="filename of the synthetic data",
-    )
-    return synthetic
+    return get_parser
 
 
 COMMON_PARSERS: Final = {
     "dataset": get_dataset_parser,
     "core": get_core_parser,
-    "metadata": get_metadata_parser,
-    "typed": get_typed_parser,
-    "prepared": get_prepared_parser,
-    "synthetic": get_synthetic_parser,
+    "metadata": suffix_parser_generator(
+        "metadata", "filename of the metadata, NOTE that `dataloader` attempts to read this from `<DATA_DIR>`"
+    ),
+    "typed": suffix_parser_generator("typed", "filename of the typed data"),
+    "prepared": suffix_parser_generator("prepared", "filename of the prepared data"),
+    "metatransformer": suffix_parser_generator(
+        "metatransformer", "filename of the `MetaTransformer` used to prepare the data"
+    ),
+    "synthetic": suffix_parser_generator("synthetic", "filename of the synthetic data"),
+    "report": suffix_parser_generator("report", "filename of the (collection of) report(s)"),
 }
