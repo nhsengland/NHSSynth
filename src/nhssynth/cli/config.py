@@ -154,10 +154,19 @@ def assemble_config(
     Raises:
         ValueError: If a module specified in `args.modules_to_run` is not in `all_subparsers`.
     """
-    if hasattr(args, "sdv_workflow") and not args.sdv_workflow:
-        del args.synthesizer
-
     args_dict = vars(args)
+
+    # Filter out the keys that are not relevant to the config file
+    args_dict = filter_dict(
+        args_dict, {"func", "experiment_name", "save_config", "save_config_path", "module_handover"}
+    )
+    for k in args_dict.copy().keys():
+        if k == "sdv_workflow" and not args_dict[k]:
+            args_dict.pop("synthesizer")
+        # Remove empty metric lists from the config
+        elif "_metrics" in k and not args_dict[k]:
+            args_dict.pop(k)
+
     modules_to_run = args_dict.pop("modules_to_run")
     if len(modules_to_run) == 1:
         run_type = modules_to_run[0]
@@ -176,6 +185,7 @@ def assemble_config(
     out_dict = {}
     for module_name in modules_to_run:
         for k in args_dict.copy().keys():
+            # We want to keep dataset, experiment_name, seed and save_config at the top-level as they are core args
             if k in module_args[module_name] and k not in {"dataset", "experiment_name", "seed", "save_config"}:
                 if out_dict.get(module_name):
                     out_dict[module_name].update({k: args_dict.pop(k)})
@@ -183,11 +193,7 @@ def assemble_config(
                     out_dict[module_name] = {k: args_dict.pop(k)}
 
     # Assemble the final dictionary in YAML-compliant form
-    return {
-        **({"run_type": run_type} if run_type else {}),
-        **filter_dict(args_dict, {"func", "experiment_name", "save_config", "save_config_path", "module_handover"}),
-        **out_dict,
-    }
+    return {**({"run_type": run_type} if run_type else {}), **args_dict, **out_dict}
 
 
 def write_config(
