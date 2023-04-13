@@ -217,7 +217,10 @@ class VAE(nn.Module):
 
                 for key in metrics.keys():
                     if key in losses:
-                        metrics[key][-1] += losses[key].item()
+                        if losses[key]:
+                            metrics[key][-1] += losses[key].item()
+                        else:
+                            metrics[key][-1] += 0.0
 
             for key, stats_bar in stats_bars.items():
                 if key == "Privacy" and privacy_engine is not None:
