@@ -17,3 +17,6 @@ evaluation:
   - CategoryCoverage
   synthesis_metrics:
   - NewRowSynthesis
+  divergence_metrics:
+  - ContinuousKLDivergence
+  - DiscreteKLDivergence
