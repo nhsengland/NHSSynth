@@ -7,9 +7,26 @@ dataloader:
   sdv_workflow: false
   collapse_yaml: true
 model:
-  num_epochs: 50
-  target_epsilon: 1.0
-  secure_rng: true
+  num_epochs: 20
+  # target_epsilon: 1.0
+  # secure_rng: true
+  non_private_training: true
 evaluation:
-  diagnostic: true
-  quality: true
+  column_shape_metrics:
+  - KSComplement
+  - TVComplement
+  column_similarity_metrics:
+  - CorrelationSimilarity
+  - ContingencySimilarity
+  detection_metrics:
+  - SVCDetection
+  boundary_metrics:
+  - BoundaryAdherence
+  coverage_metrics:
+  - RangeCoverage
+  - CategoryCoverage
+  synthesis_metrics:
+  - NewRowSynthesis
+plotting:
+  plot-tsne: true
+  plot-sdv-report: true
