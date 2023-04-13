@@ -14,14 +14,14 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     fn_dataset, real_data, synthetic_data, report = load_required_data(args, dir_experiment)
 
     if args.plot_sdv_report and report:
-        figs = [
+        [
             report.get_visualization(property_name)
             for property_name in report.get_properties()["Property"].unique().tolist()
         ]
-        for fig in figs:
-            fig.show()
 
     if args.plot_tsne:
         tsne(real_data, synthetic_data)
+
+    print("")
 
     return args

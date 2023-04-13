@@ -78,4 +78,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     if "plotting" in args.modules_to_run:
         args.module_handover.update({"results": results, "num_epochs": num_epochs})
 
+    print("")
+
     return args

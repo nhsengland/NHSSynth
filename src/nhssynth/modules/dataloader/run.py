@@ -40,4 +40,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     if "evaluation" in args.modules_to_run:
         args.module_handover.update({"typed_dataset": typed_dataset, "sdtypes": mt.get_sdtypes()})
 
+    print("")
+
     return args

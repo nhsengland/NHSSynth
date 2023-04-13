@@ -36,4 +36,4 @@ def run() -> None:
     if args.save_config:
         write_config(args, all_subparsers)
 
-    print("Complete!")
+    print("Finished!")

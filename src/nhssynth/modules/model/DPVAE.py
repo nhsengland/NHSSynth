@@ -1,3 +1,4 @@
+import time
 import warnings
 
 import opacus
@@ -182,6 +183,10 @@ class VAE(nn.Module):
         patience: int = 5,
         delta: int = 10,
     ):
+        print("")
+
+        self.start_time = time.time()
+
         if privacy_engine is not None:
             self.privacy_engine = privacy_engine
             self.privacy_engine.attach(self.optimizer)
@@ -197,8 +202,9 @@ class VAE(nn.Module):
             for i, metric in enumerate(tracked_metrics)
         }
         max_length = max(len(s) for s in tracked_metrics) + 1
+        epoch_bar = tqdm(range(num_epochs), desc="Epochs", position=len(stats_bars), leave=False)
 
-        for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(stats_bars), leave=False):
+        for epoch in epoch_bar:
             for key in metrics.keys():
                 if key != "Privacy":
                     metrics[key].append(0.0)
@@ -239,6 +245,7 @@ class VAE(nn.Module):
 
         for stats_bar in stats_bars.values():
             stats_bar.close()
+        tqdm.write(f"Completed {num_epochs} epochs in {time.time() - self.start_time:.2f} seconds.")
 
         return (num_epochs, metrics)
 

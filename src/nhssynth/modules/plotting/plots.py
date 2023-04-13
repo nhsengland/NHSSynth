@@ -5,6 +5,8 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.graph_objects as go
+import plotly.io as pio
 from sklearn.manifold import TSNE
 
 
@@ -36,13 +38,22 @@ def tsne(
     tsne_syn = TSNE(n_components=2, random_state=0, learning_rate="auto", init="pca")
     proj_syn = pd.DataFrame(tsne_syn.fit_transform(factorize_all_categoricals(X_syn)))
 
-    ax.scatter(x=proj_gt[0], y=proj_gt[1], s=10, label="Real data")
-    ax.scatter(x=proj_syn[0], y=proj_syn[1], s=10, label="Synthetic data")
+    fig = go.Figure()
 
-    ax.legend(loc="upper left")
-    ax.set_ylabel("t-SNE plot")
+    fig.add_trace(go.Scatter(x=proj_gt[0], y=proj_gt[1], mode="markers", marker=dict(size=10), name="Real data"))
 
-    plt.show()
+    fig.add_trace(go.Scatter(x=proj_syn[0], y=proj_syn[1], mode="markers", marker=dict(size=10), name="Synthetic data"))
+
+    # Set axis labels and legend
+    fig.update_layout(
+        title="t-SNE plot",
+        xaxis_title="t-SNE 1",
+        yaxis_title="t-SNE 2",
+        legend=dict(x=0, y=1, bgcolor="rgba(255, 255, 255, 0.5)"),
+    )
+
+    # Show plot
+    fig.show()
 
 
 # # For Gower distance
