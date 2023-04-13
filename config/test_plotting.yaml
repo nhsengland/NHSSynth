@@ -1,0 +1,6 @@
+seed: 1
+experiment_name: test
+dataset: MIMIC_small
+plotting:
+  plot_tsne: true
+  plot_sdv_report: true

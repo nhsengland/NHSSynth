@@ -1,7 +1,19 @@
 seed: 1
 experiment_name: test
-run_type: evaluation
 dataset: MIMIC_small
 evaluation:
-  diagnostic: true
-  quality: true
+  column_shape_metrics:
+  - KSComplement
+  - TVComplement
+  column_similarity_metrics:
+  - CorrelationSimilarity
+  - ContingencySimilarity
+  detection_metrics:
+  - SVCDetection
+  boundary_metrics:
+  - BoundaryAdherence
+  coverage_metrics:
+  - RangeCoverage
+  - CategoryCoverage
+  synthesis_metrics:
+  - NewRowSynthesis

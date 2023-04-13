@@ -4,6 +4,4 @@ dataset: MIMIC_small
 dataloader:
   data_dir: data/.nosync
   sdv_workflow: false
-  allow_null_transformers: false
-  collapse_yaml: false
-  synthesizer: TVAE
+  collapse_yaml: true

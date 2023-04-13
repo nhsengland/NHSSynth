@@ -1,15 +1,12 @@
 seed: 1
 experiment_name: test
-run_type: pipeline
 dataset: MIMIC_small
 dataloader:
   data_dir: data/.nosync
   sdv_workflow: false
   collapse_yaml: true
 model:
-  num_epochs: 20
-  # target_epsilon: 1.0
-  # secure_rng: true
+  num_epochs: 500
   non_private_training: true
 evaluation:
   column_shape_metrics:
@@ -28,5 +25,5 @@ evaluation:
   synthesis_metrics:
   - NewRowSynthesis
 plotting:
-  plot-tsne: true
-  plot-sdv-report: true
+  plot_tsne: true
+  plot_sdv_report: true
