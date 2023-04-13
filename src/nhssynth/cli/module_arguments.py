@@ -3,6 +3,27 @@ import argparse
 from nhssynth.common.constants import *
 
 
+class customAction(argparse.Action):
+    """
+    Customized argparse action for defaulting to the full list of choices
+
+        1) If no `option_string` is supplied: set to default value (`self.default`)
+        2) If `option_string` is supplied:
+            A) If `values` are supplied:
+                set to list of values
+            B) If no `values` are supplied:
+                set to `self.const`, if `self.const` is not set, set to `self.default`
+    """
+
+    def __call__(self, parser, namespace, values=None, option_string=None):
+        if values:
+            setattr(namespace, self.dest, values)
+        elif option_string:
+            setattr(namespace, self.dest, self.const if self.const else self.default)
+        else:
+            setattr(namespace, self.dest, self.default)
+
+
 def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
     """Adds arguments to an existing dataloader module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
@@ -147,6 +168,19 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
     )
 
 
+def generate_evaluation_arg(group, name):
+    group.add_argument(
+        f"--{'-'.join(name.split()).lower()}-metrics",
+        type=str,
+        default=None,
+        nargs="*",
+        action=customAction,
+        const=list(SDV_METRIC_CHOICES[name].keys()),
+        choices=list(SDV_METRIC_CHOICES[name].keys()),
+        help=f"run the {name.lower()} evaluation",
+    )
+
+
 def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
     """Adds arguments to an existing evaluation module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
@@ -160,15 +194,20 @@ def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overr
         action="store_true",
         help="run the quality evaluation",
     )
-    # group.add_argument(
-    #     "--detection-metrics",
-    #     type=str,
-    #     default=None,
-    #     nargs="+",
-    #     choices=list(SDV_DETECTION_METRIC_CHOICES.keys()),
-    # )
+    for name in SDV_METRIC_CHOICES:
+        generate_evaluation_arg(group, name)
 
 
 def add_plotting_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
     """Adds arguments to an existing plotting module sub-parser instance."""
-    pass
+    group = parser.add_argument_group(title=group_title)
+    group.add_argument(
+        "--plot-sdv-report",
+        action="store_true",
+        help="plot the SDV report",
+    )
+    group.add_argument(
+        "--plot-tsne",
+        action="store_true",
+        help="plot the t-SNE embeddings of the real and synthetic data",
+    )
