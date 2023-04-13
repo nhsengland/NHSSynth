@@ -89,7 +89,7 @@ MODULE_MAP: Final = {
         add_args_func=add_dataloader_args,
         description="Run the Data Loader module, to prepare the chosen dataset for use in other modules.",
         help="prepare the dataset",
-        common_parsers=["metadata", "typed", "prepared"],
+        common_parsers=["metadata", "typed", "prepared", "metatransformer"],
     ),
     "structure": ModuleConfig(
         func=structure.run,
@@ -102,14 +102,14 @@ MODULE_MAP: Final = {
         add_args_func=add_model_args,
         description="Run the Model Architecture module, to train a synthetic data generator.",
         help="train a model",
-        common_parsers=["prepared", "synthetic"],
+        common_parsers=["prepared", "metatransformer", "synthetic"],
     ),
     "evaluation": ModuleConfig(
         func=evaluation.run,
         add_args_func=add_evaluation_args,
         description="Run the Evaluation module, to evaluate an experiment.",
         help="evaluate an experiment",
-        common_parsers=["metadata", "typed", "synthetic"],
+        common_parsers=["metadata", "typed", "synthetic", "report"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,
