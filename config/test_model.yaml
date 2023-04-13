@@ -1,6 +1,7 @@
 seed: 1
 experiment_name: test
-dataset: MIMIC_small
 model:
   num_epochs: 500
-  non_private_training: true
+  target_epsilon: 10.0
+  target_delta: 0.001
+  max_grad_norm: 20.0
