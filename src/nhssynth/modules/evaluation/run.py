@@ -1,6 +1,8 @@
 import argparse
 
 from nhssynth.common import *
+from nhssynth.common.constants import SDV_METRIC_CHOICES
+from nhssynth.modules.evaluation.full_report import FullReport
 from nhssynth.modules.evaluation.io import load_required_data
 from sdmetrics.reports.single_table import DiagnosticReport, QualityReport
 
@@ -11,7 +13,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    fn_base, real_data, synthetic_data, metadata = load_required_data(args, dir_experiment)
+    fn_dataset, real_data, synthetic_data, metadata = load_required_data(args, dir_experiment)
 
     if args.diagnostic:
         report = DiagnosticReport()
@@ -29,5 +31,22 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         ]
         for fig in figs:
             fig.show()
+
+    sdv_metrics = {
+        k: [SDV_METRIC_CHOICES[k][v] for v in getattr(args, "_".join(k.split()).lower() + "_metrics")]
+        for k in SDV_METRIC_CHOICES.keys()
+        if getattr(args, "_".join(k.split()).lower() + "_metrics")
+    }
+    if sdv_metrics:
+        report = FullReport(sdv_metrics)
+        report.generate(real_data, synthetic_data, metadata)
+        report.save(dir_experiment / (fn_dataset[:-4] + args.report + ".pkl"))
+    else:
+        report = None
+
+    if "plotting" in args.modules_to_run:
+        args.module_handover.update({"fn_dataset": fn_dataset})
+        if report:
+            args.module_handover.update({"report": report})
 
     return args

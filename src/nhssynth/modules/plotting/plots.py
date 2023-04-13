@@ -3,6 +3,48 @@
 # import pandas as pd
 # import torch
 
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.manifold import TSNE
+
+
+def factorize_all_categoricals(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Factorize all categorical columns in a dataframe."""
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = pd.factorize(df[col])[0]
+        elif df[col].dtype == "datetime64[ns]":
+            df[col] = pd.to_numeric(df[col])
+        min_val = df[col].min()
+        max_val = df[col].max()
+        df[col] = (df[col] - min_val) / (max_val - min_val)
+
+    return df
+
+
+def tsne(
+    X_gt: pd.DataFrame,
+    X_syn: pd.DataFrame,
+) -> None:
+    fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+
+    tsne_gt = TSNE(n_components=2, random_state=0, learning_rate="auto", init="pca")
+    proj_gt = pd.DataFrame(tsne_gt.fit_transform(factorize_all_categoricals(X_gt)))
+
+    tsne_syn = TSNE(n_components=2, random_state=0, learning_rate="auto", init="pca")
+    proj_syn = pd.DataFrame(tsne_syn.fit_transform(factorize_all_categoricals(X_syn)))
+
+    ax.scatter(x=proj_gt[0], y=proj_gt[1], s=10, label="Real data")
+    ax.scatter(x=proj_syn[0], y=proj_syn[1], s=10, label="Synthetic data")
+
+    ax.legend(loc="upper left")
+    ax.set_ylabel("t-SNE plot")
+
+    plt.show()
+
+
 # # For Gower distance
 # import gower
 
