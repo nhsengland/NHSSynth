@@ -116,6 +116,7 @@ MODULE_MAP: Final = {
         add_args_func=add_plotting_args,
         description="Run the Plotting module, to generate plots for a given model and / or evaluation.",
         help="generate plots",
+        common_parsers=["typed", "synthetic", "report"],
     ),
     "pipeline": ModuleConfig(
         func=run_pipeline,
