@@ -30,8 +30,6 @@ def tsne(
     X_gt: pd.DataFrame,
     X_syn: pd.DataFrame,
 ) -> None:
-    fig, ax = plt.subplots(1, 1, figsize=(12, 10))
-
     tsne_gt = TSNE(n_components=2, random_state=0, learning_rate="auto", init="pca")
     proj_gt = pd.DataFrame(tsne_gt.fit_transform(factorize_all_categoricals(X_gt)))
 
@@ -40,9 +38,10 @@ def tsne(
 
     fig = go.Figure()
 
-    fig.add_trace(go.Scatter(x=proj_gt[0], y=proj_gt[1], mode="markers", marker=dict(size=10), name="Real data"))
-
-    fig.add_trace(go.Scatter(x=proj_syn[0], y=proj_syn[1], mode="markers", marker=dict(size=10), name="Synthetic data"))
+    fig.add_scatter(x=proj_gt[0], y=proj_gt[1], mode="markers", marker=dict(size=5), opacity=0.75, name="Real data")
+    fig.add_scatter(
+        x=proj_syn[0], y=proj_syn[1], mode="markers", marker=dict(size=5), opacity=0.75, name="Synthetic data"
+    )
 
     # Set axis labels and legend
     fig.update_layout(
