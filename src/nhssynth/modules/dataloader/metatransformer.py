@@ -328,9 +328,9 @@ class MetaTransformer:
         single_idxs = []
         for cn, cd in self.assembled_metadata.items():
             if cd["transformer"].get("name") == "OneHotEncoder":
-                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn).columns).tolist())
+                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".value").columns).tolist())
             elif cd["transformer"].get("name") == "ClusterBasedNormalizer":
-                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".component").columns).tolist())
+                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".component.value").columns).tolist())
                 single_idxs.append(data.columns.get_loc(cn + ".normalized"))
             elif cd["transformer"].get("name") != "RegexGenerator":
                 single_idxs.append(data.columns.get_loc(cn))
@@ -369,7 +369,7 @@ class MetaTransformer:
         Raises:
             ValueError: If the metadata has not yet been assembled.
         """
-        if not self.assembled_metadata:
+        if not hasattr(self, "assembled_metadata"):
             raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
         return self.assembled_metadata
 
@@ -383,7 +383,7 @@ class MetaTransformer:
         Raises:
             ValueError: If the metadata has not yet been assembled.
         """
-        if not self.assembled_metadata:
+        if not hasattr(self, "assembled_metadata"):
             raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
         return get_sdtypes(self.assembled_metadata)
 
@@ -399,7 +399,7 @@ class MetaTransformer:
         Raises:
             ValueError: If `self.onehots` and `self.singles` have yet to be counted.
         """
-        if not self.onehots or not self.singles:
+        if not hasattr(self, "onehots") or not hasattr(self, "singles"):
             raise ValueError(
                 "Some metadata is missing. Call `mt.apply(data)` first (or `mt.count_onehots_and_singles(data)`)."
             )
@@ -418,7 +418,7 @@ class MetaTransformer:
         Raises:
             ValueError: If the metatransformer has not yet been instantiated.
         """
-        if not self.metatransformer:
+        if not hasattr(self, "metatransformer"):
             raise ValueError(
                 "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
             )
