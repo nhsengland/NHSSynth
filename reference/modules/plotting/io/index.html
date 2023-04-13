@@ -12,14 +12,14 @@
         <link rel="prev" href="../">
       
       
-        <link rel="next" href="../run/">
+        <link rel="next" href="../plots/">
       
       <link rel="icon" href="../../../../assets/NHS.svg">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
     
     
       
-        <title>plot - Generating Useful Synthetic Data</title>
+        <title>io - Generating Useful Synthetic Data</title>
       
     
     
@@ -73,7 +73,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nhssynth.modules.plotting.plot" class="md-skip">
+        <a href="#nhssynth.modules.plotting.io" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              plot
+              io
             
           </span>
         </div>
@@ -778,6 +778,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../evaluation/full_report/" class="md-nav__link">
+        full_report
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../evaluation/io/" class="md-nav__link">
         io
       </a>
@@ -952,12 +966,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          plot
+          io
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        plot
+        io
       </a>
       
         
@@ -974,8 +988,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nhssynth.modules.plotting.plot" class="md-nav__link">
-    nhssynth.modules.plotting.plot
+  <a href="#nhssynth.modules.plotting.io" class="md-nav__link">
+    nhssynth.modules.plotting.io
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.modules.plotting.io.check_input_paths" class="md-nav__link">
+    check_input_paths()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nhssynth.modules.plotting.io.load_required_data" class="md-nav__link">
+    load_required_data()
   </a>
   
 </li>
@@ -984,6 +1012,20 @@
   
 </nav>
       
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        plots
+      </a>
     </li>
   
 
@@ -1092,7 +1134,7 @@
                   
 
   
-    <a href="https://github.com/nhsx/NHSSynth/edit/main/src/nhssynth/modules/plotting/plot.py" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsx/NHSSynth/edit/main/src/nhssynth/modules/plotting/io.py" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
     </a>
@@ -1101,21 +1143,239 @@
     
       
     
-    <a href="https://github.com/nhsx/NHSSynth/raw/main/src/nhssynth/modules/plotting/plot.py" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsx/NHSSynth/raw/main/src/nhssynth/modules/plotting/io.py" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5Z"/></svg>
     </a>
   
 
 
-  <h1>plot</h1>
+  <h1>io</h1>
 
 <div class="doc doc-object doc-module">
 
-<a id="nhssynth.modules.plotting.plot"></a>
+<a id="nhssynth.modules.plotting.io"></a>
     <div class="doc doc-contents first">
 
 
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.modules.plotting.io.check_input_paths" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_input_paths</span><span class="p">(</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets up the input and output paths for the model files.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>fn_dataset</code></td>
+        <td><code>str</code></td>
+        <td><p>The base name of the dataset.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fn_typed</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the typed data file.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fn_synthetic</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the metatransformer file.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fn_report</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the report file.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>dir_experiment</code></td>
+        <td><code>Path</code></td>
+        <td><p>The path to the experiment directory.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>tuple</code></td>
+      <td><p>The paths to the data, metadata and metatransformer files.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/plotting/io.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">check_input_paths</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">fn_dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn_report</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Sets up the input and output paths for the model files.</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">        fn_dataset: The base name of the dataset.</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">        fn_typed: The name of the typed data file.</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        fn_synthetic: The name of the metatransformer file.</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">        fn_report: The name of the report file.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        dir_experiment: The path to the experiment directory.</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        The paths to the data, metadata and metatransformer files.</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">([</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span><span class="p">])</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span><span class="p">],</span> <span class="n">fn_dataset</span><span class="p">)</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">check_exists</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="k">return</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span>
+</span></code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="nhssynth.modules.plotting.io.load_required_data" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">load_required_data</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Loads the data from <code>args</code> or from disk when the dataloader has not be run previously.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>Namespace</code></td>
+        <td><p>The arguments passed to the module, in this case potentially carrying the outputs of the dataloader module.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>dir_experiment</code></td>
+        <td><code>Path</code></td>
+        <td><p>The path to the experiment directory.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>tuple</code></td>
+      <td><p>The data, metadata and metatransformer.</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>modules/plotting/io.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">load_required_data</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Loads the data from `args` or from disk when the dataloader has not be run previously.</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">        args: The arguments passed to the module, in this case potentially carrying the outputs of the dataloader module.</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">        dir_experiment: The path to the experiment directory.</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        The data, metadata and metatransformer.</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">module_handover</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fn_dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;typed_dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;synthetic&quot;</span><span class="p">,</span> <span class="s2">&quot;report&quot;</span><span class="p">]):</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="k">return</span> <span class="p">(</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>            <span class="n">args</span><span class="o">.</span><span class="n">module_handover</span><span class="p">[</span><span class="s2">&quot;fn_dataset&quot;</span><span class="p">],</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>            <span class="n">args</span><span class="o">.</span><span class="n">module_handover</span><span class="p">[</span><span class="s2">&quot;typed_dataset&quot;</span><span class="p">],</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>            <span class="n">args</span><span class="o">.</span><span class="n">module_handover</span><span class="p">[</span><span class="s2">&quot;synthetic&quot;</span><span class="p">],</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            <span class="n">args</span><span class="o">.</span><span class="n">module_handover</span><span class="p">[</span><span class="s2">&quot;report&quot;</span><span class="p">],</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="p">)</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="n">fn_report</span> <span class="o">=</span> <span class="n">check_input_paths</span><span class="p">(</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>            <span class="n">args</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">synthetic</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">dir_experiment</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="p">)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>            <span class="n">real_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_synthetic</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="n">synthetic_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="k">if</span> <span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_report</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_report</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                <span class="n">report</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>            <span class="n">report</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>        <span class="k">return</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">real_data</span><span class="p">,</span> <span class="n">synthetic_data</span><span class="p">,</span> <span class="n">report</span>
+</span></code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
 
     </div>
 
@@ -1126,7 +1386,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 12, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 13, 2023</span>
       
     
   </small>
@@ -1173,13 +1433,13 @@
         
         
           
-          <a href="../run/" class="md-footer__link md-footer__link--next" aria-label="Next: run" rel="next">
+          <a href="../plots/" class="md-footer__link md-footer__link--next" aria-label="Next: plots" rel="next">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                run
+                plots
               </div>
             </div>
             <div class="md-footer__button md-icon">
