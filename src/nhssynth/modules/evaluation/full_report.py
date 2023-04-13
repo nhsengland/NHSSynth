@@ -13,25 +13,6 @@ from sdmetrics.single_table import *
 from tqdm import tqdm
 
 
-def get_metric_scores(metric_results):
-    """Aggregate the scores and errors in a metric results mapping.
-
-    Args:
-        The metric results to aggregate.
-
-    Returns:
-        The average of the metric scores, and the number of errors.
-    """
-    if len(metric_results) == 0:
-        return np.nan
-    metric_scores = []
-    for breakdown in metric_results.values():
-        metric_score = breakdown.get("score", np.nan)
-        if not np.isnan(metric_score):
-            metric_scores.append(metric_score)
-    return metric_scores
-
-
 class FullReport:
     """Single table full report."""
 
@@ -43,6 +24,28 @@ class FullReport:
         self._property_errors = {}
         self._metrics = metrics
         self._metric_args = metric_args
+
+    def _get_metric_scores(self, metric_name):
+        """Aggregate the scores and errors in a metric results mapping.
+
+        Args:
+            The metric results to aggregate.
+
+        Returns:
+            The average of the metric scores, and the number of errors.
+        """
+        metric_results = self._metric_results.get(metric_name, {})
+        if len(metric_results) == 0:
+            return np.nan
+        metric_scores = []
+        for breakdown in metric_results.values():
+            if isinstance(breakdown, dict):
+                metric_score = breakdown.get("score", np.nan)
+                if not np.isnan(metric_score):
+                    metric_scores.append(metric_score)
+            else:
+                return [metric_results.get("score", np.nan)]
+        return metric_scores
 
     def _print_results(self):
         """Print the quality report results."""
@@ -78,12 +81,15 @@ class FullReport:
                 Whether or not to print report summary and progress.
         """
         print("")
+        validate_single_table_inputs(real_data, synthetic_data, metadata)
         self._property_breakdown = {}
         for prop, metrics in tqdm(
             self._metrics.items(), desc="Creating report", position=0, disable=(not verbose), leave=True
         ):
             num_prop_errors = 0
             if "NewRowSynthesis" in SDV_METRIC_CHOICES[prop]:
+                if "NewRowSynthesis" not in self._metric_args:
+                    self._metric_args["NewRowSynthesis"] = {}
                 self._metric_args["NewRowSynthesis"]["synthetic_sample_size"] = min(
                     min(len(real_data), len(synthetic_data)),
                     self._metric_args["NewRowSynthesis"].get("synthetic_sample_size", len(real_data)),
@@ -124,12 +130,9 @@ class FullReport:
                     self._metric_results["ContingencySimilarity"]
                 )
 
-            self._property_breakdown[prop] = np.mean(
-                [s for m in metrics for s in get_metric_scores(self._metric_results[m.__name__])]
-            )
+            self._property_breakdown[prop] = np.mean([s for m in metrics for s in self._get_metric_scores(m.__name__)])
             self._property_errors[prop] = num_prop_errors
 
-        print(self._property_breakdown)
         self._overall_quality_score = np.nanmean(list(self._property_breakdown.values()))
 
         if verbose:

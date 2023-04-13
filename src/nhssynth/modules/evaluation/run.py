@@ -41,10 +41,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         report = FullReport(sdv_metrics)
         report.generate(real_data, synthetic_data, metadata)
         report.save(dir_experiment / (fn_dataset[:-4] + args.report + ".pkl"))
-        [
-            report.get_visualization(property_name)
-            for property_name in report.get_properties()["Property"].unique().tolist()
-        ]
 
     if "plotting" in args.modules_to_run:
         args.module_handover.update({"fn_dataset": fn_dataset})
