@@ -202,6 +202,9 @@ class FullReport:
         elif property_name == "Detection":
             print("WARNING: Detection plots not currently implemented.")
 
+        elif property_name == "Divergence":
+            print("WARNING: Divergence plots not currently implemented.")
+
         else:
             raise ValueError(f"Property name `{property_name}` is not recognized / supported.")
 
@@ -222,14 +225,23 @@ class FullReport:
         errors = []
         details = pd.DataFrame()
 
-        if property_name in SDV_DETECTION_METRIC_CHOICES:
+        if property_name == "Detection":
             for metric in self._metrics[property_name]:
-                for column, score_breakdown in self._metric_results[metric.__name__].items():
-                    print(metric)
-                    print(column)
-                    print(score_breakdown)
+                metric_results = self._metric_results[metric.__name__]
+                if "score" in metric_results and pd.isna(metric_results["score"]):
+                    continue
+                metrics.append(metric.__name__)
+                scores.append(metric_results.get("score", np.nan))
+                errors.append(metric_results.get("error", np.nan))
 
-        elif property_name in SDV_COLUMN_SHAPE_METRIC_CHOICES:
+            details = pd.DataFrame(
+                {
+                    "Metric": metrics,
+                    "Overall Score": scores,
+                }
+            )
+
+        elif property_name == "Column Shape":
             for metric in self._metrics[property_name]:
                 for column, score_breakdown in self._metric_results[metric.__name__].items():
                     if "score" in score_breakdown and pd.isna(score_breakdown["score"]):
@@ -248,7 +260,7 @@ class FullReport:
                 }
             )
 
-        elif property_name in SDV_COLUMN_SIMILARITY_METRIC_CHOICES:
+        elif property_name == "Column Similarity" or property_name == "Divergence":
             real_scores = []
             synthetic_scores = []
             for metric in self._metrics[property_name]:
@@ -256,8 +268,9 @@ class FullReport:
                     columns.append(column_pair)
                     metrics.append(metric.__name__)
                     scores.append(score_breakdown.get("score", np.nan))
-                    real_scores.append(score_breakdown.get("real", np.nan))
-                    synthetic_scores.append(score_breakdown.get("synthetic", np.nan))
+                    if property_name == "Column Similarity":
+                        real_scores.append(score_breakdown.get("real", np.nan))
+                        synthetic_scores.append(score_breakdown.get("synthetic", np.nan))
                     errors.append(score_breakdown.get("error", np.nan))
 
             details = pd.DataFrame(
@@ -271,7 +284,7 @@ class FullReport:
                 }
             )
 
-        elif property_name in SDV_SYNTHESIS_METRIC_CHOICES + SDV_DETECTION_METRIC_CHOICES:
+        elif property_name == "Synthesis":
             metric_name = self._metrics[property_name][0].__name__
             metric_result = self._metric_results[metric_name]
             details = pd.DataFrame(
