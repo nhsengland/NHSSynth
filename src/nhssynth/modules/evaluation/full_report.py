@@ -2,7 +2,6 @@
 
 import itertools
 import pickle
-import sys
 
 import numpy as np
 import pandas as pd
@@ -12,6 +11,25 @@ from sdmetrics.reports.single_table.plot_utils import *
 from sdmetrics.reports.utils import *
 from sdmetrics.single_table import *
 from tqdm import tqdm
+
+
+def get_metric_scores(metric_results):
+    """Aggregate the scores and errors in a metric results mapping.
+
+    Args:
+        The metric results to aggregate.
+
+    Returns:
+        The average of the metric scores, and the number of errors.
+    """
+    if len(metric_results) == 0:
+        return np.nan
+    metric_scores = []
+    for breakdown in metric_results.values():
+        metric_score = breakdown.get("score", np.nan)
+        if not np.isnan(metric_score):
+            metric_scores.append(metric_score)
+    return metric_scores
 
 
 class FullReport:
@@ -26,23 +44,25 @@ class FullReport:
         self._metrics = metrics
         self._metric_args = metric_args
 
-    def _print_results(self, out=sys.stdout):
+    def _print_results(self):
         """Print the quality report results."""
         if pd.isna(self._overall_quality_score) & any(self._property_errors.values()):
-            out.write("\nOverall Quality Score: Error computing report.\n\n")
+            print("\nOverall Score: Error computing report.")
         else:
-            out.write(f"\nOverall Quality Score: {round(self._overall_quality_score * 100, 2)}%\n\n")
+            print(f"\nOverall Score: {round(self._overall_quality_score * 100, 2)}%")
 
         if len(self._property_breakdown) > 0:
-            out.write("Properties:\n")
+            print("\nProperties:")
 
         for prop, score in self._property_breakdown.items():
             if not pd.isna(score):
-                out.write(f"{prop}: {round(score * 100, 2)}%\n")
+                print(f"{prop}: {round(score * 100, 2)}%")
             elif self._property_errors[prop] > 0:
-                out.write(f"{prop}: Error computing property.\n")
+                print(f"{prop}: Error computing property.")
             else:
-                out.write(f"{prop}: NaN\n")
+                print(f"{prop}: NaN")
+
+        print("")
 
     def generate(self, real_data, synthetic_data, metadata, verbose=True):
         """Generate report.
@@ -57,13 +77,13 @@ class FullReport:
             verbose (bool):
                 Whether or not to print report summary and progress.
         """
+        print("")
         self._property_breakdown = {}
         for prop, metrics in tqdm(
             self._metrics.items(), desc="Creating report", position=0, disable=(not verbose), leave=True
         ):
             num_prop_errors = 0
-            prop_mean = 0
-            if "NewRowSynthesis" in metrics:
+            if "NewRowSynthesis" in SDV_METRIC_CHOICES[prop]:
                 self._metric_args["NewRowSynthesis"]["synthetic_sample_size"] = min(
                     min(len(real_data), len(synthetic_data)),
                     self._metric_args["NewRowSynthesis"].get("synthetic_sample_size", len(real_data)),
@@ -86,21 +106,30 @@ class FullReport:
                     metric_average = np.nan
                     num_prop_errors += 1
 
-                prop_mean += metric_average
                 self._metric_averages[metric_name] = metric_average
                 self._metric_results[metric_name] = metric_results
 
-            self._property_breakdown[prop] = prop_mean / len(metrics)
+            if (
+                prop == "Column Similarity"
+                and "ContingencySimilarity" in self._metric_results
+                and "CorrelationSimilarity" in self._metric_results
+            ):
+                existing_column_pairs = list(self._metric_results["ContingencySimilarity"].keys())
+                existing_column_pairs.extend(list(self._metric_results["CorrelationSimilarity"].keys()))
+                additional_results = discretize_and_apply_metric(
+                    real_data, synthetic_data, metadata, ContingencySimilarity, existing_column_pairs
+                )
+                self._metric_results["ContingencySimilarity"].update(additional_results)
+                self._metric_averages["ContingencySimilarity"], _ = aggregate_metric_results(
+                    self._metric_results["ContingencySimilarity"]
+                )
+
+            self._property_breakdown[prop] = np.mean(
+                [s for m in metrics for s in get_metric_scores(self._metric_results[m.__name__])]
+            )
             self._property_errors[prop] = num_prop_errors
 
-        if "ContingencySimilarity" in metrics:
-            existing_column_pairs = list(self._metric_results["ContingencySimilarity"].keys())
-            existing_column_pairs.extend(list(self._metric_results["CorrelationSimilarity"].keys()))
-            additional_results = discretize_and_apply_metric(
-                real_data, synthetic_data, metadata, ContingencySimilarity, existing_column_pairs
-            )
-            self._metric_results["ContingencySimilarity"].update(additional_results)
-
+        print(self._property_breakdown)
         self._overall_quality_score = np.nanmean(list(self._property_breakdown.values()))
 
         if verbose:
@@ -146,26 +175,32 @@ class FullReport:
 
         if property_name == "Column Shape":
             fig = get_column_shapes_plot(score_breakdowns, self._property_breakdown[property_name])
+            fig.show()
 
         elif property_name == "Column Similarity":
             fig = get_column_pairs_plot(
                 score_breakdowns,
                 self._property_breakdown[property_name],
             )
+            fig.show()
 
         elif property_name == "Coverage":
             fig = get_column_coverage_plot(score_breakdowns, self._property_breakdown[property_name])
+            fig.show()
 
         elif property_name == "Boundary":
             fig = get_column_boundaries_plot(score_breakdowns, self._property_breakdown[property_name])
+            fig.show()
 
         elif property_name == "Synthesis":
             fig = get_synthesis_plot(score_breakdowns.get("NewRowSynthesis", {}))
+            fig.show()
+
+        elif property_name == "Detection":
+            print("WARNING: Detection plots not currently implemented.")
 
         else:
             raise ValueError(f"Property name `{property_name}` is not recognized / supported.")
-
-        return fig
 
     def get_details(self, property_name):
         """Return the details for each score for the given property name.
