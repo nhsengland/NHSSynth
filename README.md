@@ -36,7 +36,7 @@ _**Note:** No data, public or private are shared in this repository._
 ### Project Structure
 
 - The main package and codebase is found in [`src/nhssynth`](src/nhssynth/) (see [Usage](#usage) below for more information)
-- Accompanying materials are available in the `docs` folder:
+- Accompanying materials are available in the [`docs`](docs/) folder:
   - The components used to create the GitHub Pages [documentation site](https://nhsx.github.io/NHSSynth/)
   - A [report](docs/reports/report.pdf) summarising the previous iteration of this project
   - A [model card](docs/model_card.md) providing more information about the VAE with Differential Privacy
@@ -76,7 +76,7 @@ To see the modules that are available and their corresponding arguments, run `nh
 
 Configuration files can be used to run the pipeline or a chosen set of modules. They should be placed in the [`config`](config/) folder and their layout should match that of the examples provided. They can be run as in the latter case above by providing their filename (without the `.yaml` extension). You can also override any of the arguments provided in the configuration file by passing them as arguments in the command line.
 
-To ensure reproducibility of your work, you should always specify a `--seed` value and provide the `--save-config` flag to dump the exact configuration specified / inferred for the run. This configuration file can then be referenced in the future to reproduce the exact same run.
+To ensure reproducibility, you should always specify a `--seed` value and provide the `--save-config` flag to dump the exact configuration specified / inferred for the run. This configuration file can then be used in the future to reproduce the exact same run or shared with others to run the same configuration on their dataset, etc.
 
 The figure below shows the structure and workflow of the package and its modules.
 
