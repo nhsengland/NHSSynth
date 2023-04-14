@@ -31,12 +31,12 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
         "-s",
         "--seed",
         type=int,
-        help="specify a seed for reproducibility",
+        help="specify a seed for reproducibility, this is a recommended option for reproducibility",
     )
     core_grp.add_argument(
         "--save-config",
         action="store_true",
-        help="save the config provided via the cli",
+        help="save the config provided via the cli, this is a recommended option for reproducibility",
     )
     return core
 

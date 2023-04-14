@@ -1,4 +1,5 @@
 import argparse
+import warnings
 
 from nhssynth.cli.config import get_modules_to_run, read_config, write_config
 from nhssynth.cli.module_setup import MODULE_MAP, add_subparser
@@ -20,6 +21,9 @@ def run() -> None:
     }
 
     args = parser.parse_args()
+
+    if not args.seed:
+        warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
 
     # Use get to return None when no function has been set, i.e. user made no running choice
     executor = vars(args).get("func")
