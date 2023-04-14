@@ -19,20 +19,15 @@
   </a>
   <p align="center">
     <a href="https://nhsx.github.io/NHSSynth"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
+    <br /><br /><br />
   </p>
 </div>
 
 # NHS Synth
 
-## About the Project
+## About
 
-The project currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases.
-
-[Project Description - Synthetic Data Exploration: Variational Autoencoders](https://nhsx.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/)
-
-The codebase builds on previous NHSX Analytics Unit PhD internships contextualising and investigating the potential use of Variational Auto Encoders (VAEs) for synthetic data generation. These were undertaken by Dominic Danks and David Brind.
+This repository currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases. See the internal [project description](https://nhsx.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/) for more information.
 
 _**Note:** No data, public or private are shared in this repository._
 
@@ -40,36 +35,48 @@ _**Note:** No data, public or private are shared in this repository._
 
 ### Project Structure
 
-- The main package and codebase is found in `src/nhssynth` (see Usage below for more information)
+- The main package and codebase is found in [`src/nhssynth`](src/nhssynth/) (see [Usage](#usage) below for more information)
 - Accompanying materials are available in the `docs` folder:
-  - A [report](reports/report.pdf) summarising the previous iteration of this project
-  - A [model card](model_card.md) providing more information about the VAE with Differential Privacy
-- Numerous [exemplar configurations](../config) are found in `config`
-- Empty `data` and `experiments` folders are provided; these are the default locations for inputs and outputs when running the project using the provided [`cli`](../src/nhssynth/cli/) module
+  - The components used to create the GitHub Pages [documentation site](https://nhsx.github.io/NHSSynth/)
+  - A [report](docs/reports/report.pdf) summarising the previous iteration of this project
+  - A [model card](docs/model_card.md) providing more information about the VAE with Differential Privacy
+- Numerous exemplar configurations are found in [`config`](config/)
+- Empty [`data`](data/) and [`experiments`](experiments/) folders are provided; these are the default locations for inputs and outputs when running the project using the provided [CLI](../src/nhssynth/cli/) module
 - Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](../auxiliary/)
 
 ### Installation
 
-As it stands, we recommend the following steps to reproduce our experiments and fully work with this project:
+For general usage, we recommend installing the package via `pip install nhssynth` in a supported python version environment. You can then `import` the package's [modules](src/nhssynth/modules/) and use them in your projects, or interact with the package directly via the [CLI](src/nhssynth/cli/), which is accessed using the `nhssynth` command (see [Usage](#usage) for more information).
+
+#### Advanced Usage
+
+If you intend on contributing or working with the codebase directly, or if you want to reproduce the results of this project, follow the steps below:
 
 1. Clone the repo
 2. Ensure one of the required versions of Python is installed
 3. Install [`poetry`](https://python-poetry.org/docs/#installation)
 4. Instantiate a virtual environment, e.g. via `python -m venv nhssynth`
 3. Activate the virtual environment, e.g. via `source nhssynth/bin/activate`
-4. Install project dependencies with `poetry install` (optionally install `jupyter` and `notebook` to work with some of the preprocessing files in [`auxiliary`](auxiliary/))
-5. Interact with the package in one of two ways:
-    - Via the [`cli`](src/nhssynth/cli/) module using `poetry run cli`
-    - Through building the package with `poetry build` and using it in an existing project (`import nhssynth`). However, if you intend on doing the latter it may be preferable to instead follow the second, simpler setup below.
-
-For more standard usage of the package:
-
-1. Run `pip install nhssynth` within a supported Python installation
-2. Use the modules exported by the package as you would any other. _Note that in this setup you will have to work more closely with the configuration and code to ensure you are handling inputs and outputs for each module appropriately. The cli handles a lot of this complexity, and interacting with the modules directly is considered advanced usage._
+4. Install the project dependencies with `poetry install` (optionally install the dev dependencies `--with dev` to work with the [auxiliary notebooks](auxiliary/), or `--with docs` to work with the [documentation](docs/))
+5. You can then interact with the package in one of two ways:
+    - Via the [`cli`](src/nhssynth/cli/) module using `nhssynth ...`
+    - Through building the package with `poetry build` and using it in an existing project (`import nhssynth`). You can then actively develop the package and test it.
 
 ### Usage
 
-This package comprises a pipeline that is runnable via `poetry run cli pipeline <args>` or `poetry run cli config <config filepath>`. You can run the modules that make up this pipeline independently via `poetry run cli <module name>`. To see the modules that are available and their corresponding arguments and function, run `poetry run cli --help` / `poetry run cli <module name> --help`.
+This package comprises a set of modules that can be run individually, as part of a pipeline, or via a configuration file. These options are available via the `nhssynth` command:
+
+```
+nhssynth <module name> --<args>
+nhssynth pipeline --<args>
+nhssynth config -c <name> --<overrides>
+```
+
+To see the modules that are available and their corresponding arguments, run `nhssynth --help` and `nhssynth <module name> --help` respectively.
+
+Configuration files can be used to run the pipeline or a chosen set of modules. They should be placed in the [`config`](config/) folder and their layout should match that of the examples provided. They can be run as in the latter case above by providing their filename (without the `.yaml` extension). You can also override any of the arguments provided in the configuration file by passing them as arguments in the command line.
+
+To ensure reproducibility of your work, you should always specify a `--seed` value and provide the `--save-config` flag to dump the exact configuration specified / inferred for the run. This configuration file can then be referenced in the future to reproduce the exact same run.
 
 The figure below shows the structure and workflow of the package and its modules.
 
@@ -81,7 +88,7 @@ See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of pro
 
 ### Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Any contributions you wish to make are **greatly appreciated**, we encourage you to first raise an issue to discuss with the maintainers. If you are interested in contributing, please follow these steps:
 
 1. Fork the project
 2. Create your branch (`git checkout -b <yourusername>/<featurename>`)
@@ -98,6 +105,8 @@ Thanks to everyone that has contributed so far!
   <img src="https://contrib.rocks/image?repo=nhsx/nhssynth" />
 </a>
 </div>
+
+This codebase builds on previous NHSX Analytics Unit PhD internships contextualising and investigating the potential use of Variational Auto Encoders (VAEs) for synthetic data generation. These were undertaken by Dominic Danks and David Brind.
 
 ### License
 
