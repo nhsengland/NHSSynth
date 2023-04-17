@@ -1,4 +1,16 @@
 site_name: Generating Useful Synthetic Data
+site_description: A library for generating and evaluating synthetic data for the NHS
+repo_url: https://github.com/nhsx/NHSSynth
+repo_name: nhsx/NHSSynth
+edit_uri: edit/main/docs/
+
+nav:
+    - Home: index.md
+    - User Guide:
+        - Modules: modules.md
+        - Model Card: model_card.md
+    - Code Reference: reference/
+
 theme:
   logo: assets/NHS.svg
   favicon: assets/NHS.svg
@@ -40,22 +52,16 @@ theme:
     edit: material/pencil 
     view: material/eye
 
-repo_url: https://github.com/nhsx/NHSSynth
-repo_name: nhsx/NHSSynth
-edit_uri: edit/main/docs/
-
-nav:
-    - Home: index.md
-    - User Guide:
-        - Modules: modules.md
-        - Model Card: model_card.md
-    - Code Reference: reference/
+extra_css:
+  - css/style.css
+  - css/mkdocstrings.css
 
 plugins:
   - search
   - gen-files:
       scripts:
-        - docs/gen_ref_pages.py
+        - docs/scripts/gen_ref_pages.py
+        - docs/scripts/gen_redirects.py
   - literate-nav:
       nav_file: SUMMARY.md
   - section-index
