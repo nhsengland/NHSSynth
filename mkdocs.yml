@@ -34,6 +34,7 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+
   features:
     - navigation.instant
     - navigation.tracking
@@ -61,7 +62,6 @@ plugins:
   - gen-files:
       scripts:
         - docs/scripts/gen_ref_pages.py
-        - docs/scripts/gen_redirects.py
   - literate-nav:
       nav_file: SUMMARY.md
   - section-index
