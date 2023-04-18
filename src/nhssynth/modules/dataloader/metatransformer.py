@@ -6,7 +6,6 @@ import pandas as pd
 from nhssynth.common.constants import SDV_SYNTHESIZER_CHOICES
 from nhssynth.common.dicts import filter_dict
 from nhssynth.modules.dataloader.metadata import get_sdtypes
-from rdt import HyperTransformer
 from rdt.transformers import *
 from sdv.metadata import SingleTableMetadata
 from sdv.single_table.base import BaseSingleTableSynthesizer
@@ -58,23 +57,20 @@ def make_transformer_dict(transformer: BaseTransformer) -> dict[str, Any]:
 # TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
 class MetaTransformer:
     """
-    A metatransformer object that can wrap either a [`HyperTransformer`](https://docs.sdv.dev/rdt/usage/hypertransformer) from RDT or a
-    [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers) from SDV. The metatransformer is
-    responsible for transforming input data into a format that can be used by the model module, and transforming the module's output back
-    to the original format of the input data.
+    A metatransformer object that can wrap a [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)
+    from SDV. The metatransformer is responsible for transforming input data into a format that can be used by the model module, and transforming
+    the module's output back to the original format of the input data.
 
     Args:
         metadata: A dictionary mapping column names to their metadata.
-        sdv_workflow: A flag indicating whether or not to use the SDV workflow.
         allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.
-        synthesizer: The `BaseSingleTableSynthesizer` class to use within the SDV workflow.
+        synthesizer: The `BaseSingleTableSynthesizer` class to use as the "host" for the MetaTransformer.
 
     Once instantiated via `mt = MetaTransformer(<parameters>)`, the following attributes will be available:
 
     Attributes:
-        sdv_workflow: A flag indicating whether or not to use the SDV workflow.
         allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.
-        Synthesizer: The `BaseSingleTableSynthesizer` class to use within the SDV workflow.
+        Synthesizer: The `BaseSingleTableSynthesizer` host class.
         dtypes: A dictionary mapping each column to its specified pandas dtype (will infer from pandas defaults if this is missing).
         sdtypes: A dictionary mapping each column to the appropriate SDV-specific data type.
         transformers: A dictionary mapping each column to their assigned (if any) transformer.
@@ -82,7 +78,7 @@ class MetaTransformer:
     After preparing some data with the MetaTransformer, i.e. `prepared_data = mt.apply(data)`, the following attributes and methods will be available:
 
     Attributes:
-        metatransformer (HyperTransformer | self.Synthesizer): An instanatiated `HyperTransformer` or `self.Synthesizer` object, ready to use on data.
+        metatransformer (self.Synthesizer): An instanatiated `self.Synthesizer` object, ready to use on data.
         assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.
         onehots (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
         singles (list[int]): The indices of non-one-hotted columns.
@@ -95,16 +91,13 @@ class MetaTransformer:
     - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.
 
     Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.prepare` and finally
-    `mt.count_onehots_and_singles` in sequence on a given raw dataset. Along the way it assigns the attributes listed above.
-
-    This workflow is highly encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.
+    `mt.count_onehots_and_singles` in sequence on a given raw dataset. Along the way it assigns the attributes listed above. *This workflow is highly
+    encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.*
     """
 
-    def __init__(self, metadata, sdv_workflow, allow_null_transformers, synthesizer) -> None:
-        self.sdv_workflow: bool = sdv_workflow
+    def __init__(self, metadata, allow_null_transformers, synthesizer) -> None:
         self.allow_null_transformers: bool = allow_null_transformers
         self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZER_CHOICES[synthesizer]
-        # TODO think about whether these belong here
         self.dtypes: dict[str, dict[str, Any]] = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
         self.sdtypes: dict[str, dict[str, Any]] = {
             cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()
@@ -147,7 +140,7 @@ class MetaTransformer:
             if transformer.get_name() == "ClusterBasedNormalizer"
         }
 
-    def _instantiate_synthesizer(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
+    def instantiate(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
         """
         Instantiates a `self.Synthesizer` object from the given metadata and data. Infers missing metadata (sdtypes and transformers).
 
@@ -158,7 +151,7 @@ class MetaTransformer:
             A fully instantiated `self.Synthesizer` object and a transformer for the `*.component` columns.
 
         Raises:
-            UserWarning: If the metadata is incomplete and `self.allow_null_transformers` is `False`.
+            UserWarning: If the metadata is incomplete (and `self.allow_null_transformers` is `False`) in the case of missing transformer metadata.
         """
         if all(self.sdtypes.values()):
             metadata = SingleTableMetadata.load_from_dict({"columns": self.sdtypes})
@@ -179,62 +172,14 @@ class MetaTransformer:
             )
         synthesizer = self.Synthesizer(metadata)
         synthesizer.auto_assign_transformers(data)
-        synthesizer.update_transformers(
-            self.transformers if self.allow_null_transformers else {k: v for k, v in self.transformers.items() if v}
-        )
-        # TODO this is a hacky way to get the component columns we want to apply OneHotEncoder to
-        component_transformer = self._instantiate_ohe_component_transformers(synthesizer.get_transformers())
-        return synthesizer, component_transformer
-
-    def _instantiate_hypertransformer(self, data: pd.DataFrame) -> HyperTransformer:
-        """
-        Instantiates a `HyperTransformer` object from the metadata and given data. Infers missing metadata (sdtypes and transformers).
-
-        Args:
-            data: The input DataFrame.
-
-        Returns:
-            A fully instantiated `HyperTransformer` object and a transformer for the `*.component` columns.
-
-        Raises:
-            UserWarning: If the metadata is incomplete.
-        """
-        ht = HyperTransformer()
-        if all(self.sdtypes.values()) and (all(self.transformers.values()) or self.allow_null_transformers):
-            ht.set_config(
-                config={
-                    "sdtypes": {k: v["sdtype"] for k, v in self.sdtypes.items()},
-                    "transformers": self.transformers,
-                }
-            )
-        else:
-            warnings.warn(
-                f"Incomplete metadata, detecting missing{(' `sdtype`s for column(s): ' + str([k for k, v in self.sdtypes.items() if not v])) if not all(self.sdtypes.values()) else ''}{(' `transformer`s for column(s): ' + str([k for k, v in self.transformers.items() if not v])) if not all(self.transformers.values()) and not self.allow_null_transformers else ''} automatically...",
-                UserWarning,
-            )
-            ht.detect_initial_config(data)
-            ht.update_sdtypes({k: v["sdtype"] for k, v in self.sdtypes.items() if v})
-            ht.update_transformers(
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            synthesizer.update_transformers(
                 self.transformers if self.allow_null_transformers else {k: v for k, v in self.transformers.items() if v}
             )
         # TODO this is a hacky way to get the component columns we want to apply OneHotEncoder to
-        component_transformer = self._instantiate_ohe_component_transformers(ht.get_config()["transformers"])
-        return ht, component_transformer
-
-    def instantiate(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer | HyperTransformer:
-        """
-        Calls the appropriate instantiation method based on the value of `self.sdv_workflow`.
-
-        Args:
-            data: The input DataFrame.
-
-        Returns:
-            A fully instantiated `self.Synthesizer` or `HyperTransformer` object.
-        """
-        if self.sdv_workflow:
-            return self._instantiate_synthesizer(data)
-        else:
-            return self._instantiate_hypertransformer(data)
+        component_transformer = self._instantiate_ohe_component_transformers(synthesizer.get_transformers())
+        return synthesizer, component_transformer
 
     def _get_dtype(self, cn: str) -> str | np.dtype:
         """Returns the dtype for the given column name `cn`."""
@@ -242,7 +187,7 @@ class MetaTransformer:
 
     def assemble(self) -> dict[str, dict[str, Any]]:
         """
-        Rearranges the dtype, sdtype and transformer metadata into a consistent format regardless of the value of `self,sdv_workflow`
+        Rearranges the dtype, sdtype and transformer metadata into a consistent format ready for output.
 
         Returns:
             A dictionary mapping column names to column metadata.
@@ -259,29 +204,15 @@ class MetaTransformer:
             raise ValueError(
                 "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
             )
-        if self.sdv_workflow:
-            sdmetadata = self.metatransformer.metadata
-            transformers = self.metatransformer.get_transformers()
-            return {
-                cn: {
-                    **cd,
-                    "transformer": make_transformer_dict(transformers[cn]) if transformers[cn] else None,
-                    "dtype": self._get_dtype(cn),
-                }
-                for cn, cd in sdmetadata.columns.items()
+        transformers = self.metatransformer.get_transformers()
+        return {
+            cn: {
+                **cd,
+                "transformer": make_transformer_dict(transformers[cn]) if transformers[cn] else None,
+                "dtype": self._get_dtype(cn),
             }
-        else:
-            config = self.metatransformer.get_config()
-            return {
-                cn: {
-                    "sdtype": cd,
-                    "transformer": make_transformer_dict(config["transformers"][cn])
-                    if config["transformers"][cn]
-                    else None,
-                    "dtype": self._get_dtype(cn),
-                }
-                for cn, cd in config["sdtypes"].items()
-            }
+            for cn, cd in self.metatransformer.metadata.columns.items()
+        }
 
     def prepare(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -300,10 +231,7 @@ class MetaTransformer:
             raise ValueError(
                 "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
             )
-        if self.sdv_workflow:
-            prepared_data = self.metatransformer.preprocess(data)
-        else:
-            prepared_data = self.metatransformer.fit_transform(data)
+        prepared_data = self.metatransformer.preprocess(data)
         # TODO this is kind of a hacky way to solve the component column problem
         for cn, transformer in self.component_transformer.items():
             prepared_data = transformer.fit_transform(prepared_data, cn)
@@ -424,7 +352,4 @@ class MetaTransformer:
             )
         for transformer in self.component_transformer.values():
             data = transformer.reverse_transform(data)
-        if self.sdv_workflow:
-            return self.metatransformer._data_processor.reverse_transform(data)
-        else:
-            return self.metatransformer.reverse_transform(data)
+        return self.metatransformer._data_processor.reverse_transform(data)
