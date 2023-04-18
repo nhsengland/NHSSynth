@@ -54,7 +54,7 @@ _Meeting all of the above requirements, plus:_
 
 - [x] Code is fully [packaged](https://packaging.python.org/en/latest/).
 - [ ] Repository automatically runs tests etc. via [CI](https://github.com/skills/continuous-integration)/CD or a different integration/deployment tool e.g. [GitHub Actions](https://docs.github.com/en/actions).
-- [x] Process runs based on event-based triggers (e.g., new data in database) or on a schedule.
+- [ ] Process runs based on event-based triggers (e.g., new data in database) or on a schedule.
 - [x] Changes to the RAP are clearly signposted. E.g. a changelog in the package, releases etc. (See gov.uk info on [Semantic Versioning](https://github.com/alphagov/govuk-frontend/blob/main/docs/contributing/versioning.md))
 
 [1]: ../training_resources/git/intro-to-git.md
