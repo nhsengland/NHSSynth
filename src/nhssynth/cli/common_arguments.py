@@ -1,3 +1,8 @@
+"""
+Contains functions and definitions for the CLI's "common" arguments: those that can be applied to either:
+ - All module argument lists, e.g. --dataset, --seed, etc.
+ - A subset of module argument lists, e.g. --synthetic, --typed, etc.
+"""
 import argparse
 from typing import Final
 
@@ -5,6 +10,7 @@ from nhssynth.common.constants import *
 
 
 def get_dataset_parser(overrides=False) -> argparse.ArgumentParser:
+    """Create a common parser for specifying the dataset"""
     dataset = argparse.ArgumentParser(add_help=False)
     dataset_grp = dataset.add_argument_group(title="options")
     dataset_grp.add_argument(
@@ -18,6 +24,7 @@ def get_dataset_parser(overrides=False) -> argparse.ArgumentParser:
 
 
 def get_core_parser(overrides=False) -> argparse.ArgumentParser:
+    """Create a common parser for specifying the core args (except for dataset which is separate)"""
     core = argparse.ArgumentParser(add_help=False)
     core_grp = core.add_argument_group(title="options")
     core_grp.add_argument(
@@ -45,6 +52,14 @@ COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a
 
 
 def suffix_parser_generator(name: str, help: str, required: bool = False) -> argparse.ArgumentParser:
+    """Generator function for creating common parsers for specifying a potential suffix filename
+
+    Args:
+        name: the name of the argument
+        help: the help message for the argument
+        required: whether the argument is required
+    """
+
     def get_parser(overrides: bool = False) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(add_help=False)
         parser_grp = parser.add_argument_group(title=COMMON_TITLE)

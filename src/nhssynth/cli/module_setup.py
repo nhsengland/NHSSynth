@@ -1,3 +1,6 @@
+"""
+Specify the modules to be used in the CLI, and the pipeline to run by default, as well as special functions for the `config` and `pipeline` CLI options.
+"""
 import argparse
 from typing import Any, Callable, Final
 

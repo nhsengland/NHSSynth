@@ -1,3 +1,6 @@
+"""
+Define arguments for each of the modules' CLI sub-parsers.
+"""
 import argparse
 
 from nhssynth.common.constants import *
@@ -5,14 +8,12 @@ from nhssynth.common.constants import *
 
 class customAction(argparse.Action):
     """
-    Customized argparse action for defaulting to the full list of choices
+    Customized argparse action for defaulting to the full list of choices if only the flag is supplied.
 
         1) If no `option_string` is supplied: set to default value (`self.default`)
         2) If `option_string` is supplied:
-            A) If `values` are supplied:
-                set to list of values
-            B) If no `values` are supplied:
-                set to `self.const`, if `self.const` is not set, set to `self.default`
+            a) If `values` are supplied, set to list of values
+            b) If no `values` are supplied, set to `self.const`, if `self.const` is not set, set to `self.default`
     """
 
     def __call__(self, parser, namespace, values=None, option_string=None):

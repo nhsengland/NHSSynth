@@ -1,3 +1,6 @@
+"""
+Read, write and process config files, including handling of module-specific config overrides.
+"""
 import argparse
 import warnings
 from typing import Any, Callable
