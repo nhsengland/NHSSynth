@@ -39,11 +39,6 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
         help="indicate whether the csv file's 0th column is an index column, such that pandas can ignore it",
     )
     group.add_argument(
-        "--sdv-workflow",
-        action="store_true",
-        help="utilise the SDV synthesizer workflow for transformation and metadata, rather than a `HyperTransformer` from RDT",
-    )
-    group.add_argument(
         "--allow-null-transformers",
         action="store_true",
         help="allow null / None transformers, i.e. leave some columns as they are",
@@ -53,12 +48,6 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
         action="store_true",
         help="use aliases and anchors in the output metadata yaml, this will make it much more compact",
     )
-    # TODO might be good to have something like this, needs some thought in how to only apply to appropriate transformers, without overriding metadata
-    # group.add_argument(
-    #     "--imputation-strategy",
-    #     default=None,
-    #     help="imputation strategy for missing values, pick one of None, `mean`, `mode`, or a number",
-    # )
     group.add_argument(
         "--synthesizer",
         type=str,
