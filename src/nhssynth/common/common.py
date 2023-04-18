@@ -6,7 +6,7 @@ import torch
 
 def set_seed(seed: None | int = None) -> None:
     """
-    Set the seed for numpy and torch.
+    (Potentially) set the seed for numpy, torch and random.
 
     Args:
         seed: The seed to set.

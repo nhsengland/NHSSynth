@@ -1,3 +1,4 @@
+"""Common building-block functions for handling module input and output."""
 import warnings
 from pathlib import Path
 

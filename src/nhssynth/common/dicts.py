@@ -1,3 +1,4 @@
+"""Common functions for working with dictionaries."""
 from typing import Any
 
 
