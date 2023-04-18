@@ -1,6 +1,4 @@
-"""
-Define arguments for each of the modules' CLI sub-parsers.
-"""
+"""Define arguments for each of the modules' CLI sub-parsers."""
 import argparse
 
 from nhssynth.common.constants import *

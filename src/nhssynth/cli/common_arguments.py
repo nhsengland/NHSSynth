@@ -1,5 +1,5 @@
 """
-Contains functions and definitions for the CLI's "common" arguments: those that can be applied to either:
+Functions to define the CLI's "common" arguments, i.e. those that can be applied to either:
  - All module argument lists, e.g. --dataset, --seed, etc.
  - A subset of module argument lists, e.g. --synthetic, --typed, etc.
 """
