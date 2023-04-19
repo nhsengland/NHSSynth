@@ -29,11 +29,9 @@ class Encoder(nn.Module):
         latent_dim,
         hidden_dim=32,
         activation=nn.Tanh,
-        use_gpu=False,
     ):
         super().__init__()
 
-        self.device = setup_device(use_gpu)
         output_dim = 2 * latent_dim
         self.latent_dim = latent_dim
 
@@ -62,11 +60,9 @@ class Decoder(nn.Module):
         singles=[],
         hidden_dim=32,
         activation=nn.Tanh,
-        use_gpu=False,
     ):
         super().__init__()
 
-        self.device = setup_device(use_gpu)
         output_dim = len(singles) + sum([len(x) for x in onehots])
         self.singles = singles
         self.onehots = onehots
@@ -98,14 +94,16 @@ class Noiser(nn.Module):
 class VAE(nn.Module):
     """Combines encoder and decoder into full VAE model"""
 
-    def __init__(self, encoder, decoder):
+    def __init__(self, encoder, decoder, e_optimizer, d_optimizer, use_gpu=False):
         super().__init__()
-        self.encoder = encoder.to(encoder.device)
-        self.decoder = decoder.to(decoder.device)
-        self.device = encoder.device
+        self.device = setup_device(use_gpu)
+        self.encoder = encoder.to(self.device)
+        self.decoder = decoder.to(self.device)
+        self.e_optimizer = e_optimizer
+        self.d_optimizer = d_optimizer
         self.onehots = self.decoder.onehots
         self.singles = self.decoder.singles
-        self.noiser = Noiser(len(self.singles)).to(decoder.device)
+        self.noiser = Noiser(len(self.singles)).to(self.device)
 
     def reconstruct(self, X):
         mu_z, logsigma_z = self.encoder(X)
@@ -189,9 +187,8 @@ class VAE(nn.Module):
 
         if privacy_engine is not None:
             self.privacy_engine = privacy_engine
-            self.privacy_engine.attach(self.optimizer)
-        elif "Privacy" in tracked_metrics:
-            tracked_metrics.remove("Privacy")
+        elif "Privacy \u03B5" in tracked_metrics:
+            tracked_metrics.remove("Privacy \u03B5")
 
         min_elbo = 0.0  # For early stopping workflow
         stop_counter = 0  # Counter for stops
@@ -202,18 +199,19 @@ class VAE(nn.Module):
             for i, metric in enumerate(tracked_metrics)
         }
         max_length = max(len(s) for s in tracked_metrics) + 1
-        epoch_bar = tqdm(range(num_epochs), desc="Epochs", position=len(stats_bars), leave=False)
 
-        for epoch in epoch_bar:
+        for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(stats_bars), leave=False):
             for key in metrics.keys():
-                if key != "Privacy":
+                if key != "Privacy \u03B5":
                     metrics[key].append(0.0)
 
             for (Y_subset,) in tqdm(x_dataloader, desc="Batches", position=len(stats_bars) + 1, leave=False):
-                self.optimizer.zero_grad()
+                self.e_optimizer.zero_grad()
+                self.d_optimizer.zero_grad()
                 losses = self.loss(Y_subset.to(self.encoder.device))
                 losses["ELBO"].backward()
-                self.optimizer.step()
+                self.e_optimizer.step()
+                self.d_optimizer.step()
 
                 for key in metrics.keys():
                     if key in losses:
@@ -223,15 +221,10 @@ class VAE(nn.Module):
                             metrics[key][-1] += 0.0
 
             for key, stats_bar in stats_bars.items():
-                if key == "Privacy" and privacy_engine is not None:
-                    epsilon_e = self.privacy_engine.get_privacy_spent()
-                    # epsilon_e = self.privacy_engine.accountant.get_epsilon()
-                    stats_bar.set_description_str(
-                        f"{(key + ':').ljust(max_length)}  \u03B5 = {epsilon_e[0]:.2f}\tbest \u03B1 = {epsilon_e[1]:.2f}"
-                    )
-                    metrics["Privacy"].append(epsilon_e)
-                else:
-                    stats_bar.set_description_str(f"{(key + ':').ljust(max_length)}  {metrics[key][-1]:.2f}")
+                if key == "Privacy \u03B5" and privacy_engine is not None:
+                    epsilon_e = self.privacy_engine.accountant.get_epsilon()
+                    metrics[key][-1] += epsilon_e
+                stats_bar.set_description_str(f"{(key + ':').ljust(max_length)}  {metrics[key][-1]:.2f}")
 
             if epoch == 0:
                 min_elbo = metrics["ELBO"][-1]
@@ -248,6 +241,7 @@ class VAE(nn.Module):
 
         for stats_bar in stats_bars.values():
             stats_bar.close()
+
         tqdm.write(f"Completed {num_epochs} epochs in {time.time() - self.start_time:.2f} seconds.")
 
         return (num_epochs, metrics)
