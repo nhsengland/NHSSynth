@@ -19,15 +19,15 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
 setuptools = "^67.6.1"
-torch = "^1.13.1"
 tqdm = "^4.65.0"
-scikit-learn = "^1.2.1"
-rdt = "^1.4.0"
-sdv = "^1.0.0"
-pandas = "^1.5.3"
 gower = "^0.1.2"
 pyyaml = "^6.0"
 opacus = "^1.4.0"
+sdmetrics = "^0.9.3"
+pandas = "^1.5.3"
+rdt = "^1.4.0"
+sdv = "^1.0.0"
+torch = "1.13.1"
 
 [tool.poetry.scripts]
 nhssynth = 'nhssynth.cli:run'
@@ -44,6 +44,8 @@ mkdocs-section-index = "^0.3.5"
 mkdocs-git-revision-date-localized-plugin = "^1.2.0"
 pymdown-extensions = "^9.10"
 
+[tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
