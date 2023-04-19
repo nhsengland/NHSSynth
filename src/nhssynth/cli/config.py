@@ -114,6 +114,8 @@ def read_config(
     ), f"Required arguments are missing from the passed config file: {[ra['module'] + ':' + ra['arg'] for ra in required_args if not getattr(new_args, ra['arg'])]}"
 
     # Run the appropriate execution function(s)
+    if not new_args.seed:
+        warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
     new_args.modules_to_run = modules_to_run
     new_args.module_handover = {}
     for module in new_args.modules_to_run:

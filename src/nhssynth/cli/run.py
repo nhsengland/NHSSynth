@@ -22,12 +22,11 @@ def run() -> None:
 
     args = parser.parse_args()
 
-    if not args.seed:
-        warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
-
     # Use get to return None when no function has been set, i.e. user made no running choice
     executor = vars(args).get("func")
     if executor:
+        if not args.seed:
+            warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
         args.modules_to_run = get_modules_to_run(executor)
         args.module_handover = {}
         executor(args)
