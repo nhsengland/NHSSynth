@@ -1,7 +1,6 @@
 seed: 1
 experiment_name: test
 dataloader:
-  sdv_workflow: false
   collapse_yaml: true
 model:
   num_epochs: 500

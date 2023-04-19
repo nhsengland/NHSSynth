@@ -162,10 +162,8 @@ def assemble_config(
         args_dict, {"func", "experiment_name", "save_config", "save_config_path", "module_handover"}
     )
     for k in args_dict.copy().keys():
-        if k == "sdv_workflow" and not args_dict[k]:
-            args_dict.pop("synthesizer")
         # Remove empty metric lists from the config
-        elif "_metrics" in k and not args_dict[k]:
+        if "_metrics" in k and not args_dict[k]:
             args_dict.pop(k)
 
     modules_to_run = args_dict.pop("modules_to_run")
