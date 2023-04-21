@@ -1,7 +1,7 @@
 seed: 1
 experiment_name: test
 model:
-  num_epochs: 500
-  target_epsilon: 10.0
-  target_delta: 0.001
-  max_grad_norm: 20.0
+  num_epochs: 5
+  target_epsilon: 1.0
+  max_grad_norm: 10.0
+  secure_mode: true
