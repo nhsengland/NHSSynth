@@ -7,7 +7,14 @@ from sdv.single_table import *
 
 TIME: Final = strftime("%Y_%m_%d___%H_%M_%S")
 
-TRACKED_METRIC_CHOICES: Final = ["ELBO", "KLD", "ReconstructionLoss", "CategoricalLoss", "NumericalLoss", "Privacy"]
+TRACKED_METRIC_CHOICES: Final = [
+    "ELBO",
+    "KLD",
+    "ReconstructionLoss",
+    "CategoricalLoss",
+    "NumericalLoss",
+    "Privacy",
+]
 
 SDV_SYNTHESIZER_CHOICES: Final = {
     "TVAE": TVAESynthesizer,

@@ -262,6 +262,8 @@ class MetaTransformer:
                 single_idxs.append(data.columns.get_loc(cn + ".normalized"))
             elif cd["transformer"].get("name") != "RegexGenerator":
                 single_idxs.append(data.columns.get_loc(cn))
+        if not onehot_idxs:
+            onehot_idxs.append([])
         return onehot_idxs, single_idxs
 
     def apply(self, data: pd.DataFrame) -> pd.DataFrame:
