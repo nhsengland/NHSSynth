@@ -9,6 +9,7 @@ nav:
     - User Guide:
         - Modules: modules.md
         - Model Card: model_card.md
+        - Secure Mode: secure_mode.md
     - Code Reference: reference/
 
 theme:
