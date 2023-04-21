@@ -48,6 +48,8 @@ _**Note:** No data, public or private are shared in this repository._
 
 For general usage, we recommend installing the package via `pip install nhssynth` in a supported python version environment. You can then `import` the package's [modules](src/nhssynth/modules/) and use them in your projects, or interact with the package directly via the [CLI](src/nhssynth/cli/), which is accessed using the `nhssynth` command (see [Usage](#usage) for more information).
 
+Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsx.github.io/NHSSynth/secure_mode/) for details) you will need to install the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) separately.
+
 #### Advanced Usage
 
 If you intend on contributing or working with the codebase directly, or if you want to reproduce the results of this project, follow the steps below:

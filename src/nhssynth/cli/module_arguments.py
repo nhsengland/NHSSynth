@@ -81,7 +81,7 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         help="train the model in a non-private way",
     )
     group.add_argument(
-        "--secure-rng",
+        "--secure-mode",
         action="store_true",
         default=False,
         help="Enable Secure RNG to have trustworthy privacy guarantees. Comes at a performance cost",
@@ -131,12 +131,6 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         help="how many epochs the model is allowed to train for without improvement",
     )
     group.add_argument(
-        "--delta",
-        type=int,
-        default=10,
-        help="the difference in successive ELBO values that register as an 'improvement'",
-    )
-    group.add_argument(
         "--target-epsilon",
         type=float,
         default=1.0,
@@ -145,8 +139,8 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
     group.add_argument(
         "--target-delta",
         type=float,
-        default=1e-5,
-        help="the target delta for differential privacy",
+        default=None,
+        help="the target delta for differential privacy, defaults to `1 / len(dataset)` if not specified",
     )
     group.add_argument(
         "--max-grad-norm",
