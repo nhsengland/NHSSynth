@@ -1391,20 +1391,51 @@ ModuleConfig        </code>
     <div class="doc doc-contents ">
 
       <p>Represents a module's configuration, containing the following attributes:</p>
-<p>!!! properties
-    func: A callable that executes the module's functionality.
-    add_args: A callable that populates the module's sub-parser arguments.
-    description: A description of the module's functionality.
-    help: A help message for the module's command-line interface.
-    common_parsers: A list of common parsers to add to the module's sub-parser, appending the 'dataset' and 'core' parsers to those passed.</p>
 
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>func</code></td>
+        <td></td>
+        <td><p>A callable that executes the module's functionality.</p></td>
+      </tr>
+      <tr>
+        <td><code>add_args</code></td>
+        <td></td>
+        <td><p>A callable that populates the module's sub-parser arguments.</p></td>
+      </tr>
+      <tr>
+        <td><code>description</code></td>
+        <td></td>
+        <td><p>A description of the module's functionality.</p></td>
+      </tr>
+      <tr>
+        <td><code>help</code></td>
+        <td></td>
+        <td><p>A help message for the module's command-line interface.</p></td>
+      </tr>
+      <tr>
+        <td><code>common_parsers</code></td>
+        <td></td>
+        <td><p>A list of common parsers to add to the module's sub-parser, appending the 'dataset' and 'core' parsers to those passed.</p></td>
+      </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>cli/module_setup.py</code></summary>
           <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span> <span class="nc">ModuleConfig</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Represents a module&#39;s configuration, containing the following attributes:</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Properties:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Attributes:</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        func: A callable that executes the module&#39;s functionality.</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        add_args: A callable that populates the module&#39;s sub-parser arguments.</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">        description: A description of the module&#39;s functionality.</span>
