@@ -1,6 +1,7 @@
 import argparse
 import pickle
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from nhssynth.common.io import *
@@ -29,7 +30,14 @@ def check_input_paths(
     return fn_dataset, fn_prepared, fn_metatransformer
 
 
-def check_output_paths(fn_dataset: Path, fn_synthetic: str, fn_model: str, dir_experiment: Path) -> tuple[str, str]:
+def check_output_paths(
+    fn_dataset: Path,
+    fn_synthetic: str,
+    fn_model: str,
+    dir_experiment: Path,
+    model: str,
+    seed: Optional[int] = None,
+) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
 
@@ -38,11 +46,18 @@ def check_output_paths(fn_dataset: Path, fn_synthetic: str, fn_model: str, dir_e
         fn_synthetic: The name of the synthetic data file.
         fn_model: The name of the model file.
         dir_experiment: The path to the experiment output directory.
+        model: The name of the model used.
+        seed: The seed used to generate the synthetic data.
 
     Returns:
         The path to output the model.
     """
-    fn_synthetic, fn_model = consistent_endings([fn_synthetic, (fn_model, ".pt")])
+    fn_synthetic, fn_model = consistent_endings(
+        [
+            (fn_synthetic, ".pkl", f"_{model}" + (f"_{str(seed)}" if seed else "")),
+            (fn_model, ".pt", f"_{model}" + (f"_{str(seed)}" if seed else "")),
+        ]
+    )
     fn_synthetic, fn_model = potential_suffixes([fn_synthetic, fn_model], fn_dataset)
     warn_if_path_supplied([fn_synthetic, fn_model], dir_experiment)
     return fn_synthetic, fn_model
