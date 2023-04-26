@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from nhssynth.common.constants import SDV_SYNTHESIZER_CHOICES
+from nhssynth.common.constants import SDV_SYNTHESIZERS
 from nhssynth.common.dicts import filter_dict
 from nhssynth.modules.dataloader.metadata import get_sdtypes
 from rdt.transformers import *
@@ -97,7 +97,7 @@ class MetaTransformer:
 
     def __init__(self, metadata, allow_null_transformers, synthesizer) -> None:
         self.allow_null_transformers: bool = allow_null_transformers
-        self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZER_CHOICES[synthesizer]
+        self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZERS[synthesizer]
         self.dtypes: dict[str, dict[str, Any]] = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
         self.sdtypes: dict[str, dict[str, Any]] = {
             cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()
