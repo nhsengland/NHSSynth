@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nhssynth"
-version = "0.2.2"
+version = "0.3.0"
 description = "Synthetic data generation pipeline leveraging a Differentially Private Variational Auto Encoder assessed using a variety of metrics"
 authors = ["HarrisonWilde <harrisondwilde@outlook.com>"]
 maintainers = ["NHSE TDAU <england.tdau@nhs.net>"]
