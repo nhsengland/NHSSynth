@@ -11,7 +11,7 @@ class ModuleConfig:
     """
     Represents a module's configuration, containing the following attributes:
 
-    Properties:
+    Attributes:
         func: A callable that executes the module's functionality.
         add_args: A callable that populates the module's sub-parser arguments.
         description: A description of the module's functionality.
