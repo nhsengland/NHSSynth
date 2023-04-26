@@ -489,6 +489,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../cli/model_arguments/" class="md-nav__link">
+        model_arguments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../cli/module_arguments/" class="md-nav__link">
         module_arguments
       </a>
@@ -629,6 +643,20 @@
     <li class="md-nav__item">
       <a href="../../../common/io/" class="md-nav__link">
         io
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../common/strings/" class="md-nav__link">
+        strings
       </a>
     </li>
   
@@ -1008,10 +1036,58 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3_3_1" id="__nav_3_3_3_1_label" tabindex="0">
+          common
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          common
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../../model/DPVAE/" class="md-nav__link">
-        DPVAE
+      <a href="../../model/common/DPMixin/" class="md-nav__link">
+        DPMixin
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model/common/Model/" class="md-nav__link">
+        Model
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1026,6 +1102,74 @@
       <a href="../../model/io/" class="md-nav__link">
         io
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_3" >
+      
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../model/models/">models</a>
+          
+            <label for="__nav_3_3_3_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          models
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model/models/DPVAE/" class="md-nav__link">
+        DPVAE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model/models/VAE/" class="md-nav__link">
+        VAE
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1343,7 +1487,7 @@ FullReport        </code>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Creating report&quot;</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">verbose</span><span class="p">),</span> <span class="n">leave</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>        <span class="p">):</span>
 </span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>            <span class="n">num_prop_errors</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>            <span class="k">if</span> <span class="s2">&quot;NewRowSynthesis&quot;</span> <span class="ow">in</span> <span class="n">SDV_METRIC_CHOICES</span><span class="p">[</span><span class="n">prop</span><span class="p">]:</span>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>            <span class="k">if</span> <span class="s2">&quot;NewRowSynthesis&quot;</span> <span class="ow">in</span> <span class="n">SDV_METRICS</span><span class="p">[</span><span class="n">prop</span><span class="p">]:</span>
 </span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>                <span class="k">if</span> <span class="s2">&quot;NewRowSynthesis&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_args</span><span class="p">:</span>
 </span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>                    <span class="bp">self</span><span class="o">.</span><span class="n">_metric_args</span><span class="p">[</span><span class="s2">&quot;NewRowSynthesis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_metric_args</span><span class="p">[</span><span class="s2">&quot;NewRowSynthesis&quot;</span><span class="p">][</span><span class="s2">&quot;synthetic_sample_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
@@ -1705,7 +1849,7 @@ FullReport        </code>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Creating report&quot;</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">verbose</span><span class="p">),</span> <span class="n">leave</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="p">):</span>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">num_prop_errors</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="k">if</span> <span class="s2">&quot;NewRowSynthesis&quot;</span> <span class="ow">in</span> <span class="n">SDV_METRIC_CHOICES</span><span class="p">[</span><span class="n">prop</span><span class="p">]:</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="k">if</span> <span class="s2">&quot;NewRowSynthesis&quot;</span> <span class="ow">in</span> <span class="n">SDV_METRICS</span><span class="p">[</span><span class="n">prop</span><span class="p">]:</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>            <span class="k">if</span> <span class="s2">&quot;NewRowSynthesis&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_args</span><span class="p">:</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_metric_args</span><span class="p">[</span><span class="s2">&quot;NewRowSynthesis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_metric_args</span><span class="p">[</span><span class="s2">&quot;NewRowSynthesis&quot;</span><span class="p">][</span><span class="s2">&quot;synthetic_sample_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
@@ -2305,7 +2449,7 @@ FullReport        </code>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 24, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 26, 2023</span>
       
     
   </small>

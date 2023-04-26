@@ -489,6 +489,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../cli/model_arguments/" class="md-nav__link">
+        model_arguments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../cli/module_arguments/" class="md-nav__link">
         module_arguments
       </a>
@@ -629,6 +643,20 @@
     <li class="md-nav__item">
       <a href="../../../common/io/" class="md-nav__link">
         io
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../common/strings/" class="md-nav__link">
+        strings
       </a>
     </li>
   
@@ -1043,10 +1071,58 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3_3_1" id="__nav_3_3_3_1_label" tabindex="0">
+          common
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          common
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../../model/DPVAE/" class="md-nav__link">
-        DPVAE
+      <a href="../../model/common/DPMixin/" class="md-nav__link">
+        DPMixin
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model/common/Model/" class="md-nav__link">
+        Model
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1061,6 +1137,74 @@
       <a href="../../model/io/" class="md-nav__link">
         io
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_3" >
+      
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../model/models/">models</a>
+          
+            <label for="__nav_3_3_3_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          models
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model/models/DPVAE/" class="md-nav__link">
+        DPVAE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model/models/VAE/" class="md-nav__link">
+        VAE
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1459,7 +1603,7 @@ encouraged to ensure that the MetaTransformer is properly instantiated for use w
 </span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>
 </span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">allow_null_transformers</span><span class="p">,</span> <span class="n">synthesizer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">allow_null_transformers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">allow_null_transformers</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">Synthesizer</span><span class="p">:</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">=</span> <span class="n">SDV_SYNTHESIZER_CHOICES</span><span class="p">[</span><span class="n">synthesizer</span><span class="p">]</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">Synthesizer</span><span class="p">:</span> <span class="n">BaseSingleTableSynthesizer</span> <span class="o">=</span> <span class="n">SDV_SYNTHESIZERS</span><span class="p">[</span><span class="n">synthesizer</span><span class="p">]</span>
 </span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">cn</span><span class="p">:</span> <span class="n">cd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 </span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sdtypes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>            <span class="n">cn</span><span class="p">:</span> <span class="n">filter_dict</span><span class="p">(</span><span class="n">cd</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="s2">&quot;transformer&quot;</span><span class="p">})</span> <span class="k">for</span> <span class="n">cn</span><span class="p">,</span> <span class="n">cd</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
@@ -2773,7 +2917,7 @@ Also records the indices of non-one-hotted columns in a separate list.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 24, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 26, 2023</span>
       
     
   </small>

@@ -14,7 +14,7 @@
         <link rel="prev" href="../dicts/">
       
       
-        <link rel="next" href="../../modules/">
+        <link rel="next" href="../strings/">
       
       <link rel="icon" href="../../../assets/NHS.svg">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
@@ -489,6 +489,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../cli/model_arguments/" class="md-nav__link">
+        model_arguments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../cli/module_arguments/" class="md-nav__link">
         module_arguments
       </a>
@@ -704,6 +718,20 @@
   
 </nav>
       
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../strings/" class="md-nav__link">
+        strings
+      </a>
     </li>
   
 
@@ -979,10 +1007,58 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3_3_1" id="__nav_3_3_3_1_label" tabindex="0">
+          common
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          common
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../../modules/model/DPVAE/" class="md-nav__link">
-        DPVAE
+      <a href="../../modules/model/common/DPMixin/" class="md-nav__link">
+        DPMixin
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/model/common/Model/" class="md-nav__link">
+        Model
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -997,6 +1073,74 @@
       <a href="../../modules/model/io/" class="md-nav__link">
         io
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3_3" >
+      
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../modules/model/models/">models</a>
+          
+            <label for="__nav_3_3_3_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          models
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/model/models/DPVAE/" class="md-nav__link">
+        DPVAE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/model/models/VAE/" class="md-nav__link">
+        VAE
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1306,7 +1450,7 @@
 
 
 <h2 id="nhssynth.common.io.consistent_ending" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="s1">&#39;.pkl&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="s1">&#39;.pkl&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
 
 
 </h2>
@@ -1338,6 +1482,12 @@
         <td><p>The desired ending to check for. Default is ".pkl".</p></td>
         <td><code>&#39;.pkl&#39;</code></td>
       </tr>
+      <tr>
+        <td><code>suffix</code></td>
+        <td><code>str</code></td>
+        <td><p>A suffix to append to the filename before the ending.</p></td>
+        <td><code>&#39;&#39;</code></td>
+      </tr>
   </tbody>
 </table>
 <p><strong>Returns:</strong></p>
@@ -1351,28 +1501,26 @@
   <tbody>
     <tr>
       <td><code>str</code></td>
-      <td><p>The filename with the correct ending.</p></td>
+      <td><p>The filename with the correct ending and potentially an inserted suffix.</p></td>
     </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>common/io.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ending</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">consistent_ending</span><span class="p">(</span><span class="n">fn</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ending</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    Ensures that the filename `fn` ends with `ending`. If not, removes any existing ending and appends `ending`.</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="sd">        fn: The filename to check.</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">        ending: The desired ending to check for. Default is &quot;.pkl&quot;.</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">        The filename with the correct ending.</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">path_fn</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="k">if</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="n">ending</span><span class="p">:</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="k">return</span> <span class="n">fn</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="n">ending</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">        suffix: A suffix to append to the filename before the ending.</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">        The filename with the correct ending and potentially an inserted suffix.</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">path_fn</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="n">ending</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -1623,7 +1771,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 24, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 26, 2023</span>
       
     
   </small>
@@ -1670,13 +1818,13 @@
         
         
           
-          <a href="../../modules/" class="md-footer__link md-footer__link--next" aria-label="Next: modules" rel="next">
+          <a href="../strings/" class="md-footer__link md-footer__link--next" aria-label="Next: strings" rel="next">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                modules
+                strings
               </div>
             </div>
             <div class="md-footer__button md-icon">
