@@ -1,7 +1,10 @@
 seed: 1
 experiment_name: test
 model:
-  num_epochs: 5
+  architecture:
+    - VAE
+    - DPVAE
+  num_epochs: 20
   target_epsilon: 1.0
-  max_grad_norm: 10.0
-  secure_mode: true
+  max_grad_norm: 5.0
+  secure_mode: false

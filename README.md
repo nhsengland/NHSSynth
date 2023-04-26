@@ -48,7 +48,17 @@ _**Note:** No data, public or private are shared in this repository._
 
 For general usage, we recommend installing the package via `pip install nhssynth` in a supported python version environment. You can then `import` the package's [modules](src/nhssynth/modules/) and use them in your projects, or interact with the package directly via the [CLI](src/nhssynth/cli/), which is accessed using the `nhssynth` command (see [Usage](#usage) for more information).
 
-Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsx.github.io/NHSSynth/secure_mode/) for details) you will need to install the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) separately.
+#### Secure Mode
+
+Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsx.github.io/NHSSynth/secure_mode/) for details) you will need to install the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually; for this we recommend following the instructions below:
+
+```bash
+git clone git@github.com:pytorch/csprng.git
+cd csprng
+git branch release "v0.2.2-rc1"
+git checkout release
+python setup.py install
+```
 
 #### Advanced Usage
 
@@ -61,7 +71,7 @@ If you intend on contributing or working with the codebase directly, or if you w
 3. Activate the virtual environment, e.g. via `source nhssynth/bin/activate`
 4. Install the project dependencies with `poetry install` (optionally install the dev dependencies `--with dev` to work with the [auxiliary notebooks](auxiliary/), or `--with docs` to work with the [documentation](docs/))
 5. You can then interact with the package in one of two ways:
-    - Via the [`cli`](src/nhssynth/cli/) module using `nhssynth ...`
+    - Via the [CLI](src/nhssynth/cli/) module using `nhssynth ...`
     - Through building the package with `poetry build` and using it in an existing project (`import nhssynth`). You can then actively develop the package and test it.
 
 ### Usage

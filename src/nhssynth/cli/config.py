@@ -119,7 +119,7 @@ def read_config(
     new_args.modules_to_run = modules_to_run
     new_args.module_handover = {}
     for module in new_args.modules_to_run:
-        MODULE_MAP[module].func(new_args)
+        MODULE_MAP[module](new_args)
 
     return new_args
 

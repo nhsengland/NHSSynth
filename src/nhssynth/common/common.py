@@ -1,3 +1,4 @@
+"""Common functions for all modules."""
 import random
 
 import numpy as np

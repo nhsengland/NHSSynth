@@ -3,8 +3,13 @@ experiment_name: test
 dataloader:
   collapse_yaml: true
 model:
-  num_epochs: 500
-  non_private_training: true
+  architecture:
+    - VAE
+    - DPVAE
+  num_epochs: 20
+  target_epsilon: 1.0
+  max_grad_norm: 5.0
+  secure_mode: false
 evaluation:
   column_shape_metrics:
   - KSComplement

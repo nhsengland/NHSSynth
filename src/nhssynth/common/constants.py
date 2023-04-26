@@ -2,12 +2,13 @@
 from time import strftime
 from typing import Final
 
+import torch.nn as nn
 from sdmetrics.single_table import *
 from sdv.single_table import *
 
 TIME: Final = strftime("%Y_%m_%d___%H_%M_%S")
 
-TRACKED_METRIC_CHOICES: Final = [
+TRACKED_METRICS: Final = [
     "ELBO",
     "KLD",
     "ReconstructionLoss",
@@ -16,7 +17,16 @@ TRACKED_METRIC_CHOICES: Final = [
     "Privacy",
 ]
 
-SDV_SYNTHESIZER_CHOICES: Final = {
+ACTIVATION_FUNCTIONS: Final = {
+    "elu": nn.ELU,
+    "relu": nn.ReLU,
+    "selu": nn.SELU,
+    "leaky_relu": nn.LeakyReLU,
+    "tanh": nn.Tanh,
+    "sigmoid": nn.Sigmoid,
+}
+
+SDV_SYNTHESIZERS: Final = {
     "TVAE": TVAESynthesizer,
     "CTGAN": CTGANSynthesizer,
     "CopulaGAN": CopulaGANSynthesizer,
@@ -97,7 +107,7 @@ SDV_NUMERICAL_PRIVACY_METRIC_CHOICES: Final = {
     "NumericalRadiusNearestNeighbor": NumericalRadiusNearestNeighbor,
 }
 
-SDV_METRIC_CHOICES: Final = {
+SDV_METRICS: Final = {
     "Detection": SDV_DETECTION_METRIC_CHOICES,
     "Binary": SDV_BINARY_METRIC_CHOICES,
     "Multiclass": SDV_MULTICLASS_METRIC_CHOICES,

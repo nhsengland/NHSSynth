@@ -19,25 +19,23 @@ def experiment_io(experiment_name: str, dir_experiments: str = "experiments") ->
     return dir_experiment
 
 
-def consistent_ending(fn: str, ending: str = ".pkl") -> str:
+def consistent_ending(fn: str, ending: str = ".pkl", suffix: str = "") -> str:
     """
     Ensures that the filename `fn` ends with `ending`. If not, removes any existing ending and appends `ending`.
 
     Args:
         fn: The filename to check.
         ending: The desired ending to check for. Default is ".pkl".
+        suffix: A suffix to append to the filename before the ending.
 
     Returns:
-        The filename with the correct ending.
+        The filename with the correct ending and potentially an inserted suffix.
     """
     path_fn = Path(fn)
-    if path_fn.suffix == ending:
-        return fn
-    else:
-        return str(path_fn.parent / path_fn.stem) + ending
+    return str(path_fn.parent / path_fn.stem) + suffix + ending
 
 
-def consistent_endings(args: list[str | tuple[str, str]]) -> list[str]:
+def consistent_endings(args: list[str | tuple[str, str] | tuple[str, str, str]]) -> list[str]:
     return list(consistent_ending(arg) if isinstance(arg, str) else consistent_ending(*arg) for arg in args)
 
 

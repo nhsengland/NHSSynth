@@ -1,6 +1,6 @@
-"""Specify the modules to be used in the CLI, and the pipeline to run by default, as well as special functions for the `config` and `pipeline` CLI options."""
+"""Specify all CLI-accessible modules and their configurations, the pipeline to run by default, and define special functions for the `config` and `pipeline` CLI options."""
 import argparse
-from typing import Any, Callable, Final
+from typing import Callable, Final, Optional
 
 from nhssynth.cli.common_arguments import COMMON_PARSERS
 from nhssynth.cli.module_arguments import *
@@ -8,26 +8,27 @@ from nhssynth.modules import dataloader, evaluation, model, plotting, structure
 
 
 class ModuleConfig:
+    """
+    Represents a module's configuration, containing the following attributes:
+
+    Properties:
+        func: A callable that executes the module's functionality.
+        add_args: A callable that populates the module's sub-parser arguments.
+        description: A description of the module's functionality.
+        help: A help message for the module's command-line interface.
+        common_parsers: A list of common parsers to add to the module's sub-parser, appending the 'dataset' and 'core' parsers to those passed.
+    """
+
     def __init__(
         self,
-        func: Callable[..., Any],
-        add_args_func: Callable[..., Any],
+        func: Callable[..., argparse.Namespace],
+        add_args: Callable[..., None],
         description: str,
         help: str,
-        common_parsers: list[str] = None,
+        common_parsers: Optional[list[str]] = None,
     ) -> None:
-        """
-        Represents a module's configuration, containing the following attributes:
-
-        Args:
-            func: A callable that executes the module's functionality.
-            add_args_func: A callable that populates the module's sub-parser arguments.
-            description: A description of the module's functionality.
-            help: A help message for the module's command-line interface.
-            common_parsers: A list of common parsers to add to the module's sub-parser.
-        """
         self.func = func
-        self.add_args_func = add_args_func
+        self.add_args = add_args
         self.description = description
         self.help = help
         if common_parsers:
@@ -42,19 +43,22 @@ class ModuleConfig:
         else:
             self.common_parsers = ["dataset", "core"]
 
+    def __call__(self, *args, **kwargs) -> argparse.Namespace:
+        self.func(*args, **kwargs)
+
 
 def run_pipeline(args: argparse.Namespace) -> None:
     """Runs the specified pipeline of modules with the passed configuration `args`."""
     print("Running full pipeline...")
     args.modules_to_run = PIPELINE
     for module_name in PIPELINE:
-        args = MODULE_MAP[module_name].func(args)
+        args = MODULE_MAP[module_name](args)
 
 
 def add_pipeline_args(parser: argparse.ArgumentParser) -> None:
     """Adds arguments to a `parser` for each module in the pipeline."""
     for module_name in PIPELINE:
-        MODULE_MAP[module_name].add_args_func(parser, f"{module_name} options")
+        MODULE_MAP[module_name].add_args(parser, f"{module_name} options")
 
 
 def add_config_args(parser: argparse.ArgumentParser) -> None:
@@ -71,8 +75,10 @@ def add_config_args(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="infer a custom pipeline running order of modules from the config",
     )
-    for module_name in VALID_MODULES:
-        MODULE_MAP[module_name].add_args_func(parser, f"{module_name} option overrides", overrides=True)
+    for module_name in PIPELINE:
+        MODULE_MAP[module_name].add_args(parser, f"{module_name} option overrides", overrides=True)
+    for module_name in VALID_MODULES - set(PIPELINE):
+        MODULE_MAP[module_name].add_args(parser, f"{module_name} options overrides", overrides=True)
 
 
 ### EDIT BELOW HERE TO ADD MODULES / ALTER PIPELINE BEHAVIOUR
@@ -87,47 +93,47 @@ PIPELINE: Final = [
 MODULE_MAP: Final = {
     "dataloader": ModuleConfig(
         func=dataloader.run,
-        add_args_func=add_dataloader_args,
+        add_args=add_dataloader_args,
         description="Run the Data Loader module, to prepare the chosen dataset for use in other modules.",
         help="prepare the dataset",
         common_parsers=["metadata", "typed", "prepared", "metatransformer"],
     ),
     "structure": ModuleConfig(
         func=structure.run,
-        add_args_func=add_structure_args,
+        add_args=add_structure_args,
         description="Run the Structural Discovery module, to learn a structural model for use in training and evaluation.",
         help="discover structure",
     ),
     "model": ModuleConfig(
         func=model.run,
-        add_args_func=add_model_args,
+        add_args=add_model_args,
         description="Run the Model Architecture module, to train a synthetic data generator.",
         help="train a model",
         common_parsers=["prepared", "metatransformer", "synthetic"],
     ),
     "evaluation": ModuleConfig(
         func=evaluation.run,
-        add_args_func=add_evaluation_args,
+        add_args=add_evaluation_args,
         description="Run the Evaluation module, to evaluate an experiment.",
         help="evaluate an experiment",
         common_parsers=["metadata", "typed", "synthetic", "report"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,
-        add_args_func=add_plotting_args,
+        add_args=add_plotting_args,
         description="Run the Plotting module, to generate plots for a given model and / or evaluation.",
         help="generate plots",
         common_parsers=["typed", "synthetic", "report"],
     ),
     "pipeline": ModuleConfig(
         func=run_pipeline,
-        add_args_func=add_pipeline_args,
+        add_args=add_pipeline_args,
         description="Run the full pipeline.",
         help="run the full pipeline",
     ),
     "config": ModuleConfig(
         func=None,
-        add_args_func=add_config_args,
+        add_args=add_config_args,
         description="Run module(s) according to configuration specified by a file in `config/`. Note that you can override parts of the configuration on the fly by using the usual CLI flags.",
         help="run module(s) in line with a passed configuration file",
     ),
@@ -161,7 +167,7 @@ def add_subparser(
     Args:
         subparsers: The subparsers action to which the subparser will be added.
         name: The name of the subparser.
-        module_config: A ModuleConfig object containing information about the subparser, including a function to execute and a function to add arguments.
+        module_config: A [`ModuleConfig`][nhssynth.cli.module_setup.ModuleConfig] object containing information about the subparser, including a function to execute and a function to add arguments.
 
     Returns:
         The newly created subparser.
@@ -175,8 +181,8 @@ def add_subparser(
         parents=parent_parsers,
     )
     if name not in {"pipeline", "config"}:
-        module_config.add_args_func(parser, f"{name} options")
+        module_config.add_args(parser, f"{name} options")
     else:
-        module_config.add_args_func(parser)
+        module_config.add_args(parser)
     parser.set_defaults(func=module_config.func)
     return parser

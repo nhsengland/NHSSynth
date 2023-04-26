@@ -87,7 +87,7 @@ class FullReport:
             self._metrics.items(), desc="Creating report", position=0, disable=(not verbose), leave=True
         ):
             num_prop_errors = 0
-            if "NewRowSynthesis" in SDV_METRIC_CHOICES[prop]:
+            if "NewRowSynthesis" in SDV_METRICS[prop]:
                 if "NewRowSynthesis" not in self._metric_args:
                     self._metric_args["NewRowSynthesis"] = {}
                 self._metric_args["NewRowSynthesis"]["synthetic_sample_size"] = min(

@@ -1,7 +1,7 @@
 import argparse
 
 from nhssynth.common import *
-from nhssynth.common.constants import SDV_METRIC_CHOICES
+from nhssynth.common.constants import SDV_METRICS
 from nhssynth.modules.evaluation.full_report import FullReport
 from nhssynth.modules.evaluation.io import load_required_data
 from sdmetrics.reports.single_table import DiagnosticReport, QualityReport
@@ -33,8 +33,8 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             fig.show()
 
     sdv_metrics = {
-        k: [SDV_METRIC_CHOICES[k][v] for v in getattr(args, "_".join(k.split()).lower() + "_metrics")]
-        for k in SDV_METRIC_CHOICES.keys()
+        k: [SDV_METRICS[k][v] for v in getattr(args, "_".join(k.split()).lower() + "_metrics")]
+        for k in SDV_METRICS.keys()
         if getattr(args, "_".join(k.split()).lower() + "_metrics")
     }
     if sdv_metrics:
