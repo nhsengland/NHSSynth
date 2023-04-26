@@ -45,7 +45,7 @@ The following instructions specify how to extend this package with a new module:
         ...
         "mymodule": ModuleConfig(
             func=mymodule.myexecutor,
-            add_args_func=add_mymodule_args,
+            add_args=add_mymodule_args,
             description="...",
             help="...",
             common_parsers=[...]
