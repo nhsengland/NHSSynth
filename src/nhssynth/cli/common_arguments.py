@@ -48,7 +48,7 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
     return core
 
 
-COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `DATASET_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
+COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `<DATASET>_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
 
 
 def suffix_parser_generator(name: str, help: str, required: bool = False) -> argparse.ArgumentParser:
