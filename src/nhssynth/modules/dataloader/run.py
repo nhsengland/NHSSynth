@@ -8,12 +8,6 @@ from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
-    """
-    Runs the main workflow of the dataloader module, transforms the dataset and writes the output and transformer used to disk.
-
-    Args:
-        args: An argparse Namespace containing the command line arguments.
-    """
     print("Running dataloader module...")
 
     set_seed(args.seed)
