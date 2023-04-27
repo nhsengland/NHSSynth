@@ -25,6 +25,8 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
+      - name: Test jq
+        run: jq --version
       - name: Load cached venv
         id: cached-poetry-dependencies-2
         uses: actions/cache@v3
@@ -82,7 +84,7 @@ jobs:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: loc.json
-          label: Lines of Code
+          label: lines of code
           message: ${{ env.CODE_LINES }}
           color: blue
           style: flat-square
@@ -92,9 +94,9 @@ jobs:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: comments.json
-          label: Comments
+          label: comment %
           message: ${{ env.COMMENT_PERCENTAGE }}%
           style: flat-square
           valColorRange: ${{ env.COMMENT_PERCENTAGE }}
-          maxColorRange: 50
+          maxColorRange: 40
           minColorRange: 0
