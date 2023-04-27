@@ -38,3 +38,7 @@ site/
 
 # Tests
 .coverage
+.tox/
+.pytest_cache/
+coverage.xml
+coverage-badge.svg
