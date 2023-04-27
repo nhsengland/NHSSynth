@@ -101,9 +101,11 @@ The figure below shows the structure and workflow of the package and its modules
 
 ![](docs/modules.png)
 
+View a visualisation of the codebase [here](https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=nhsx%2Fnhssynth)!
+
 ### Roadmap
 
-See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of proposed features (and known bugs). Our [milestones](https://github.com/nhsx/NHSSynth/milestones) represent longer term goals for the project.
 
 ### Contributing
 
