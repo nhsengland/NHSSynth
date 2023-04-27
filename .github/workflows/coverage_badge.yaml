@@ -42,14 +42,8 @@ jobs:
         run: poetry install --no-interaction --no-root --with test
       - name: Install project
         run: poetry install --no-interaction --with test
-      - name: Make Temporary Directory
-        run: echo "TEMP_DIR=$(mktemp -d)" >> $GITHUB_ENV
       - name: Run Coverage
-        run: |
-          poetry run coverage json -q -o ${{ env.TEMP_DIR}}/temp
-          echo "cat ${{ env.TEMP_DIR}}/temp | jq .totals.percent_covered"
-      - name: Remove Temporary Directory
-        run: rm -rf ${{ env.TEMP_DIR}}
+        run: echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ /,"",$(NF-1)); gsub(/\*\*/,"",$(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
       - name: Create Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
