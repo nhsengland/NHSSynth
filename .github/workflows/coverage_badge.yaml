@@ -1,6 +1,6 @@
 name: Dynamic Badges
 
-on:
+on: 
   push:
     branches: [main]
 
@@ -42,13 +42,10 @@ jobs:
         run: poetry install --no-interaction --no-root --with test
       - name: Install project
         run: poetry install --no-interaction --with test
-      - name: Make Temporary Directory
-        run: echo "TEMP_DIR=$(mktemp -d)" >> $GITHUB_ENV
       - name: Run Coverage
         run: |
-          poetry run coverage json -q -o ${{ env.TEMP_DIR}}/temp
-          COVERAGE=$(cat ${{ env.TEMP_DIR}}/temp | jq .totals.percent_covered | xargs printf '%.*f\n' 1)
-          echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
+          poetry run pytest --cov src/*
+          echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ *(\*\*|%)* */, "", $(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
       - name: Create Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
@@ -56,7 +53,7 @@ jobs:
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: coverage.json
           label: Test Coverage
-          message: ${{ env.COVERAGE }}
+          message: ${{ env.COVERAGE }}%
           style: flat-square
           valColorRange: ${{ env.COVERAGE }}
           minColorRange: 0
@@ -82,7 +79,7 @@ jobs:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: loc.json
-          label: Lines of Code
+          label: lines of code
           message: ${{ env.CODE_LINES }}
           color: blue
           style: flat-square
@@ -92,9 +89,9 @@ jobs:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: comments.json
-          label: Comments
+          label: comment percentage
           message: ${{ env.COMMENT_PERCENTAGE }}%
           style: flat-square
           valColorRange: ${{ env.COMMENT_PERCENTAGE }}
-          maxColorRange: 50
+          maxColorRange: 40
           minColorRange: 0
