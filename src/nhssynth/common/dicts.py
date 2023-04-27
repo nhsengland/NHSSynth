@@ -63,6 +63,9 @@ def flatten_dict(d: dict[str, Any]) -> dict[str, Any]:
     Returns:
         A flattened dictionary.
 
+    Raises:
+        ValueError: If duplicate keys are found in the flattened dictionary.
+
     Examples:
         >>> d = {'a': 1, 'b': {'c': 2, 'd': {'e': 3}}}
         >>> flatten_dict(d)
@@ -74,4 +77,6 @@ def flatten_dict(d: dict[str, Any]) -> dict[str, Any]:
             items.extend(flatten_dict(v).items())
         else:
             items.append((k, v))
+    if len(set([p[0] for p in items])) != len(items):
+        raise ValueError(f"Duplicate keys found in flattened dictionary")
     return dict(items)
