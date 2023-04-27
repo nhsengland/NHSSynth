@@ -47,8 +47,7 @@ jobs:
       - name: Run Coverage
         run: |
           poetry run coverage json -q -o ${{ env.TEMP_DIR}}/temp
-          COVERAGE=$(cat ${{ env.TEMP_DIR}}/temp | jq .totals.percent_covered | xargs printf '%.*f\n' 1)
-          echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
+          echo "cat ${{ env.TEMP_DIR}}/temp | jq .totals.percent_covered"
       - name: Remove Temporary Directory
         run: rm -rf ${{ env.TEMP_DIR}}
       - name: Create Coverage Badge
