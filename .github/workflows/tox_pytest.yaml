@@ -1,4 +1,4 @@
-name: Run `tox` tests
+name: Run tests
 
 on: [push]
 
