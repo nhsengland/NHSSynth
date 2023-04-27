@@ -1,11 +1,12 @@
 """Common functions for all modules."""
 import random
+from typing import Optional
 
 import numpy as np
 import torch
 
 
-def set_seed(seed: None | int = None) -> None:
+def set_seed(seed: Optional[int] = None) -> None:
     """
     (Potentially) set the seed for numpy, torch and random.
 

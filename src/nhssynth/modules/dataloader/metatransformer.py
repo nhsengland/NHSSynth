@@ -1,5 +1,5 @@
 import warnings
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from sdv.single_table.base import BaseSingleTableSynthesizer
 
 
 # TODO should this be an @classmethod?
-def get_transformer(d: dict) -> BaseTransformer | None:
+def get_transformer(d: dict) -> Union[BaseTransformer, None]:
     """
     Return a callable transformer object constructed from data in the given dictionary.
 
@@ -102,7 +102,9 @@ class MetaTransformer:
         self.sdtypes: dict[str, dict[str, Any]] = {
             cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()
         }
-        self.transformers: dict[str, BaseTransformer | None] = {cn: get_transformer(cd) for cn, cd in metadata.items()}
+        self.transformers: dict[str, Union[BaseTransformer, None]] = {
+            cn: get_transformer(cd) for cn, cd in metadata.items()
+        }
 
     def apply_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -123,7 +125,7 @@ class MetaTransformer:
         return data.astype(self.dtypes)
 
     def _instantiate_ohe_component_transformers(
-        self, transformers: dict[str, BaseTransformer | None]
+        self, transformers: dict[str, Union[BaseTransformer, None]]
     ) -> dict[str, BaseTransformer]:
         """
         Instantiates a OneHotEncoder for each resulting `*.component` column that arises from a ClusterBasedNormalizer.
@@ -181,7 +183,7 @@ class MetaTransformer:
         component_transformer = self._instantiate_ohe_component_transformers(synthesizer.get_transformers())
         return synthesizer, component_transformer
 
-    def _get_dtype(self, cn: str) -> str | np.dtype:
+    def _get_dtype(self, cn: str) -> Union[str, np.dtype]:
         """Returns the dtype for the given column name `cn`."""
         return self.dtypes[cn].name if not isinstance(self.dtypes[cn], str) else self.dtypes[cn]
 

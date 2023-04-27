@@ -24,10 +24,7 @@ def get_default_and_required_args(
             - A dictionary containing all arguments and their default values.
             - A list of kvps of the required arguments and their associated module.
     """
-    all_actions = {
-        "top-level": top_parser._actions,
-        **{m: p._actions for m, p in module_parsers.items()},
-    }
+    all_actions = {"top-level": top_parser._actions} | {m: p._actions for m, p in module_parsers.items()}
     defaults = {}
     required_args = []
     for module, actions in all_actions.items():

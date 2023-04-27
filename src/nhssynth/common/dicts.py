@@ -1,8 +1,8 @@
 """Common functions for working with dictionaries."""
-from typing import Any
+from typing import Any, Union
 
 
-def filter_dict(d: dict, filter_keys: set | list, include: bool = False) -> dict:
+def filter_dict(d: dict, filter_keys: Union[set, list], include: bool = False) -> dict:
     """
     Given a dictionary, return a new dictionary either including or excluding keys in a given `filter` set.
 
@@ -28,7 +28,7 @@ def filter_dict(d: dict, filter_keys: set | list, include: bool = False) -> dict
     return {k: v for k, v in d.items() if k in filtered_keys}
 
 
-def get_key_by_value(d: dict, value) -> Any | None:
+def get_key_by_value(d: dict, value) -> Union[Any, None]:
     """
     Find the first key in a dictionary with a given value.
 

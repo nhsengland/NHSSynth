@@ -1,6 +1,7 @@
 """Common building-block functions for handling module input and output."""
 import warnings
 from pathlib import Path
+from typing import Union
 
 
 def experiment_io(experiment_name: str, dir_experiments: str = "experiments") -> str:
@@ -35,7 +36,7 @@ def consistent_ending(fn: str, ending: str = ".pkl", suffix: str = "") -> str:
     return str(path_fn.parent / path_fn.stem) + suffix + ending
 
 
-def consistent_endings(args: list[str | tuple[str, str] | tuple[str, str, str]]) -> list[str]:
+def consistent_endings(args: list[Union[str, tuple[str, str], tuple[str, str, str]]]) -> list[str]:
     return list(consistent_ending(arg) if isinstance(arg, str) else consistent_ending(*arg) for arg in args)
 
 
