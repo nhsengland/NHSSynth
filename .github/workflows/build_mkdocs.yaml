@@ -1,23 +1,26 @@
-name: build_mkdocs
+name: Build MkDocs
+
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main]
+
 permissions:
   contents: write
+
 jobs:
   deploy:
+
     runs-on: ubuntu-latest
+
     steps:
       #----------------------------------------------
-      #       check-out repo and set-up python
+      #       check-out repo and setup python
       #----------------------------------------------
-      - name: Check out repository
+      - name: Check-out repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Set up python
+      - name: Setup python
         id: setup-python
         uses: actions/setup-python@v4
         with:
