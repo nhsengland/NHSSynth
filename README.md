@@ -3,7 +3,7 @@
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth?style=flat-square)](https://www.python.org/downloads/release/python-3100/)
 [![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/test.json)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/coverage.json)
 ![Lines of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/loc.json)
 ![Percentage Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/comments.json)
 
