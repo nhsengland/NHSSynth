@@ -61,7 +61,6 @@ class Model(nn.Module, ABC):
             pin_memory=True,
             batch_size=batch_size,
         )
-        self.private: bool = False
         self.setup_device(use_gpu)
 
     def setup_device(self, use_gpu: bool) -> None:
@@ -101,7 +100,7 @@ class Model(nn.Module, ABC):
         """Initialises the training process."""
         self.num_epochs = num_epochs
         self.patience = patience
-        if not self.private and "Privacy" in tracked_metrics:
+        if not hasattr(self, "target_epsilon") and "Privacy" in tracked_metrics:
             tracked_metrics.remove("Privacy")
         self.metrics = {metric: np.empty(0, dtype=float) for metric in tracked_metrics}
         self.stats_bars = {

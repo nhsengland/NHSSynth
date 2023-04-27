@@ -41,7 +41,6 @@ class DPMixin(ABC):
         if not isinstance(self, Model):
             raise TypeError("DPMixin can only be used with Model classes")
         super(DPMixin, self).__init__(*args, **kwargs)
-        self.private: bool = True
         self.target_epsilon: float = target_epsilon
         self.target_delta: float = target_delta or 1 / self.nrows
         self.max_grad_norm: float = max_grad_norm
