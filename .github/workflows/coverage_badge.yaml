@@ -43,7 +43,9 @@ jobs:
       - name: Install project
         run: poetry install --no-interaction --with test
       - name: Run Coverage
-        run: echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ /,"",$(NF-1)); gsub(/\*\*/,"",$(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
+        run: |
+          poetry run pytest --cov src/* --cov-report=
+          echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ *\*\*| *%/, "", $(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
       - name: Create Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
@@ -51,7 +53,7 @@ jobs:
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: coverage.json
           label: Test Coverage
-          message: ${{ env.COVERAGE }}
+          message: ${{ env.COVERAGE }}%
           style: flat-square
           valColorRange: ${{ env.COVERAGE }}
           minColorRange: 0
