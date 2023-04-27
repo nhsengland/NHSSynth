@@ -44,8 +44,8 @@ jobs:
         run: poetry install --no-interaction --with test
       - name: Run Coverage
         run: |
-          poetry run coverage json -q -o ./temp.json
-          COVERAGE=$(cat ./temp | jq .totals.percent_covered | xargs printf '%.*f\n' 1)
+          poetry run coverage json -q -o $TMPDIR/temp.json
+          COVERAGE=$(cat $TMPDIR/temp.json | jq .totals.percent_covered | xargs printf '%.*f\n' 1)
           echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
       - name: Create Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
