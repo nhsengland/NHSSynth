@@ -34,17 +34,17 @@ jobs:
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-          debug: true
       - uses: actions/cache@v3
         with:
-          key: ${{ github.ref }}-2
+          key: ${{ github.ref }}
           path: .cache
-          debug: true
       - name: Install dependencies
         if: steps.cached-poetry-dependencies-2.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root --with test
       - name: Install project
         run: poetry install --no-interaction --with test
+      - name: list files
+        run: ls -R
       - name: Run Coverage
         run: |
           poetry run pytest --cov src/*
