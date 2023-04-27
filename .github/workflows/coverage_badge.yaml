@@ -1,0 +1,97 @@
+name: Dynamic Badges
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  coverage-badge:
+
+    name: Update Coverage Badge
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+      - name: Load cached venv
+        id: cached-poetry-dependencies-2
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - uses: actions/cache@v3
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies-2.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with test
+      - name: Install project
+        run: poetry install --no-interaction --with test
+      - name: Run Coverage
+        run: |
+          COVERAGE=$(poetry run coverage json -q -o /dev/stdout | jq .totals.percent_covered | xargs printf '%.*f\n' 1)
+          echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
+      - name: Create Coverage Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          filename: coverage.json
+          label: Test Coverage
+          message: ${{ env.COVERAGE }}
+          style: flat-square
+          valColorRange: ${{ env.COVERAGE }}
+          minColorRange: 0
+          maxColorRange: 100
+  update-badges:
+    
+    name: Update CLOC Badges
+    
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Download cloc
+        run: sudo apt-get update -y && sudo apt-get install -y cloc
+      - name: Get the Numbers
+        run: |
+          echo "CODE_LINES=$(.github/cloc.sh --loc)" >> $GITHUB_ENV
+          echo "COMMENT_PERCENTAGE=$(.github/cloc.sh --percentage)" >> $GITHUB_ENV
+      - name: Create Lines-of-Code Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          filename: loc.json
+          label: Lines of Code
+          message: ${{ env.CODE_LINES }}
+          color: blue
+          style: flat-square
+      - name: Create Comments Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          filename: comments.json
+          label: Comments
+          message: ${{ env.COMMENT_PERCENTAGE }}%
+          style: flat-square
+          valColorRange: ${{ env.COMMENT_PERCENTAGE }}
+          maxColorRange: 50
+          minColorRange: 0
