@@ -43,7 +43,7 @@ jobs:
       - name: Run Coverage
         run: |
           poetry run pytest --cov src/*
-          echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ *\*\*| *%/, "", $(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
+          echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ *(\*\*|%)* */, "", $(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
       - name: Create Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
@@ -87,7 +87,7 @@ jobs:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1ab4eefed81ec381e29f7d4feb9856bc
           filename: comments.json
-          label: comment %
+          label: comment percentage
           message: ${{ env.COMMENT_PERCENTAGE }}%
           style: flat-square
           valColorRange: ${{ env.COMMENT_PERCENTAGE }}
