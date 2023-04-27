@@ -1,0 +1,31 @@
+name: Run `tox` tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.10"]
+
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v3
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox
+        # Run tox using the version of Python in `PATH`
+        run: tox -e py

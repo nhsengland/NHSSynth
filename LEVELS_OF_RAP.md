@@ -43,7 +43,7 @@ _Meeting all of the above requirements, plus:_
 - [x] Code is well-organised following [standard directory format][5].
 - [x] [Reusable functions][6] and/or classes are used where appropriate.
 - [x] Code adheres to agreed coding standards (e.g PEP8, [style guide for Pyspark][3]).
-- [ ] Pipeline includes a testing framework ([unit tests][7], [back tests][8]).
+- [x] Pipeline includes a testing framework ([unit tests][7], [back tests][8]).
 - [x] Repository includes dependency information (e.g. [requirements.txt](https://pip.pypa.io/en/stable/user_guide/#requirements-files), [PipFile](https://github.com/pypa/pipfile/blob/main/README.rst), [environment.yml][12]).
 - [x] [Logs][11] are automatically recorded by the pipeline to ensure outputs are as expected.
 - [x] Data is handled and output in a [Tidy data format](https://medium.com/@kimrodrikwa/untidy-data-a90b6e3ebe4c).
@@ -53,7 +53,7 @@ _Meeting all of the above requirements, plus:_
 _Meeting all of the above requirements, plus:_
 
 - [x] Code is fully [packaged](https://packaging.python.org/en/latest/).
-- [ ] Repository automatically runs tests etc. via [CI](https://github.com/skills/continuous-integration)/CD or a different integration/deployment tool e.g. [GitHub Actions](https://docs.github.com/en/actions).
+- [x] Repository automatically runs tests etc. via [CI](https://github.com/skills/continuous-integration)/CD or a different integration/deployment tool e.g. [GitHub Actions](https://docs.github.com/en/actions).
 - [ ] Process runs based on event-based triggers (e.g., new data in database) or on a schedule.
 - [x] Changes to the RAP are clearly signposted. E.g. a changelog in the package, releases etc. (See gov.uk info on [Semantic Versioning](https://github.com/alphagov/govuk-frontend/blob/main/docs/contributing/versioning.md))
 
