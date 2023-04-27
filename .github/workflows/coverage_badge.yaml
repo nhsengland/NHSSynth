@@ -46,8 +46,6 @@ jobs:
         run: poetry install --no-interaction --no-root --with test
       - name: Install project
         run: poetry install --no-interaction --with test
-      - name: list files
-        run: ls -R
       - name: Run Coverage
         run: |
           poetry run pytest --cov src/*
@@ -72,7 +70,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Download cloc
         run: sudo apt-get update -y && sudo apt-get install -y cloc
       - name: Get the Numbers
