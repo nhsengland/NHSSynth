@@ -5,7 +5,7 @@ on: [push]
 jobs:
   coverage-badge:
 
-    name: Update Coverage Badge
+    name: Update Coverage and Tests Passing Badge
 
     runs-on: ubuntu-latest
 
@@ -62,7 +62,7 @@ jobs:
       - name: Run Tests
         run: |
           echo "COLLECTED=$(poetry run pytest --collect-only | grep -m 1 "collected" | awk '{print $2;}' | tr -d '[:space:]\n')" >> $GITHUB_ENV
-          echo "PASSED=$(pytest --verbose | grep -o "PASSED" | wc -l | tr -d '[:space:]\n')" >> $GITHUB_ENV
+          echo "PASSED=$(poetry run pytest --verbose | grep -o "PASSED" | wc -l | tr -d '[:space:]\n')" >> $GITHUB_ENV
       - name: Create Tests Passing Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
