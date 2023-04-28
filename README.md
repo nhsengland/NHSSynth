@@ -1,15 +1,16 @@
 <!-- PROJECT SHIELDS -->
 <div align="center">
 
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth?style=flat-square)](https://www.python.org/downloads/release/python-3100/)
-[![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
 ![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/coverage.json)
+![Tests Passing](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/tests.json)
 ![Lines of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/loc.json)
 ![Percentage Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/comments.json)
 
 </div>
 <div align="center">
 
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth?style=flat-square)](https://www.python.org/downloads/release/python-3100/)
+[![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
 [![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
 [![PyPI - Wheel](https://img.shields.io/pypi/wheel/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
 [![PyPI - License](https://img.shields.io/pypi/l/nhssynth?style=flat-square)](https://github.com/nhsx/nhssynth/blob/main/LICENSE)
@@ -18,7 +19,6 @@
 
 </div>
 
-
 <!-- PROJECT LOGO -->
 <div align="center">
   <a href="https://nhsx.github.io/NHSSynth">
@@ -26,7 +26,7 @@
   </a>
   <p align="center">
     <a href="https://nhsx.github.io/NHSSynth"><strong>Explore the docs »</strong></a>
-    <br /><br /><br />
+    <br /><br />
   </p>
 </div>
 

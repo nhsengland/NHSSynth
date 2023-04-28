@@ -1,13 +1,13 @@
 name: Dynamic Badges
 
-on: 
+on:
   push:
     branches: [main]
 
 jobs:
   coverage-badge:
 
-    name: Update Coverage Badge
+    name: Update Coverage and Tests Passing Badge
 
     runs-on: ubuntu-latest
 
@@ -61,6 +61,22 @@ jobs:
           valColorRange: ${{ env.COVERAGE }}
           minColorRange: 0
           maxColorRange: 100
+      - name: Run Tests
+        run: |
+          echo "COLLECTED=$(poetry run pytest --collect-only | grep -m 1 "collected" | awk '{print $2;}' | tr -d '[:space:]\n')" >> $GITHUB_ENV
+          echo "PASSED=$(poetry run pytest --verbose | grep -o "PASSED" | wc -l | tr -d '[:space:]\n')" >> $GITHUB_ENV
+      - name: Create Tests Passing Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          filename: tests.json
+          label: tests passing
+          message: ${{ env.PASSED }} / ${{ env.COLLECTED }}
+          style: flat-square
+          valColorRange: ${{ env.PASSED }}
+          minColorRange: 0
+          maxColorRange: ${{ env.COLLECTED }}
   update-badges:
     
     name: Update CLOC Badges
