@@ -1,6 +1,8 @@
 name: Dynamic Badges
 
-on: [push]
+on:
+  push:
+    branches: [main]
 
 jobs:
   coverage-badge:
