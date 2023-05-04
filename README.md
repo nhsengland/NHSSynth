@@ -5,17 +5,18 @@
 ![Tests Passing](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/tests.json)
 ![Lines of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/loc.json)
 ![Percentage Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/comments.json)
+[![Snyk Package Health](https://snyk.io/advisor/python/nhssynth/badge.svg)](https://snyk.io/advisor/python/nhssynth)
 
 </div>
 <div align="center">
 
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth?style=flat-square)](https://www.python.org/downloads/release/python-3100/)
-[![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-[![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-[![PyPI - Wheel](https://img.shields.io/pypi/wheel/nhssynth?style=flat-square)](https://pypi.org/project/nhssynth/)
-[![PyPI - License](https://img.shields.io/pypi/l/nhssynth?style=flat-square)](https://github.com/nhsx/nhssynth/blob/main/LICENSE)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000?style=flat-square)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat-square)](https://pycqa.github.io/isort/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth)](https://www.python.org/downloads/release/python-3100/)
+[![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth)](https://pypi.org/project/nhssynth/)
+[![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth)](https://pypi.org/project/nhssynth/)
+[![PyPI - Wheel](https://img.shields.io/pypi/wheel/nhssynth)](https://pypi.org/project/nhssynth/)
+[![PyPI - License](https://img.shields.io/pypi/l/nhssynth)](https://github.com/nhsx/nhssynth/blob/main/LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1)](https://pycqa.github.io/isort/)
 
 </div>
 
