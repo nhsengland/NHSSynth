@@ -76,10 +76,10 @@ def load_required_data(
     Returns:
         The data, metadata and metatransformer.
     """
-    if all(x in args.module_handover for x in ["fn_dataset", "prepared_dataset", "metatransformer"]):
+    if all(x in args.module_handover for x in ["dataset", "prepared", "metatransformer"]):
         return (
-            args.module_handover["fn_dataset"],
-            args.module_handover["prepared_dataset"],
+            args.module_handover["dataset"],
+            args.module_handover["prepared"],
             args.module_handover["metatransformer"],
         )
     else:

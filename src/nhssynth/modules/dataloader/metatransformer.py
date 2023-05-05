@@ -95,7 +95,12 @@ class MetaTransformer:
     encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.*
     """
 
-    def __init__(self, metadata, allow_null_transformers, synthesizer) -> None:
+    def __init__(
+        self,
+        metadata,
+        allow_null_transformers=False,
+        synthesizer="TVAE",
+    ) -> None:
         self.allow_null_transformers: bool = allow_null_transformers
         self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZERS[synthesizer]
         self.dtypes: dict[str, dict[str, Any]] = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
@@ -139,7 +144,7 @@ class MetaTransformer:
         return {
             f"{cn}.component": OneHotEncoder()
             for cn, transformer in transformers.items()
-            if transformer.get_name() == "ClusterBasedNormalizer"
+            if transformer and transformer.get_name() == "ClusterBasedNormalizer"
         }
 
     def instantiate(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
@@ -175,7 +180,7 @@ class MetaTransformer:
         synthesizer = self.Synthesizer(metadata)
         synthesizer.auto_assign_transformers(data)
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            warnings.filterwarnings("ignore", message="Replacing the default transformer for column")
             synthesizer.update_transformers(
                 self.transformers if self.allow_null_transformers else {k: v for k, v in self.transformers.items() if v}
             )
@@ -257,12 +262,14 @@ class MetaTransformer:
         onehot_idxs = []
         single_idxs = []
         for cn, cd in self.assembled_metadata.items():
-            if cd["transformer"].get("name") == "OneHotEncoder":
-                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".value").columns).tolist())
-            elif cd["transformer"].get("name") == "ClusterBasedNormalizer":
-                onehot_idxs.append(data.columns.get_indexer(data.filter(like=cn + ".component.value").columns).tolist())
+            if cd["transformer"] and cd["transformer"].get("name") == "OneHotEncoder":
+                onehot_idxs.append(data.columns.get_indexer(data.filter(regex=f"^{cn}.value").columns).tolist())
+            elif cd["transformer"] and cd["transformer"].get("name") == "ClusterBasedNormalizer":
+                onehot_idxs.append(
+                    data.columns.get_indexer(data.filter(regex=f"^{cn}.component.value").columns).tolist()
+                )
                 single_idxs.append(data.columns.get_loc(cn + ".normalized"))
-            elif cd["transformer"].get("name") != "RegexGenerator":
+            elif not cd["transformer"] or cd["transformer"].get("name") != "RegexGenerator":
                 single_idxs.append(data.columns.get_loc(cn))
         if not onehot_idxs:
             onehot_idxs.append([])

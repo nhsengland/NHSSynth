@@ -43,8 +43,8 @@ class ModuleConfig:
         else:
             self.common_parsers = ["dataset", "core"]
 
-    def __call__(self, *args, **kwargs) -> argparse.Namespace:
-        self.func(*args, **kwargs)
+    def __call__(self, args: argparse.Namespace) -> argparse.Namespace:
+        return self.func(args)
 
 
 def run_pipeline(args: argparse.Namespace) -> None:

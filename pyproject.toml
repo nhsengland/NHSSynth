@@ -63,6 +63,12 @@ tox = "^4.0.0"
 testpaths = "tests"
 filterwarnings = ["ignore::DeprecationWarning:pkg_resources"]
 
+[tool.coverage.run]
+source = ["src/nhssynth/cli", "src/nhssynth/common", "src/nhssynth/modules"]
+omit = [
+    "src/nhssynth/common/debugging.py",
+]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

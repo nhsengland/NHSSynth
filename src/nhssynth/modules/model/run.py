@@ -10,6 +10,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
+
     synthetic_list = []
     results_list = []
     num_epochs_list = []
@@ -17,7 +18,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         for i in range(args.repeats):
             print(f"\nModel architecture: {architecture}\nRepeat: {i + 1} of {args.repeats}")
 
-            set_seed((args.seed or 1) + i)
+            set_seed(args.seed + i if args.seed else None)
 
             fn_dataset, prepared_dataset, mt = load_required_data(args, dir_experiment)
             onehots, singles = mt.get_onehots_and_singles()
