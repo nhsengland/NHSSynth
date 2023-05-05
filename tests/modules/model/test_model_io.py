@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -8,34 +7,22 @@ from nhssynth.modules.model.io import *
 
 
 @pytest.fixture
-def experiment_dir(tmp_path) -> Path:
-    experiment_dir = tmp_path / "experiment"
-    experiment_dir.mkdir()
-    return experiment_dir
-
-
-@pytest.fixture
-def fn_dataset():
+def fn_dataset() -> str:
     return "dataset"
 
 
 @pytest.fixture
-def fn_prepared():
-    return "prepared"
-
-
-@pytest.fixture
-def fn_metatransformer():
+def fn_metatransformer() -> str:
     return "_metatransformer"
 
 
 @pytest.fixture
-def fn_synthetic():
+def fn_synthetic() -> str:
     return "_synthetic"
 
 
 @pytest.fixture
-def fn_model():
+def fn_model() -> str:
     return "_model"
 
 
@@ -51,13 +38,6 @@ def dataset(experiment_dir, fn_dataset) -> pd.DataFrame:
     dataset = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
     dataset.to_pickle(experiment_dir / (fn_dataset + ".pkl"))
     return dataset
-
-
-@pytest.fixture(autouse=True)
-def prepared(experiment_dir, fn_prepared) -> pd.DataFrame:
-    prepared = pd.DataFrame({"c": [7, 8, 9], "d": [10, 11, 12]})
-    prepared.to_pickle(experiment_dir / (fn_prepared + ".pkl"))
-    return prepared
 
 
 @pytest.fixture(autouse=True)
@@ -90,7 +70,7 @@ def args_handover(args, fn_dataset, prepared, metatransformer) -> argparse.Names
     return args
 
 
-def test_check_input_paths(experiment_dir, fn_dataset, fn_prepared, fn_metatransformer):
+def test_check_input_paths(experiment_dir, fn_dataset, fn_prepared, fn_metatransformer) -> None:
     expected_input_paths = (fn_dataset + ".pkl", fn_prepared + ".pkl", fn_dataset + fn_metatransformer + ".pkl")
 
     input_paths = check_input_paths(fn_dataset, fn_prepared, fn_metatransformer, experiment_dir)
