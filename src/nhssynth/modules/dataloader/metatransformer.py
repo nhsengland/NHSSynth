@@ -95,7 +95,12 @@ class MetaTransformer:
     encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.*
     """
 
-    def __init__(self, metadata, allow_null_transformers, synthesizer) -> None:
+    def __init__(
+        self,
+        metadata,
+        allow_null_transformers=False,
+        synthesizer="TVAE",
+    ) -> None:
         self.allow_null_transformers: bool = allow_null_transformers
         self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZERS[synthesizer]
         self.dtypes: dict[str, dict[str, Any]] = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}

@@ -26,13 +26,13 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     if "model" in args.modules_to_run:
         args.module_handover.update(
             {
-                "fn_dataset": fn_dataset,
-                "prepared_dataset": prepared_dataset,
+                "dataset": fn_dataset,
+                "prepared": prepared_dataset,
                 "metatransformer": mt,
             }
         )
     if "evaluation" in args.modules_to_run:
-        args.module_handover.update({"typed_dataset": typed_dataset, "sdtypes": mt.get_sdtypes()})
+        args.module_handover.update({"typed": typed_dataset, "sdtypes": mt.get_sdtypes()})
 
     print("")
 
