@@ -1,11 +1,14 @@
 import argparse
+from pathlib import Path
 
+import pandas as pd
 import pytest
+from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 from nhssynth.modules.model.io import *
 
 
 @pytest.fixture
-def experiment_dir(tmp_path) -> str:
+def experiment_dir(tmp_path) -> Path:
     experiment_dir = tmp_path / "experiment"
     experiment_dir.mkdir()
     return experiment_dir
@@ -37,8 +40,40 @@ def fn_model():
 
 
 @pytest.fixture
-def args_no_handover(fn_dataset, fn_prepared, fn_metatransformer) -> argparse.Namespace:
+def args() -> argparse.Namespace:
     args = argparse.Namespace()
+    args.module_handover = {}
+    return args
+
+
+@pytest.fixture(autouse=True)
+def dataset(experiment_dir, fn_dataset) -> pd.DataFrame:
+    dataset = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    dataset.to_pickle(experiment_dir / (fn_dataset + ".pkl"))
+    return dataset
+
+
+@pytest.fixture(autouse=True)
+def prepared(experiment_dir, fn_prepared) -> pd.DataFrame:
+    prepared = pd.DataFrame({"c": [7, 8, 9], "d": [10, 11, 12]})
+    prepared.to_pickle(experiment_dir / (fn_prepared + ".pkl"))
+    return prepared
+
+
+@pytest.fixture(autouse=True)
+def metatransformer(experiment_dir, fn_dataset, fn_metatransformer) -> MetaTransformer:
+    metadata = {
+        "a": {"sdtype": "numerical", "dtype": int},
+        "b": {"sdtype": "numerical", "dtype": int},
+    }
+    mt = MetaTransformer(metadata)
+    with open(experiment_dir / (fn_dataset + fn_metatransformer + ".pkl"), "wb") as f:
+        pickle.dump(mt, f)
+    return mt
+
+
+@pytest.fixture
+def args_no_handover(args, fn_dataset, fn_prepared, fn_metatransformer) -> argparse.Namespace:
     args.dataset = fn_dataset
     args.prepared = fn_prepared
     args.metatransformer = fn_metatransformer
@@ -46,12 +81,11 @@ def args_no_handover(fn_dataset, fn_prepared, fn_metatransformer) -> argparse.Na
 
 
 @pytest.fixture
-def args_handover(fn_dataset, fn_prepared, fn_metatransformer) -> argparse.Namespace:
-    args = argparse.Namespace()
+def args_handover(args, fn_dataset, prepared, metatransformer) -> argparse.Namespace:
     args.module_handover = {
         "dataset": fn_dataset,
-        "prepared": fn_prepared,
-        "metatransformer": fn_metatransformer,
+        "prepared": prepared,
+        "metatransformer": metatransformer,
     }
     return args
 
@@ -59,8 +93,6 @@ def args_handover(fn_dataset, fn_prepared, fn_metatransformer) -> argparse.Names
 def test_check_input_paths(experiment_dir, fn_dataset, fn_prepared, fn_metatransformer):
     expected_input_paths = (fn_dataset + ".pkl", fn_prepared + ".pkl", fn_dataset + fn_metatransformer + ".pkl")
 
-    experiment_dir.joinpath(fn_prepared + ".pkl").touch()
-    experiment_dir.joinpath(fn_dataset + fn_metatransformer + ".pkl").touch()
     input_paths = check_input_paths(fn_dataset, fn_prepared, fn_metatransformer, experiment_dir)
 
     assert input_paths == expected_input_paths
@@ -75,7 +107,6 @@ def test_check_input_paths_with_nested_dir(experiment_dir, fn_dataset, fn_prepar
     nested_dir = experiment_dir / "prepared"
     nested_dir.mkdir()
     nested_dir.joinpath(fn_prepared + ".pkl").touch()
-    experiment_dir.joinpath(fn_dataset + fn_metatransformer + ".pkl").touch()
 
     with pytest.warns(UserWarning, match="Using the path supplied appended to"):
         check_input_paths(fn_dataset, "prepared/" + fn_prepared, fn_metatransformer, experiment_dir)
@@ -97,15 +128,12 @@ def test_check_output_paths_with_seed(experiment_dir, fn_dataset, fn_synthetic, 
     assert output_paths == expected_output_paths
 
 
-def test_load_required_data_no_handover(args_no_handover, experiment_dir) -> None:
-    experiment_dir.joinpath(args_no_handover.prepared + ".pkl").touch()
-    experiment_dir.joinpath(args_no_handover.dataset + args_no_handover.metatransformer + ".pkl").touch()
-
+def test_load_required_data_no_handover(args_no_handover, experiment_dir, metatransformer, prepared) -> None:
     fn_dataset, prepared_dataset, mt = load_required_data(args_no_handover, experiment_dir)
 
-    assert fn_dataset == args_no_handover.dataset
-    assert prepared_dataset == args_no_handover.prepared
-    assert mt == args_no_handover.metatransformer
+    assert fn_dataset == args_no_handover.dataset + ".pkl"
+    assert prepared_dataset.equals(prepared)
+    assert mt.sdtypes == metatransformer.sdtypes
 
 
 def test_load_required_data_no_handover_with_invalid_filenames(args_no_handover, experiment_dir) -> None:
@@ -116,14 +144,9 @@ def test_load_required_data_no_handover_with_invalid_filenames(args_no_handover,
         load_required_data(args_no_handover, experiment_dir)
 
 
-def test_load_required_data_from_args(args_handover, experiment_dir) -> None:
-    experiment_dir.joinpath(args_handover.module_handover["prepared"] + ".pkl").touch()
-    experiment_dir.joinpath(
-        args_handover.module_handover["dataset"] + args_handover.module_handover["metatransformer"] + ".pkl"
-    ).touch()
-
+def test_load_required_data_from_args(args_handover, experiment_dir, metatransformer, prepared) -> None:
     fn_dataset, prepared_dataset, mt = load_required_data(args_handover, experiment_dir)
 
     assert fn_dataset == args_handover.module_handover["dataset"]
-    assert prepared_dataset == args_handover.module_handover["prepared"]
-    assert mt == args_handover.module_handover["metatransformer"]
+    assert prepared_dataset.equals(prepared)
+    assert mt.sdtypes == metatransformer.sdtypes
