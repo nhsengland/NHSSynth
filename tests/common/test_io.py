@@ -1,11 +1,12 @@
 import warnings
+from pathlib import Path
 
 import pytest
 from nhssynth.common.io import *
 
 
 @pytest.fixture
-def experiments_dir(tmp_path):
+def experiments_dir(tmp_path) -> Path:
     """
     Create a temporary directory for experiments and return its path.
     """
@@ -53,7 +54,7 @@ def test_potential_suffixes() -> None:
     assert actual_fns == expected_fns
 
 
-def test_check_exists_file_exists(tmp_path):
+def test_check_exists_file_exists(tmp_path) -> None:
     file_path1 = tmp_path / "test2.txt"
     file_path1.touch()
     file_path2 = tmp_path / "test1.txt"
@@ -62,12 +63,12 @@ def test_check_exists_file_exists(tmp_path):
     check_exists(["test1.txt", "test2.txt"], tmp_path)
 
 
-def test_check_exists_file_does_not_exist(tmp_path):
+def test_check_exists_file_does_not_exist(tmp_path) -> None:
     with pytest.raises(FileNotFoundError):
         check_exists(["test.txt"], tmp_path)
 
 
-def test_warn_if_path_supplied_no_warnings(tmp_path):
+def test_warn_if_path_supplied_no_warnings(tmp_path) -> None:
     file_path = tmp_path / "test.txt"
     file_path.touch()
 
@@ -77,7 +78,7 @@ def test_warn_if_path_supplied_no_warnings(tmp_path):
         assert len(w) == 0
 
 
-def test_warn_if_path_supplied_with_warnings(tmp_path):
+def test_warn_if_path_supplied_with_warnings(tmp_path) -> None:
     subdir_path = tmp_path / "subdir"
     subdir_path.mkdir()
     file_path = subdir_path / "test.txt"

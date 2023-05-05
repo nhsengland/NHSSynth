@@ -171,7 +171,7 @@ class VAE(Model):
         x_recon = self.decoder(mu_z)
         return x_recon
 
-    def generate(self, N: Optional[int] = None):
+    def generate(self, N: Optional[int] = None) -> pd.DataFrame:
         N = N or self.nrows
         z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim)), device=self.device)
         with warnings.catch_warnings():
@@ -179,10 +179,11 @@ class VAE(Model):
             x_gen = self.decoder(z_samples)
         x_gen_ = torch.ones_like(x_gen, device=self.device)
 
-        for cat_idxs in self.onehots:
-            x_gen_[:, cat_idxs] = torch.distributions.one_hot_categorical.OneHotCategorical(
-                logits=x_gen[:, cat_idxs]
-            ).sample()
+        if self.onehots != [[]]:
+            for cat_idxs in self.onehots:
+                x_gen_[:, cat_idxs] = torch.distributions.one_hot_categorical.OneHotCategorical(
+                    logits=x_gen[:, cat_idxs]
+                ).sample()
 
         x_gen_[:, self.singles] = x_gen[:, self.singles] + torch.exp(
             self.noiser(x_gen[:, self.singles])
@@ -205,7 +206,8 @@ class VAE(Model):
         x_recon = self.decoder(z_samples)
 
         categoric_loglik = 0
-        if len(self.onehots):
+
+        if self.onehots != [[]]:
             for cat_idxs in self.onehots:
                 categoric_loglik += -torch.nn.functional.cross_entropy(
                     x_recon[:, cat_idxs],
@@ -213,7 +215,7 @@ class VAE(Model):
                 ).sum()
 
         gauss_loglik = 0
-        if len(self.singles):
+        if self.singles:
             gauss_loglik = (
                 Normal(
                     loc=x_recon[:, self.singles],
