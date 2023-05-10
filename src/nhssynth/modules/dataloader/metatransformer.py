@@ -127,7 +127,7 @@ class MetaTransformer:
                 UserWarning,
             )
             self.dtypes.update({cn: data[cn].dtype for cn, cv in self.dtypes.items() if not cv})
-        return data.astype(self.dtypes)
+        return data.astype(self.dtypes, errors="ignore")
 
     def _instantiate_ohe_component_transformers(
         self, transformers: dict[str, Union[BaseTransformer, None]]
