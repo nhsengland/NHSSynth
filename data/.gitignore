@@ -3,3 +3,5 @@
 *
 # Except this file
 !.gitignore
+!support.csv
+!support_metadata.yaml
