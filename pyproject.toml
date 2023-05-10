@@ -50,6 +50,7 @@ optional = true
 [tool.poetry.group.aux.dependencies]
 jupyter = "^1.0.0"
 notebook = "^6.5.4"
+pycox = "^0.2.3"
 
 [tool.poetry.group.test]
 optional = true
