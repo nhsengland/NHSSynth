@@ -26,11 +26,9 @@ jobs:
           key: poetry-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}
       - name: Install Poetry
         if: steps.cached-poetry.outputs.cache-hit != 'true'
-        uses: snok/install-poetry@v1.3.3
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+        uses: snok/install-poetry@v1
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
       - name: Install tox
         run: pip install tox
       - name: Run tox
