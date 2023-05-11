@@ -37,8 +37,6 @@
 
 This repository currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases. See the internal [project description](https://nhsx.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/) for more information.
 
-_**Note:** No data, public or private are shared in this repository._
-
 ## Getting Started
 
 ### Project Structure
