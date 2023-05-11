@@ -1,8 +1,6 @@
 name: Build MkDocs
 
-on:
-  push:
-    branches: [main]
+on: [push]
 
 permissions:
   contents: write
@@ -35,6 +33,8 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
+      - name: list all files in the repository
+        run: ls -R
       - name: Load cached venv
         id: cached-poetry-dependencies
         uses: actions/cache@v3
