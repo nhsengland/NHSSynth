@@ -1,6 +1,8 @@
 name: Build MkDocs
 
-on: [push]
+on: 
+  push:
+    branches: [main]
 
 permissions:
   contents: write
@@ -44,8 +46,6 @@ jobs:
         run: poetry install --no-interaction --no-root --with docs
       - name: Install project
         run: poetry install --no-interaction --with docs
-      - name: list all files in the repository
-        run: ls -R
       - name: Deploy MkDocs
         run: |
           source .venv/bin/activate
