@@ -17,16 +17,13 @@ classifiers = [
 "Docs" = "https://nhsx.github.io/NHSSynth"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
-setuptools = "^67.6.1"
+python = "^3.9"
+pandas = "^2.0.1"
+scikit-learn = "^1.2.2"
 tqdm = "^4.65.0"
 gower = "^0.1.2"
 pyyaml = "^6.0"
-sdmetrics = "^0.9.3"
-pandas = "^1.5.3"
-rdt = "^1.4.0"
-sdv = "^1.0.0"
-torch = "1.13.1"
+torch = "^2.0.1"
 opacus = "^1.4.0"
 
 [tool.poetry.scripts]
