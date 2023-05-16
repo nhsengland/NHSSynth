@@ -10,7 +10,7 @@
 </div>
 <div align="center">
 
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth)](https://www.python.org/downloads/release/python-3100/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nhssynth)](https://www.python.org/downloads/release/python-31011/)
 [![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth)](https://pypi.org/project/nhssynth/)
 [![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth)](https://pypi.org/project/nhssynth/)
 [![PyPI - Wheel](https://img.shields.io/pypi/wheel/nhssynth)](https://pypi.org/project/nhssynth/)
