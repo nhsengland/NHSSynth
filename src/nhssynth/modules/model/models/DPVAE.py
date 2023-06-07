@@ -1,7 +1,7 @@
 from typing import Optional
 
-from nhssynth.modules.model.common.DPMixin import DPMixin
-from nhssynth.modules.model.models.VAE import VAE
+from nhssynth.modules.model.common.dp import DPMixin
+from nhssynth.modules.model.models.vae import VAE
 from opacus import GradSampleModule
 
 

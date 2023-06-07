@@ -42,21 +42,23 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
         help="indicate whether the csv file's 0th column is an index column, such that pandas can ignore it",
     )
     group.add_argument(
-        "--allow-null-transformers",
-        action="store_true",
-        help="allow null / None transformers, i.e. leave some columns as they are",
-    )
-    group.add_argument(
         "--collapse-yaml",
         action="store_true",
         help="use aliases and anchors in the output metadata yaml, this will make it much more compact",
     )
     group.add_argument(
-        "--synthesizer",
+        "--missingness",
         type=str,
-        default="TVAE",
-        choices=list(SDV_SYNTHESIZERS.keys()),
-        help="pick a synthesizer to use (note this can also be specified in the model module, these must match)",
+        default="augment",
+        choices=MISSINGNESS_STRATEGIES,
+        help="how to handle missing values in the dataset",
+    )
+    group.add_argument(
+        "--impute",
+        type=str,
+        default=None,
+        choices=IMPUTE_OPTIONS,
+        help="the imputation strategy to use, ONLY USED if <MISSINGNESS> is set to 'impute'",
     )
 
 

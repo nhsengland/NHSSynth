@@ -1,61 +1,166 @@
 import pathlib
-from typing import Any
+import warnings
+from typing import Any, Optional, Union
 
+import numpy as np
 import pandas as pd
 import yaml
 from nhssynth.common.dicts import filter_dict, get_key_by_value
+from nhssynth.modules.dataloader.transformers import *
+from nhssynth.modules.dataloader.transformers.generic import GenericTransformer
+from pandas.core.tools.datetimes import _guess_datetime_format_for_array
 
 
-def create_empty_metadata(data: pd.DataFrame) -> dict[str, dict]:
-    """
-    Creates an empty metadata dictionary for a given pandas DataFrame.
+class ColumnMetaData:
+    def __init__(self, name: str, data: pd.Series, raw: dict, global_missingness: bool) -> None:
+        self.name = name
+        print(raw["dtype"])
+        self.dtype = self._validate_dtype(raw.get("dtype"), data)
+        if self.dtype.kind == "M":
+            print(raw["dtype"])
+            self.datetime_config = self._setup_datetime_config(raw.get("dtype"), data)
+        elif self.dtype.kind == "f":
+            self.rounding_scheme = self._validate_rounding_scheme(raw.get("dtype"), data)
+        self.categorical = self._validate_categorical(raw.get("categorical"), data)
+        self.transformer = self._validate_transformer(raw.get("transformer"), data, global_missingness)
+        # self.constraints = self._validate_constraints(raw.get("constraints"), data)
 
-    Args:
-        data: The DataFrame in question.
+    def _validate_dtype(self, dtype: Optional[Union[dict, str]], data: pd.Series) -> np.dtype:
+        if isinstance(dtype, dict):
+            dtype_name = dtype.pop("name", None)
+        elif isinstance(dtype, str):
+            dtype_name = dtype
+        else:
+            return self._infer_dtype(data)
+        try:
+            return np.dtype(dtype_name)
+        except TypeError:
+            warnings.warn(
+                f"Invalid dtype specification '{dtype_name}' for column '{self.name}', ignoring dtype for this column"
+            )
+            return self._infer_dtype(data)
 
-    Returns:
-        A dictionary where each key corresponds to a column name in the DataFrame, and each value is an empty dictionary.
-    """
-    return {cn: {} for cn in data.columns}
+    def _infer_dtype(self, data: pd.Series) -> np.dtype:
+        return data.dtype
+
+    def _setup_datetime_config(self, datetime_config: dict, data: pd.Series) -> dict:
+        """
+        Add keys to `datetime_config` corresponding to args from the `pd.to_datetime` function
+        (see [the docs](https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html))
+        """
+        if not isinstance(datetime_config, dict):
+            datetime_config = {}
+        else:
+            datetime_config = filter_dict(datetime_config, {"name"})
+        if "format" not in datetime_config:
+            datetime_config["format"] = _guess_datetime_format_for_array(data[data.notna()].astype(str).to_numpy())
+        if "utc" not in self.datetime_config:
+            datetime_config["utc"] = data.dt.tz is not None
+        return datetime_config
+
+    def _validate_rounding_scheme(self, dtype_dict: dict, data: pd.Series) -> int:
+        if dtype_dict and "rounding_scheme" in dtype_dict:
+            return dtype_dict["rounding_scheme"]
+        else:
+            roundable_data = data[data.notna()]
+            for i in range(np.finfo(roundable_data.dtype).precision):
+                if (roundable_data.round(i) == roundable_data).all():
+                    return i
+        return None
+
+    def _validate_categorical(self, categorical: Optional[bool], data: pd.Series) -> bool:
+        if not isinstance(categorical, bool):
+            warnings.warn(
+                f"Invalid categorical '{categorical}' for column '{self.name}', ignoring categorical for this column"
+            )
+            return self._infer_categorical(data)
+        else:
+            return categorical
+
+    def _infer_categorical(self, data: pd.Series) -> bool:
+        return data.nunique() <= 10 or self.dtype.kind == "O"
+
+    def _validate_transformer(
+        self, transformer: Optional[Union[dict, str]], global_missingness: bool
+    ) -> tuple[str, dict]:
+        if isinstance(transformer, dict):
+            transformer_name = transformer.pop("name", None)
+            transformer_config = transformer
+            if global_missingness:
+                transformer_config.pop("missingness")
+            else:
+                missingness_strategy = transformer_config.pop("missingness", None)
+
+        elif isinstance(transformer, str):
+            transformer_name, transformer_config = transformer, {}
+        else:
+            return self._infer_transformer(transformer)
+        try:
+            return eval(transformer_name)(**transformer_config)
+        except:
+            warnings.warn(
+                f"Invalid transformer '{transformer_name}' or transformer config for column '{self.name}', ignoring transformer for this column"
+            )
+            return self._infer_transformer(transformer)
+
+    def _infer_transformer(self, transformer_config) -> GenericTransformer:
+        if not isinstance(transformer_config, dict):
+            transformer_config = {}
+        if self.categorical:
+            transformer = OHETransformer(**transformer_config)
+        else:
+            transformer = ClusterTransformer(**transformer_config)
+        if self.dtype.kind == "M":
+            transformer = DatetimeTransformer(transformer, self.datetime_config)
+        return transformer
 
 
-def check_metadata_columns(metadata: dict[str, dict[str, Any]], data: pd.DataFrame) -> None:
-    """
-    Check if all column representations in the `metadata` correspond to valid columns in the `data`.
-    If any columns are not present, add them to the metadata and instantiate an empty dictionary.
+class MetaData:
+    def __init__(self, data: pd.DataFrame, metadata: Optional[dict] = {}):
+        self.columns: list[str] = data.columns
+        self.raw_metadata: dict = metadata
+        if set(self.raw_metadata.keys()) - set(self.columns):
+            raise ValueError("Metadata contains keys that do not appear amongst the columns.")
+        self._metadata = {cn: ColumnMetaData(cn, data[cn], self.raw_metadata.get(cn, {})) for cn in self.columns}
 
-    Args:
-        metadata: A dictionary containing metadata for the columns in the passed `data`.
-        data: The DataFrame to check against the metadata.
+    def __index__(self, key: str) -> dict[str, Any]:
+        return self._metadata[key]
 
-    Raises:
-        AssertionError: If any columns that *are* in metadata are *not* present in the `data`.
-    """
-    assert all([k in data.columns for k in metadata.keys()])
-    metadata.update({cn: {} for cn in data.columns if cn not in metadata})
+    @classmethod
+    def load(cls, path: str, data: pd.DataFrame):
+        if path.exists():
+            with open(path) as stream:
+                metadata = yaml.safe_load(stream)
+            # Filter out expanded alias/anchor groups
+            metadata = filter_dict(metadata, {"transformers", "column_types"})
+        else:
+            warnings.warn(f"No metadata found at {path}...")
+            metadata = {}
+        return cls(data, metadata)
 
+    def save(
+        self,
+        path: pathlib.Path,
+        collapse_yaml: bool,
+    ) -> None:
+        """
+        Writes metadata to a YAML file.
 
-def load_metadata(in_path: pathlib.Path, data: pd.DataFrame) -> dict[str, dict[str, Any]]:
-    """
-    Load metadata from a YAML file located at `in_path`. If the file does not exist, create an empty metadata
-    dictionary with column names from the `data`.
+        Args:
+            path: The path at which to write the metadata YAML file.
+            metadata: The metadata dictionary to be written.
+            collapse_yaml: A boolean indicating whether to collapse the YAML representation of the metadata, reducing duplication.
+        """
+        with open(path, "w") as yaml_file:
+            yaml.safe_dump(
+                collapse(self._metadata) if collapse_yaml else self._metadata,
+                yaml_file,
+                default_flow_style=False,
+                sort_keys=False,
+            )
 
-    Args:
-        in_path: The path to the YAML file containing the metadata.
-        data: The DataFrame containing the data for which metadata is being loaded.
-
-    Returns:
-        A metadata dictionary containing information about the columns in the `data`.
-    """
-    if in_path.exists():
-        with open(in_path) as stream:
-            metadata = yaml.safe_load(stream)
-        # Filter out expanded alias/anchor groups
-        metadata = filter_dict(metadata, {"transformers", "column_types"})
-        check_metadata_columns(metadata, data)
-    else:
-        metadata = create_empty_metadata(data)
-    return metadata
+    def get_sdtypes(self) -> dict[str, str]:
+        return {cn: cm.dtype.name for cn, cm in self._metadata.items()}
 
 
 def collapse(metadata: dict) -> dict:
@@ -100,42 +205,3 @@ def collapse(metadata: dict) -> dict:
             metadata[cn]["transformer"] = transformers[tix]
 
     return {"transformers": transformers, "column_types": column_types, **metadata}
-
-
-def output_metadata(
-    out_path: pathlib.Path,
-    metadata: dict[str, dict[str, Any]],
-    collapse_yaml: bool,
-) -> None:
-    """
-    Writes metadata to a YAML file.
-
-    Args:
-        out_path: The path at which to write the metadata YAML file.
-        metadata: The metadata dictionary to be written.
-        collapse_yaml: A boolean indicating whether to collapse the YAML representation of the metadata, reducing duplication.
-    """
-    if collapse_yaml:
-        metadata = collapse(metadata)
-    with open(out_path, "w") as yaml_file:
-        yaml.safe_dump(metadata, yaml_file, default_flow_style=False, sort_keys=False)
-
-
-def get_sdtypes(metadata: dict[str, dict[str, Any]]) -> dict[str, dict[str, dict[str, str]]]:
-    """
-    Extracts the `sdtype` for each column from a valid assembled metadata dictionary and reformats them the correct format for use with SDMetrics.
-
-    Args:
-        metadata: The metadata dictionary to extract the `sdtype`s from.
-
-    Returns:
-        A dictionary mapping column names to a dict containing `sdtype` value for that column.
-    """
-    return {
-        "columns": {
-            cn: {
-                "sdtype": cd["sdtype"],
-            }
-            for cn, cd in metadata.items()
-        }
-    }

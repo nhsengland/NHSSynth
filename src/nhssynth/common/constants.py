@@ -3,8 +3,8 @@ from time import strftime
 from typing import Final
 
 import torch.nn as nn
+from nhssynth.modules.dataloader.missingness import *
 from sdmetrics.single_table import *
-from sdv.single_table import *
 
 TIME: Final = strftime("%Y_%m_%d___%H_%M_%S")
 
@@ -26,12 +26,13 @@ ACTIVATION_FUNCTIONS: Final = {
     "sigmoid": nn.Sigmoid,
 }
 
-SDV_SYNTHESIZERS: Final = {
-    "TVAE": TVAESynthesizer,
-    "CTGAN": CTGANSynthesizer,
-    "CopulaGAN": CopulaGANSynthesizer,
-    "Copula": GaussianCopulaSynthesizer,
+MISSINGNESS_STRATEGIES: Final = {
+    "impute": ImputeMissingnessStrategy,
+    "augment": AugmentMissingnessStrategy(),
+    "drop": DropMissingnessStrategy(),
 }
+
+IMPUTE_OPTIONS: Final = ["mean", "median", "mode"]
 
 SDV_DETECTION_METRIC_CHOICES: Final = {
     "LogisticDetection": LogisticDetection,

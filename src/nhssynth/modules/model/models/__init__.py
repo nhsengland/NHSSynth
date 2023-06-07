@@ -1,7 +1,7 @@
 from typing import Final
 
-from .DPVAE import DPVAE
-from .VAE import VAE
+from .dpvae import DPVAE
+from .vae import VAE
 
 MODELS: Final = {
     "VAE": VAE,

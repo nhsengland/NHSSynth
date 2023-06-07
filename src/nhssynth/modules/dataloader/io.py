@@ -2,9 +2,7 @@ import argparse
 import pickle
 from pathlib import Path
 
-import pandas as pd
 from nhssynth.common.io import *
-from nhssynth.modules.dataloader.metadata import output_metadata
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
@@ -67,8 +65,6 @@ def check_output_paths(
 
 
 def write_data_outputs(
-    typed_dataset: pd.DataFrame,
-    prepared_dataset: pd.DataFrame,
     metatransformer: MetaTransformer,
     fn_dataset: str,
     fn_metadata: str,
@@ -79,8 +75,6 @@ def write_data_outputs(
     Writes the transformed data and metatransformer to disk.
 
     Args:
-        typed_dataset: The typed version of the input dataset.
-        prepared_dataset: The prepared version of the input dataset.
         metatransformer: The metatransformer used to transform the data into its prepared state.
         fn_dataset: The base dataset filename.
         fn_metadata: The metadata filename.
@@ -90,9 +84,9 @@ def write_data_outputs(
     fn_typed, fn_prepared, fn_transformer = check_output_paths(
         fn_dataset, args.typed, args.prepared, args.metatransformer, dir_experiment
     )
-    output_metadata(dir_experiment / fn_metadata, metatransformer.get_assembled_metadata(), args.collapse_yaml)
-    typed_dataset.to_pickle(dir_experiment / fn_typed)
-    prepared_dataset.to_pickle(dir_experiment / fn_prepared)
-    prepared_dataset.to_csv(dir_experiment / (fn_prepared[:-3] + "csv"), index=False)
+    metatransformer.metadata.save(dir_experiment / fn_metadata, args.collapse_yaml)
+    metatransformer.get_typed_data().to_pickle(dir_experiment / fn_typed)
+    metatransformer.get_prepared_data().to_pickle(dir_experiment / fn_prepared)
+    metatransformer.get_prepared_data().to_csv(dir_experiment / (fn_prepared[:-3] + "csv"), index=False)
     with open(dir_experiment / fn_transformer, "wb") as f:
         pickle.dump(metatransformer, f)
