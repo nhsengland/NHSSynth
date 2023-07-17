@@ -33,12 +33,10 @@ class ClusterTransformer(GenericTransformer):
         self._max_iter = max_iter
 
     def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None) -> pd.DataFrame:
-        name = data.name
+        self.original_column_name = data.name
         if missingness_column is not None:
             self._missingness_column_name = missingness_column.name
-            assert len(data[missingness_column == 1].unique()) == 1, "Only one missing value is supported"
-            self._missingness_replacement_value = data[missingness_column == 1].unique()[0]
-            missing_data = pd.DataFrame(data[missingness_column == 1].rename(f"{name}_normalised"))
+            missing_data = pd.DataFrame(data[missingness_column == 1].rename(f"{self.original_column_name}_normalised"))
             data = data[missingness_column == 0]
         index = data.index
         data = np.array(data.values.reshape(-1, 1), dtype=data.dtype.name.lower())
@@ -60,7 +58,8 @@ class ClusterTransformer(GenericTransformer):
         transformed_data = pd.DataFrame(
             np.hstack([normalised.reshape(-1, 1), components]),
             index=index,
-            columns=[f"{name}_normalised"] + [f"{name}_c{i + 1}" for i in range(self._n_components)],
+            columns=[f"{self.original_column_name}_normalised"]
+            + [f"{self.original_column_name}_c{i + 1}" for i in range(self._n_components)],
         )
 
         if missingness_column is not None:
@@ -68,30 +67,28 @@ class ClusterTransformer(GenericTransformer):
                 [pd.concat([transformed_data, missing_data]).sort_index().fillna(0.0), missingness_column], axis=1
             )
 
-        transformed_data = transformed_data.astype({f"{name}_c{i + 1}": int for i in range(self._n_components)})
-        self.columns = transformed_data.columns
+        transformed_data = transformed_data.astype(
+            {f"{self.original_column_name}_c{i + 1}": int for i in range(self._n_components)}
+        )
+        self.new_column_names = transformed_data.columns
         return transformed_data
 
-    def revert(self, data: pd.DataFrame) -> pd.Series:
-        assert not self.columns.empty and all(
-            self.columns == data.columns
-        ), "Input data columns do not match transformer columns"
-
-        full_index = data.index
+    def revert(self, data: pd.DataFrame) -> pd.DataFrame:
+        working_data = data[self.new_column_names]
+        full_index = working_data.index
         if self._missingness_column_name is not None:
-            data = data[data[self._missingness_column_name] == 0]
-            data = data.drop(self._missingness_column_name, axis=1)
-        index = data.index
+            working_data = working_data[working_data[self._missingness_column_name] == 0]
+            working_data = working_data.drop(self._missingness_column_name, axis=1)
+        index = working_data.index
 
-        components = np.argmax(data.filter(regex=r".*_c\d+").values, axis=1)
-        data = data.filter(like="_normalised").values.reshape(-1)
-        data = np.clip(data, -1.0, 1.0)
+        components = np.argmax(working_data.filter(regex=r".*_c\d+").values, axis=1)
+        working_data = working_data.filter(like="_normalised").values.reshape(-1)
+        working_data = np.clip(working_data, -1.0, 1.0)
 
-        # recreate data
         mean_t = self.means[components]
         std_t = self.stds[components]
-        return (
-            pd.Series(data * self._std_multiplier * std_t + mean_t, index=index)
-            .reindex(full_index)
-            .fillna(self._missingness_replacement_value)
-        )
+        data[self.original_column_name] = pd.Series(
+            working_data * self._std_multiplier * std_t + mean_t, index=index, name=self.original_column_name
+        ).reindex(full_index)
+        data.drop(self.new_column_names, axis=1, inplace=True)
+        return data

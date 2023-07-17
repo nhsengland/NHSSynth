@@ -164,6 +164,9 @@ class MetaTransformer:
         self.multi_column_indices = []
         col_counter = 0
         working_data = self.prepared_dataset.copy()
+
+        print("")
+
         for column_metadata in tqdm(
             self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
         ):
@@ -182,11 +185,19 @@ class MetaTransformer:
                     transformed_data = transformed_data.astype(column_metadata.dtype.name.lower())
             transformed_columns.append(transformed_data)
             if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
-                self.multi_column_indices.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
-                col_counter += transformed_data.shape[1]
+                num_to_add = transformed_data.shape[1]
+                if not column_metadata.categorical:
+                    self.single_column_indices.append(col_counter)
+                    col_counter += 1
+                    num_to_add -= 1
+                self.multi_column_indices.append(list(range(col_counter, col_counter + num_to_add)))
+                col_counter += num_to_add
             else:
                 self.single_column_indices.append(col_counter)
                 col_counter += 1
+
+        print("")
+
         return pd.concat(transformed_columns, axis=1)
 
     def apply(self) -> None:
@@ -250,6 +261,6 @@ class MetaTransformer:
         Returns:
             The original dataset.
         """
-        for transformer in self.component_transformer.values():
-            dataset = transformer.reverse_transform(dataset)
-        return self.metatransformer._data_processor.reverse_transform(dataset)
+        for column_metadata in self.metadata:
+            dataset = column_metadata.transformer.revert(dataset)
+        return dataset
