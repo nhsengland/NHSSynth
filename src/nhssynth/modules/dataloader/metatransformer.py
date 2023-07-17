@@ -140,10 +140,6 @@ class MetaTransformer:
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
-            if column_metadata.dtype.kind in ["f", "i", "u"]:
-                working_data[column_metadata.name] = working_data[column_metadata.name].astype(
-                    column_metadata.dtype.name.lower()
-                )
         return working_data
 
     def transform(self) -> pd.DataFrame:
@@ -175,6 +171,11 @@ class MetaTransformer:
                 )
             else:
                 transformed_data = column_metadata.transformer.apply(working_data[column_metadata.name])
+            if column_metadata.dtype.kind in ["f", "i", "u"]:
+                if isinstance(transformed_data, pd.DataFrame):
+                    transformed_data = transformed_data.apply(lambda x: x.astype(column_metadata.dtype.name.lower()))
+                else:
+                    transformed_data = transformed_data.astype(column_metadata.dtype.name.lower())
             transformed_columns.append(transformed_data)
             if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
                 self.multi_column_indices.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
