@@ -20,14 +20,14 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
             set_seed(args.seed + i if args.seed else None)
 
-            fn_dataset, prepared_dataset, mt = load_required_data(args, dir_experiment)
-            onehots, singles = mt.get_onehots_and_singles()
+            fn_dataset, transformed_dataset, mt = load_required_data(args, dir_experiment)
+            multi_column_indices, single_column_indices = mt.get_multi_and_single_column_indices()
 
             model = MODELS[architecture].from_args(
                 args=args,
-                data=prepared_dataset,
-                onehots=onehots,
-                singles=singles,
+                data=transformed_dataset,
+                multi_column_indices=multi_column_indices,
+                single_column_indices=single_column_indices,
             )
             num_epochs, results = model.train(
                 num_epochs=args.num_epochs,

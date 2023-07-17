@@ -53,43 +53,43 @@ def metatransformer(experiment_dir, fn_dataset, fn_metatransformer) -> MetaTrans
 
 
 @pytest.fixture
-def args_no_handover(args, fn_dataset, fn_prepared, fn_metatransformer) -> argparse.Namespace:
+def args_no_handover(args, fn_dataset, fn_transformed, fn_metatransformer) -> argparse.Namespace:
     args.dataset = fn_dataset
-    args.prepared = fn_prepared
+    args.transformed = fn_transformed
     args.metatransformer = fn_metatransformer
     return args
 
 
 @pytest.fixture
-def args_handover(args, fn_dataset, prepared, metatransformer) -> argparse.Namespace:
+def args_handover(args, fn_dataset, transformed, metatransformer) -> argparse.Namespace:
     args.module_handover = {
         "dataset": fn_dataset,
-        "prepared": prepared,
+        "transformed": transformed,
         "metatransformer": metatransformer,
     }
     return args
 
 
-def test_check_input_paths(experiment_dir, fn_dataset, fn_prepared, fn_metatransformer) -> None:
-    expected_input_paths = (fn_dataset + ".pkl", fn_prepared + ".pkl", fn_dataset + fn_metatransformer + ".pkl")
+def test_check_input_paths(experiment_dir, fn_dataset, fn_transformed, fn_metatransformer) -> None:
+    expected_input_paths = (fn_dataset + ".pkl", fn_transformed + ".pkl", fn_dataset + fn_metatransformer + ".pkl")
 
-    input_paths = check_input_paths(fn_dataset, fn_prepared, fn_metatransformer, experiment_dir)
+    input_paths = check_input_paths(fn_dataset, fn_transformed, fn_metatransformer, experiment_dir)
 
     assert input_paths == expected_input_paths
 
 
 def test_check_input_paths_with_invalid_filenames(experiment_dir, fn_dataset) -> None:
     with pytest.raises(FileNotFoundError):
-        check_input_paths(fn_dataset, "not_prepared.pkl", "not_metatransformer.pkl", experiment_dir)
+        check_input_paths(fn_dataset, "not_transformed.pkl", "not_metatransformer.pkl", experiment_dir)
 
 
-def test_check_input_paths_with_nested_dir(experiment_dir, fn_dataset, fn_prepared, fn_metatransformer) -> None:
-    nested_dir = experiment_dir / "prepared"
+def test_check_input_paths_with_nested_dir(experiment_dir, fn_dataset, fn_transformed, fn_metatransformer) -> None:
+    nested_dir = experiment_dir / "transformed"
     nested_dir.mkdir()
-    nested_dir.joinpath(fn_prepared + ".pkl").touch()
+    nested_dir.joinpath(fn_transformed + ".pkl").touch()
 
     with pytest.warns(UserWarning, match="Using the path supplied appended to"):
-        check_input_paths(fn_dataset, "prepared/" + fn_prepared, fn_metatransformer, experiment_dir)
+        check_input_paths(fn_dataset, "transformed/" + fn_transformed, fn_metatransformer, experiment_dir)
 
 
 def test_check_output_paths(experiment_dir, fn_dataset, fn_synthetic, fn_model) -> None:
@@ -108,25 +108,25 @@ def test_check_output_paths_with_seed(experiment_dir, fn_dataset, fn_synthetic, 
     assert output_paths == expected_output_paths
 
 
-def test_load_required_data_no_handover(args_no_handover, experiment_dir, metatransformer, prepared) -> None:
-    fn_dataset, prepared_dataset, mt = load_required_data(args_no_handover, experiment_dir)
+def test_load_required_data_no_handover(args_no_handover, experiment_dir, metatransformer, transformed) -> None:
+    fn_dataset, transformed_dataset, mt = load_required_data(args_no_handover, experiment_dir)
 
     assert fn_dataset == args_no_handover.dataset + ".pkl"
-    assert prepared_dataset.equals(prepared)
+    assert transformed_dataset.equals(transformed)
     assert mt.sdtypes == metatransformer.sdtypes
 
 
 def test_load_required_data_no_handover_with_invalid_filenames(args_no_handover, experiment_dir) -> None:
-    args_no_handover.prepared = "not_prepared"
+    args_no_handover.transformed = "not_transformed"
     args_no_handover.metatransformer = "not_metatransformer"
 
     with pytest.raises(FileNotFoundError):
         load_required_data(args_no_handover, experiment_dir)
 
 
-def test_load_required_data_from_args(args_handover, experiment_dir, metatransformer, prepared) -> None:
-    fn_dataset, prepared_dataset, mt = load_required_data(args_handover, experiment_dir)
+def test_load_required_data_from_args(args_handover, experiment_dir, metatransformer, transformed) -> None:
+    fn_dataset, transformed_dataset, mt = load_required_data(args_handover, experiment_dir)
 
     assert fn_dataset == args_handover.module_handover["dataset"]
-    assert prepared_dataset.equals(prepared)
+    assert transformed_dataset.equals(transformed)
     assert mt.sdtypes == metatransformer.sdtypes

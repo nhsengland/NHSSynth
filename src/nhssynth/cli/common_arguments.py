@@ -86,9 +86,9 @@ COMMON_PARSERS: Final = {
         "typed",
         "filename of the typed data",
     ),
-    "prepared": suffix_parser_generator(
-        "prepared",
-        "filename of the prepared data",
+    "transformed": suffix_parser_generator(
+        "transformed",
+        "filename of the transformed data",
     ),
     "metatransformer": suffix_parser_generator(
         "metatransformer",

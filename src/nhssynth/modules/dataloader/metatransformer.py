@@ -30,18 +30,18 @@ class MetaTransformer:
     Attributes:
         metatransformer (self.Synthesizer): An instanatiated `self.Synthesizer` object, ready to use on dataset.
         assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.
-        onehots (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
-        singles (list[int]): The indices of non-one-hotted columns.
+        multi_column_indices (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
+        single_column_indices (list[int]): The indices of non-one-hotted columns.
 
     **Methods:**
 
     - `get_assembled_metadata()`: Returns the assembled metadata.
     - `get_sdtypes()`: Returns the sdtypes from the assembled metadata in the correct format for SDMetrics.
-    - `get_onehots_and_singles()`: Returns the values of the MetaTransformer's `onehots` and `singles` attributes.
+    - `get_multi_column_indices_and_single_column_indices()`: Returns the values of the MetaTransformer's `multi_column_indices` and `single_column_indices` attributes.
     - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given dataset.
 
     Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.prepare` and finally
-    `mt.count_onehots_and_singles` in sequence on a given raw dataset. Along the way it assigns the attributes listed above. *This workflow is highly
+    `mt.count_multi_column_indices_and_single_column_indices` in sequence on a given raw dataset. Along the way it assigns the attributes listed above. *This workflow is highly
     encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.*
     """
 
@@ -140,6 +140,10 @@ class MetaTransformer:
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
+            if column_metadata.dtype.kind in ["f", "i", "u"]:
+                working_data[column_metadata.name] = working_data[column_metadata.name].astype(
+                    column_metadata.dtype.name.lower()
+                )
         return working_data
 
     def transform(self) -> pd.DataFrame:
@@ -156,8 +160,8 @@ class MetaTransformer:
             ValueError: If the metatransformer has not yet been instantiated.
         """
         transformed_columns = []
-        self.single_idxs = []
-        self.multi_idxs = []
+        self.single_column_indices = []
+        self.multi_column_indices = []
         col_counter = 0
         working_data = self.prepared_dataset.copy()
         for column_metadata in tqdm(
@@ -173,10 +177,10 @@ class MetaTransformer:
                 transformed_data = column_metadata.transformer.apply(working_data[column_metadata.name])
             transformed_columns.append(transformed_data)
             if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
-                self.multi_idxs.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
+                self.multi_column_indices.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
                 col_counter += transformed_data.shape[1]
             else:
-                self.single_idxs.append(col_counter)
+                self.single_column_indices.append(col_counter)
                 col_counter += 1
         return pd.concat(transformed_columns, axis=1)
 
@@ -206,7 +210,7 @@ class MetaTransformer:
             raise ValueError(
                 "The prepared dataset has not yet been created. Call `mt.apply()` (or `mt.apply_missingness_strategy()`) first."
             )
-        return self.get_prepared_dataset
+        return self.prepared_dataset
 
     def get_transformed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "transformed_dataset"):
@@ -217,6 +221,19 @@ class MetaTransformer:
 
     def save_metadata(self, path: pathlib.Path, collapse_yaml: bool = False) -> None:
         return self.metadata.save(path, collapse_yaml)
+
+    def get_multi_and_single_column_indices(self) -> tuple[list[int], list[int]]:
+        """
+        Returns the indices of the columns that were transformed into one or multiple column(s).
+
+        Returns:
+            A tuple containing the indices of the single and multi columns.
+        """
+        if not hasattr(self, "multi_column_indices") or not hasattr(self, "single_column_indices"):
+            raise ValueError(
+                "The single and multi column indices have not yet been created. Call `mt.apply()` (or `mt.transform()`) first."
+            )
+        return self.multi_column_indices, self.single_column_indices
 
     def inverse_apply(self, dataset: pd.DataFrame) -> pd.DataFrame:
         """

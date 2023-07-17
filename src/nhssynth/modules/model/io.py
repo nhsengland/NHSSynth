@@ -9,25 +9,27 @@ from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
 def check_input_paths(
-    fn_dataset: str, fn_prepared: str, fn_metatransformer: str, dir_experiment: Path
+    fn_dataset: str, fn_transformed: str, fn_metatransformer: str, dir_experiment: Path
 ) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
 
     Args:
         fn_dataset: The base name of the dataset.
-        fn_prepared: The name of the prepared data file.
+        fn_transformed: The name of the transformed data file.
         fn_metatransformer: The name of the metatransformer file.
         dir_experiment: The path to the experiment directory.
 
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_dataset, fn_prepared, fn_metatransformer = consistent_endings([fn_dataset, fn_prepared, fn_metatransformer])
-    fn_prepared, fn_metatransformer = potential_suffixes([fn_prepared, fn_metatransformer], fn_dataset)
-    warn_if_path_supplied([fn_dataset, fn_prepared, fn_metatransformer], dir_experiment)
-    check_exists([fn_prepared, fn_metatransformer], dir_experiment)
-    return fn_dataset, fn_prepared, fn_metatransformer
+    fn_dataset, fn_transformed, fn_metatransformer = consistent_endings(
+        [fn_dataset, fn_transformed, fn_metatransformer]
+    )
+    fn_transformed, fn_metatransformer = potential_suffixes([fn_transformed, fn_metatransformer], fn_dataset)
+    warn_if_path_supplied([fn_dataset, fn_transformed, fn_metatransformer], dir_experiment)
+    check_exists([fn_transformed, fn_metatransformer], dir_experiment)
+    return fn_dataset, fn_transformed, fn_metatransformer
 
 
 def check_output_paths(
@@ -76,18 +78,18 @@ def load_required_data(
     Returns:
         The data, metadata and metatransformer.
     """
-    if all(x in args.module_handover for x in ["dataset", "prepared", "metatransformer"]):
+    if all(x in args.module_handover for x in ["dataset", "transformed", "metatransformer"]):
         return (
             args.module_handover["dataset"],
-            args.module_handover["prepared"],
+            args.module_handover["transformed"],
             args.module_handover["metatransformer"],
         )
     else:
-        fn_dataset, fn_prepared, fn_metatransformer = check_input_paths(
-            args.dataset, args.prepared, args.metatransformer, dir_experiment
+        fn_dataset, fn_transformed, fn_metatransformer = check_input_paths(
+            args.dataset, args.transformed, args.metatransformer, dir_experiment
         )
 
-        with open(dir_experiment / fn_prepared, "rb") as f:
+        with open(dir_experiment / fn_transformed, "rb") as f:
             data = pickle.load(f)
         with open(dir_experiment / fn_metatransformer, "rb") as f:
             mt = pickle.load(f)

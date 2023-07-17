@@ -26,7 +26,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         args.module_handover.update(
             {
                 "dataset": fn_dataset,
-                "prepared": mt.get_prepared_dataset(),
+                "transformed": mt.get_transformed_dataset(),
                 "metatransformer": mt,
             }
         )
