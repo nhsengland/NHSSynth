@@ -1,15 +1,16 @@
 dob:
-  dtype:
-    name: datetime64
-    format: "%Y-%m-%d"
+  dtype: datetime64
   transformer:
-    num_components: 20
+    n_components: 20
 x1:
   categorical: true
   dtype: int64
+  missingness: augment
 x2:
   categorical: true
   dtype: int64
+  missingness:
+    impute: mean
 x3:
   categorical: true
   dtype: object
@@ -27,7 +28,7 @@ x7:
   transformer:
     init_params: "kmeans"
 x8:
-  dtype: int64
+  dtype: float64
   transformer:
     init_params: "random_from_data"
 x9:

@@ -5,15 +5,12 @@ from nhssynth.modules.dataloader.transformers.generic import *
 
 
 class DatetimeTransformer(TransformerWrapper):
-    def __init__(self, transformer: GenericTransformer, format: Optional[str] = None, utc: bool = False) -> None:
+    def __init__(self, transformer: GenericTransformer, format: Optional[str] = None) -> None:
         super().__init__(transformer)
         self._format = format
-        self._utc = utc
 
-    def transform(self, data: pd.Series) -> pd.DataFrame:
-        pd.to_numeric(data).to_numpy().astype(float)
-        return self._transformer.transform(data)
+    def apply(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
+        return super().apply(pd.Series(pd.to_numeric(data).to_numpy().astype(float), name=data.name), *args, **kwargs)
 
-    def inverse_transform(self, data: pd.Series) -> pd.Series:
-        data = self._transformer.inverse_transform(data)
-        return pd.to_datetime(data, format=self._format, utc=self._utc)
+    def revert(self, data: pd.Series, *args, **kwargs) -> pd.Series:
+        return pd.to_datetime(super().revert(data, *args, **kwargs), format=self._format)

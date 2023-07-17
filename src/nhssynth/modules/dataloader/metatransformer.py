@@ -1,3 +1,4 @@
+import sys
 from typing import Any, Optional
 
 import pandas as pd
@@ -9,9 +10,9 @@ from nhssynth.modules.dataloader.transformers.utils import make_transformer_dict
 # TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
 class MetaTransformer:
     """
-    A metatransformer object that can wrap a [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)
-    from SDV. The metatransformer is responsible for transforming input data into a format that can be used by the model module, and transforming
-    the module's output back to the original format of the input data.
+    A metatransformer object that can wrap a [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-dataset/modeling/synthesizers)
+    from SDV. The metatransformer is responsible for transforming input dataset into a format that can be used by the model module, and transforming
+    the module's output back to the original format of the input dataset.
 
     Args:
         metadata: A dictionary mapping column names to their metadata.
@@ -20,13 +21,13 @@ class MetaTransformer:
 
     Attributes:
         dtypes: A dictionary mapping each column to its specified pandas dtype (will infer from pandas defaults if this is missing).
-        sdtypes: A dictionary mapping each column to the appropriate SDV-specific data type.
+        sdtypes: A dictionary mapping each column to the appropriate SDV-specific dataset type.
         transformers: A dictionary mapping each column to their assigned (if any) transformer.
 
-    After preparing some data with the MetaTransformer, i.e. `prepared_data = mt.apply(data)`, the following attributes and methods will be available:
+    After preparing some dataset with the MetaTransformer, i.e. `transformed_dataset = mt.apply(dataset)`, the following attributes and methods will be available:
 
     Attributes:
-        metatransformer (self.Synthesizer): An instanatiated `self.Synthesizer` object, ready to use on data.
+        metatransformer (self.Synthesizer): An instanatiated `self.Synthesizer` object, ready to use on dataset.
         assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.
         onehots (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
         singles (list[int]): The indices of non-one-hotted columns.
@@ -36,7 +37,7 @@ class MetaTransformer:
     - `get_assembled_metadata()`: Returns the assembled metadata.
     - `get_sdtypes()`: Returns the sdtypes from the assembled metadata in the correct format for SDMetrics.
     - `get_onehots_and_singles()`: Returns the values of the MetaTransformer's `onehots` and `singles` attributes.
-    - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.
+    - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given dataset.
 
     Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.prepare` and finally
     `mt.count_onehots_and_singles` in sequence on a given raw dataset. Along the way it assigns the attributes listed above. *This workflow is highly
@@ -45,76 +46,104 @@ class MetaTransformer:
 
     def __init__(
         self,
-        data: pd.DataFrame,
-        metadata: Optional[MetaData] = {},
-        missingness_strategy: Optional[GenericMissingnessStrategy] = None,
+        dataset: pd.DataFrame,
+        metadata: Optional[MetaData] = None,
+        missingness_strategy: Optional[str] = "augment",
+        impute_value: Optional[Any] = None,
     ):
-        self.data: pd.DataFrame = data
+        self.raw_dataset: pd.DataFrame = dataset
         if metadata:
-            assert metadata.columns == data.columns, "`metadata` and `data` must refer to the same columns"
+            assert metadata.columns.equals(dataset.columns), "`dataset`'s columns must match those in `metadata`"
             self.metadata: MetaData = metadata
         else:
-            self.metadata: MetaData = MetaData(data)
-        self.missingness_strategy = missingness_strategy
+            self.metadata: MetaData = MetaData(dataset)
+        assert missingness_strategy in MISSINGNESS_STRATEGIES, (
+            f"Invalid missingness strategy '{missingness_strategy}'. "
+            f"Must be one of {list(MISSINGNESS_STRATEGIES.keys())}"
+        )
+        if missingness_strategy == "impute":
+            assert (
+                impute_value is not None
+            ), "`impute_value` must be specified when using the imputation missingness strategy"
+            self.impute_value: Any = impute_value
+        self.missingness_strategy: GenericMissingnessStrategy = MISSINGNESS_STRATEGIES[missingness_strategy]
 
     @classmethod
-    def from_path(cls, data: pd.DataFrame, metadata_path: str, **kwargs):
+    def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs):
         """
         Instantiates a MetaTransformer from a metadata file.
 
         Args:
-            data: The raw input DataFrame.
+            dataset: The raw input DataFrame.
             metadata_path: The path to the metadata file.
 
         Returns:
             A MetaTransformer object.
         """
-        return cls(data, MetaData.load(metadata_path, data), **kwargs)
+        return cls(dataset, MetaData.load(metadata_path, dataset), **kwargs)
 
     @classmethod
-    def from_dict(cls, data: pd.DataFrame, metadata: dict, **kwargs):
+    def from_dict(cls, dataset: pd.DataFrame, metadata: dict, **kwargs):
         """
         Instantiates a MetaTransformer from a metadata dictionary.
 
         Args:
-            data: The raw input DataFrame.
+            dataset: The raw input DataFrame.
             metadata_dict: The metadata dictionary.
 
         Returns:
             A MetaTransformer object.
         """
-        return cls(data, MetaData(data, metadata), **kwargs)
+        return cls(dataset, MetaData(dataset, metadata), **kwargs)
 
     def apply_dtypes(self) -> pd.DataFrame:
         """
-        Applies dtypes from the metadata to `data` and infers missing dtypes by reading pandas defaults.
+        Applies dtypes from the metadata to `dataset` and infers missing dtypes by reading pandas defaults.
 
         Args:
-            data: The raw input DataFrame.
+            dataset: The raw input DataFrame.
 
         Returns:
-            The data with the dtypes applied.
+            The dataset with the dtypes applied.
         """
-        typed_data = self.data.copy()
-        for cn in self.columns:
-            dtype = self.metadata[cn].dtype
-            if dtype.kind == "M":
-                typed_data[cn] = pd.to_datetime(typed_data[cn], **self.metadata[cn].datetime_config)
-            elif typed_data[cn].isnull().any():
-                typed_data[cn] = typed_data[cn].astype(dtype.name.capitalize())
-            else:
-                typed_data[cn] = typed_data[cn].astype(dtype)
-        return typed_data
+        working_data = self.raw_dataset.copy()
+        for column_metadata in self.metadata:
+            dtype = column_metadata.dtype
+            cn = column_metadata.name
+            try:
+                if dtype.kind == "M":
+                    working_data[cn] = pd.to_datetime(working_data[cn], **column_metadata.datetime_config)
+                elif working_data[cn].isnull().any() and dtype.kind in ["i", "u", "f"]:
+                    working_data[cn] = working_data[cn].astype(dtype.name.capitalize())
+                else:
+                    working_data[cn] = working_data[cn].astype(dtype)
+            except:
+                # Print the error message along with the column name to make it easier to debug
+                raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{cn}'")
+        return working_data
 
-    def resolve_missingness_strategy(self) -> pd.DataFrame:
-        if not self.missingness_strategy:
-            return self.data
-        if isinstance(self.missingness_strategy, DropMissingnessStrategy):
-            self.data = self.data.dropna()
-        else:
-            for cn in self.metadata.columns:
-                self.metadata[cn].transformer.missingness_strategy = self.missingness_strategy
-        return self.data
+    def apply_missingness_strategy(self) -> pd.DataFrame:
+        """
+        Applies the missingness strategy to the dataset.
+
+        Args:
+            dataset: The dataset to apply the missingness strategy to.
+
+        Returns:
+            The dataset with the missingness strategy applied.
+        """
+        working_data = self.typed_dataset.copy()
+        for column_metadata in self.metadata:
+            if not column_metadata.missingness_strategy:
+                column_metadata.missingness_strategy = (
+                    self.missingness_strategy(self.impute_value)
+                    if hasattr(self, "impute_value")
+                    else self.missingness_strategy()
+                )
+            if not working_data[column_metadata.name].isnull().any():
+                continue
+            working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
+        return working_data
 
     def assemble(self) -> dict[str, dict[str, Any]]:
         """
@@ -123,7 +152,7 @@ class MetaTransformer:
         Returns:
             A dictionary mapping column names to column metadata.
                 The metadata for each column has the following keys:
-                - dtype: The pandas data type for the column
+                - dtype: The pandas dataset type for the column
                 - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
                     - name: The name of the transformer.
                     - Any other properties of the transformer that we want to record in output.
@@ -132,7 +161,7 @@ class MetaTransformer:
         """
         if not self.metatransformer:
             raise ValueError(
-                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
+                "The metatransformer has not yet been instantiated. Call `mt.apply(dataset)` first (or `mt.instantiate(dataset)`)."
             )
         transformers = self.metatransformer.get_transformers()
         return {
@@ -146,13 +175,13 @@ class MetaTransformer:
 
     def transform(self) -> pd.DataFrame:
         """
-        Prepares the data by processing it via the metatransformer.
+        Prepares the dataset by processing it via the metatransformer.
 
         Args:
-            data: The data to fit and apply the transformer to.
+            dataset: The dataset to fit and apply the transformer to.
 
         Returns:
-            The transformed data.
+            The transformed dataset.
 
         Raises:
             ValueError: If the metatransformer has not yet been instantiated.
@@ -161,57 +190,60 @@ class MetaTransformer:
         self.single_idxs = []
         self.multi_idxs = []
         col_counter = 0
-        to_transform = self.typed_data.copy()
-        for cn in self.columns:
-            transformed_data = self.metadata[cn].transformer.transform(to_transform[cn])
+        working_data = self.prepared_dataset.copy()
+        for column_metadata in self.metadata:
+            # TODO is there a nicer way of doing this, the transformer and augment strategy create a chicken and egg problem
+            if hasattr(column_metadata.missingness_strategy, "missing_column") and not column_metadata.categorical:
+                transformed_data = column_metadata.transformer.apply(
+                    working_data[column_metadata.name],
+                    working_data[column_metadata.missingness_strategy.missing_column],
+                )
+            else:
+                transformed_data = column_metadata.transformer.apply(working_data[column_metadata.name])
             transformed_columns.append(transformed_data)
             if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
-                self.categorical_idxs.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
+                self.multi_idxs.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
                 col_counter += transformed_data.shape[1]
             else:
                 self.single_idxs.append(col_counter)
                 col_counter += 1
-        return pd.concat([transformed_columns], axis=1)
+        return pd.concat(transformed_columns, axis=1)
 
     def apply(self) -> None:
         """
         Applies the various steps of the MetaTransformer to a passed DataFrame.
 
         Args:
-            data: The DataFrame to transform.
+            dataset: The DataFrame to transform.
 
         Returns:
-            The transformed data.
+            The transformed dataset.
         """
-        self.typed_data = self.apply_dtypes()
-        self.typed_data = self.resolve_missingness_strategy(self.typed_data)
-        self.prepared_data = self.transform()
+        self.typed_dataset = self.apply_dtypes()
+        self.prepared_dataset = self.apply_missingness_strategy()
+        self.transformed_dataset = self.transform()
+        print(self.transformed_dataset.columns)
 
-    def get_typed_data(self) -> pd.DataFrame:
-        """
-        Returns the typed data.
-
-        Returns:
-            The typed data.
-        """
-        if not hasattr(self, "typed_data"):
+    def get_typed_dataset(self) -> pd.DataFrame:
+        if not hasattr(self, "typed_dataset"):
             raise ValueError(
-                "The typed data has not yet been created. Call `mt.apply()` (or `mt.apply_dtypes()`) first."
+                "The typed dataset has not yet been created. Call `mt.apply()` (or `mt.apply_dtypes()`) first."
             )
-        return self.typed_data
+        return self.typed_dataset
 
-    def get_prepared_data(self) -> pd.DataFrame:
-        """
-        Returns the prepared data.
-
-        Returns:
-            The prepared data.
-        """
-        if not hasattr(self, "prepared_data"):
+    def get_prepared_dataset(self) -> pd.DataFrame:
+        if not hasattr(self, "prepared_dataset"):
             raise ValueError(
-                "The prepared data has not yet been created. Call `mt.apply()` (or `mt.transform()`) first."
+                "The prepared dataset has not yet been created. Call `mt.apply()` (or `mt.apply_missingness_strategy()`) first."
             )
-        return self.prepared_data
+        return self.get_prepared_dataset
+
+    def get_transformed_dataset(self) -> pd.DataFrame:
+        if not hasattr(self, "transformed_dataset"):
+            raise ValueError(
+                "The prepared dataset has not yet been created. Call `mt.apply()` (or `mt.transform()`) first."
+            )
+        return self.transformed_dataset
 
     def get_assembled_metadata(self) -> dict[str, dict[str, Any]]:
         """
@@ -220,7 +252,7 @@ class MetaTransformer:
         Returns:
             A dictionary mapping column names to column metadata.
                 The metadata for each column has the following keys:
-                - dtype: The pandas data type for the column
+                - dtype: The pandas dataset type for the column
                 - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
                     - name: The name of the transformer.
                     - Any other properties of the transformer that we want to record in output.
@@ -229,19 +261,21 @@ class MetaTransformer:
             ValueError: If the metadata has not yet been assembled.
         """
         if not hasattr(self, "assembled_metadata"):
-            raise ValueError("MetaData has not yet been assembled. Call `mt.apply(data)` (or `mt.assemble()`) first.")
+            raise ValueError(
+                "MetaData has not yet been assembled. Call `mt.apply(dataset)` (or `mt.assemble()`) first."
+            )
         return self.assembled_metadata
 
-    def inverse_apply(self, data: pd.DataFrame) -> pd.DataFrame:
+    def inverse_apply(self, dataset: pd.DataFrame) -> pd.DataFrame:
         """
         Reverses the transformation applied by the MetaTransformer.
 
         Args:
-            data: The transformed data.
+            dataset: The transformed dataset.
 
         Returns:
-            The original data.
+            The original dataset.
         """
         for transformer in self.component_transformer.values():
-            data = transformer.reverse_transform(data)
-        return self.metatransformer._data_processor.reverse_transform(data)
+            dataset = transformer.reverse_transform(dataset)
+        return self.metatransformer._data_processor.reverse_transform(dataset)

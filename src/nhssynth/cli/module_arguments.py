@@ -3,6 +3,7 @@ import argparse
 
 from nhssynth.cli.model_arguments import add_model_specific_args
 from nhssynth.common.constants import *
+from nhssynth.modules.dataloader.metadata import MISSINGNESS_STRATEGIES
 from nhssynth.modules.model import MODELS
 
 
@@ -57,8 +58,7 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
         "--impute",
         type=str,
         default=None,
-        choices=IMPUTE_OPTIONS,
-        help="the imputation strategy to use, ONLY USED if <MISSINGNESS> is set to 'impute'",
+        help="the imputation strategy to use, ONLY USED if <MISSINGNESS> is set to 'impute', choose from: 'mean', 'median', 'mode', or any specific value (e.g. '0')",
     )
 
 
@@ -74,7 +74,7 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         type=str,
         nargs="+",
         default=["VAE"],
-        choices=list(MODELS.keys()),
+        choices=MODELS,
         help="the model architecture(s) to train",
     )
     group.add_argument(
@@ -160,8 +160,8 @@ def generate_evaluation_arg(group, name):
         default=None,
         nargs="*",
         action=AllChoicesDefault,
-        const=list(SDV_METRICS[name].keys()),
-        choices=list(SDV_METRICS[name].keys()),
+        const=SDV_METRICS[name],
+        choices=SDV_METRICS[name],
         help=f"run the {name.lower()} evaluation",
     )
 

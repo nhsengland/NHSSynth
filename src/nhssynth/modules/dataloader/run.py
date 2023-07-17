@@ -17,7 +17,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     dataset = pd.read_csv(dir_input / fn_dataset, index_col=args.index_col)
     metadata = MetaData.load(dir_input / fn_metadata, dataset)
-    mt = MetaTransformer(dataset, metadata)
+    mt = MetaTransformer(dataset, metadata, args.missingness, args.impute)
     mt.apply()
 
     write_data_outputs(mt, fn_dataset, fn_metadata, dir_experiment, args)

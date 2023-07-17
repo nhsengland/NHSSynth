@@ -1,64 +1,35 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Union
+from typing import Any, Optional
 
 import pandas as pd
-from nhssynth.modules.dataloader.missingness import GenericMissingnessStrategy
 
 
 class GenericTransformer(ABC):
     """Generic Transformer class."""
 
-    def __init__(self, missingness_strategy: Callable) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self._missingness_strategy = missingness_strategy
 
     @abstractmethod
-    def transform(self, data) -> None:
-        """Transform data."""
+    def apply(self, data: pd.DataFrame, missingness_column: Optional[pd.Series]) -> None:
+        """Apply the transformer to the data."""
         pass
 
     @abstractmethod
-    def inverse_transform(self, data) -> None:
-        """Inverse transform data."""
+    def revert(self, data: pd.DataFrame, missingness_column: Optional[pd.Series], missing_value: Optional[Any]) -> None:
+        """Revert data to pre-transformer state."""
         pass
-
-    def remove_missingness(self, data) -> None:
-        """Tackle missingness in data."""
-        self._missingness_strategy.remove(data)
-
-    def restore_missingness(self, data) -> None:
-        """Tackle missingness in data."""
-        self._missingness_strategy.restore(data)
 
 
 class TransformerWrapper(ABC):
     """Transformer Wrapper class."""
 
-    def __init__(self, transformer: GenericTransformer) -> None:
+    def __init__(self, wrapped_transformer: GenericTransformer) -> None:
         super().__init__()
-        self._transformer = transformer
+        self._wrapped_transformer = wrapped_transformer
 
-    @abstractmethod
-    def transform(self, data) -> None:
-        """Transform data."""
-        pass
+    def apply(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
+        return self._wrapped_transformer.apply(data, *args, **kwargs)
 
-    @abstractmethod
-    def inverse_transform(self, data) -> None:
-        """Inverse transform data."""
-        pass
-
-
-class NullTransformer(GenericTransformer):
-    """Null Transformer class."""
-
-    def __init__(self, missingness_strategy: GenericMissingnessStrategy) -> None:
-        super().__init__(missingness_strategy)
-
-    def transform(self, data: pd.Series) -> pd.Series:
-        """Transform data."""
-        return data
-
-    def inverse_transform(self, data: pd.Series) -> pd.Series:
-        """Inverse transform data."""
-        return data
+    def revert(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
+        return self._wrapped_transformer.revert(data, *args, **kwargs)

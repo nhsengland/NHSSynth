@@ -1,31 +1,33 @@
 import pathlib
 import warnings
-from typing import Any, Optional, Union
+from typing import Any, Iterator, Optional, Union
 
 import numpy as np
 import pandas as pd
 import yaml
 from nhssynth.common.dicts import filter_dict, get_key_by_value
+from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
 from nhssynth.modules.dataloader.transformers import *
 from nhssynth.modules.dataloader.transformers.generic import GenericTransformer
 from pandas.core.tools.datetimes import _guess_datetime_format_for_array
 
 
 class ColumnMetaData:
-    def __init__(self, name: str, data: pd.Series, raw: dict, global_missingness: bool) -> None:
+    def __init__(self, name: str, data: pd.Series, raw: dict) -> None:
         self.name = name
-        print(raw["dtype"])
         self.dtype = self._validate_dtype(raw.get("dtype"), data)
         if self.dtype.kind == "M":
-            print(raw["dtype"])
             self.datetime_config = self._setup_datetime_config(raw.get("dtype"), data)
         elif self.dtype.kind == "f":
             self.rounding_scheme = self._validate_rounding_scheme(raw.get("dtype"), data)
         self.categorical = self._validate_categorical(raw.get("categorical"), data)
-        self.transformer = self._validate_transformer(raw.get("transformer"), data, global_missingness)
+        self.missingness_strategy = self._validate_missingness_strategy(raw.get("missingness"))
+        self.transformer = self._validate_transformer(raw.get("transformer"))
         # self.constraints = self._validate_constraints(raw.get("constraints"), data)
 
     def _validate_dtype(self, dtype: Optional[Union[dict, str]], data: pd.Series) -> np.dtype:
+        if not dtype:
+            return self._infer_dtype(data)
         if isinstance(dtype, dict):
             dtype_name = dtype.pop("name", None)
         elif isinstance(dtype, str):
@@ -54,8 +56,6 @@ class ColumnMetaData:
             datetime_config = filter_dict(datetime_config, {"name"})
         if "format" not in datetime_config:
             datetime_config["format"] = _guess_datetime_format_for_array(data[data.notna()].astype(str).to_numpy())
-        if "utc" not in self.datetime_config:
-            datetime_config["utc"] = data.dt.tz is not None
         return datetime_config
 
     def _validate_rounding_scheme(self, dtype_dict: dict, data: pd.Series) -> int:
@@ -69,6 +69,8 @@ class ColumnMetaData:
         return None
 
     def _validate_categorical(self, categorical: Optional[bool], data: pd.Series) -> bool:
+        if not categorical:
+            return self._infer_categorical(data)
         if not isinstance(categorical, bool):
             warnings.warn(
                 f"Invalid categorical '{categorical}' for column '{self.name}', ignoring categorical for this column"
@@ -80,16 +82,29 @@ class ColumnMetaData:
     def _infer_categorical(self, data: pd.Series) -> bool:
         return data.nunique() <= 10 or self.dtype.kind == "O"
 
-    def _validate_transformer(
-        self, transformer: Optional[Union[dict, str]], global_missingness: bool
-    ) -> tuple[str, dict]:
+    def _validate_missingness_strategy(self, missingness_strategy: Optional[Union[dict, str]]) -> tuple[str, dict]:
+        if not missingness_strategy:
+            return None
+        if isinstance(missingness_strategy, dict):
+            impute = missingness_strategy.get("impute", None)
+            strategy = "impute" if impute else missingness_strategy.get("strategy", None)
+        else:
+            strategy = missingness_strategy
+        if (
+            strategy not in MISSINGNESS_STRATEGIES
+            or (strategy == "impute" and impute == "mean" and self.dtype.kind != "f")
+            or (strategy == "impute" and not impute)
+        ):
+            warnings.warn(
+                f"Invalid missingness strategy '{missingness_strategy}' for column '{self.name}', ignoring missingness strategy for this column"
+            )
+            return None
+        return MISSINGNESS_STRATEGIES[strategy](impute) if strategy == "impute" else MISSINGNESS_STRATEGIES[strategy]()
+
+    def _validate_transformer(self, transformer: Optional[Union[dict, str]]) -> tuple[str, dict]:
         if isinstance(transformer, dict):
             transformer_name = transformer.pop("name", None)
             transformer_config = transformer
-            if global_missingness:
-                transformer_config.pop("missingness")
-            else:
-                missingness_strategy = transformer_config.pop("missingness", None)
 
         elif isinstance(transformer, str):
             transformer_name, transformer_config = transformer, {}
@@ -117,14 +132,17 @@ class ColumnMetaData:
 
 class MetaData:
     def __init__(self, data: pd.DataFrame, metadata: Optional[dict] = {}):
-        self.columns: list[str] = data.columns
+        self.columns: pd.Index = data.columns
         self.raw_metadata: dict = metadata
         if set(self.raw_metadata.keys()) - set(self.columns):
             raise ValueError("Metadata contains keys that do not appear amongst the columns.")
         self._metadata = {cn: ColumnMetaData(cn, data[cn], self.raw_metadata.get(cn, {})) for cn in self.columns}
 
-    def __index__(self, key: str) -> dict[str, Any]:
+    def __getitem__(self, key: str) -> dict[str, Any]:
         return self._metadata[key]
+
+    def __iter__(self) -> Iterator:
+        return iter(self._metadata.values())
 
     @classmethod
     def load(cls, path: str, data: pd.DataFrame):
@@ -158,6 +176,9 @@ class MetaData:
                 default_flow_style=False,
                 sort_keys=False,
             )
+
+    def __repr__(self) -> None:
+        return yaml.dump(self._metadata, default_flow_style=False, sort_keys=False)
 
     def get_sdtypes(self) -> dict[str, str]:
         return {cn: cm.dtype.name for cn, cm in self._metadata.items()}

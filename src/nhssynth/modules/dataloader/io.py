@@ -85,8 +85,8 @@ def write_data_outputs(
         fn_dataset, args.typed, args.prepared, args.metatransformer, dir_experiment
     )
     metatransformer.metadata.save(dir_experiment / fn_metadata, args.collapse_yaml)
-    metatransformer.get_typed_data().to_pickle(dir_experiment / fn_typed)
-    metatransformer.get_prepared_data().to_pickle(dir_experiment / fn_prepared)
-    metatransformer.get_prepared_data().to_csv(dir_experiment / (fn_prepared[:-3] + "csv"), index=False)
+    metatransformer.get_typed_dataset().to_pickle(dir_experiment / fn_typed)
+    metatransformer.get_transformed_dataset().to_pickle(dir_experiment / fn_prepared)
+    metatransformer.get_transformed_dataset().to_csv(dir_experiment / (fn_prepared[:-3] + "csv"), index=False)
     with open(dir_experiment / fn_transformer, "wb") as f:
         pickle.dump(metatransformer, f)

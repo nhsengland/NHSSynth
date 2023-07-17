@@ -1,92 +1,104 @@
+from __future__ import annotations
+
+import typing
 from abc import ABC, abstractmethod
-from typing import Any, Union
+from typing import Any, Final
 
 import numpy as np
 import pandas as pd
+
+# TODO fix circular import
+if typing.TYPE_CHECKING:
+    from nhssynth.modules.dataloader.metadata import ColumnMetaData
 
 
 class GenericMissingnessStrategy(ABC):
     """Generic missingness strategy."""
 
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
         super().__init__()
+        self.name: str = name
 
     @abstractmethod
-    def remove(self, data: pd.Series) -> pd.Series:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """Remove missingness."""
         pass
 
 
-class RestoreMissingnessMixin(ABC):
-    """Restore missingness mixin."""
+class NullMissingnessStrategy(GenericMissingnessStrategy):
+    """Null missingness strategy."""
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__("none")
 
-    @abstractmethod
-    def restore(self, data: pd.Series) -> pd.Series:
-        """Restore missingness."""
-        pass
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
+        """Do nothing."""
+        return data
 
 
 class DropMissingnessStrategy(GenericMissingnessStrategy):
     """Drop missingness strategy."""
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__("drop")
 
-    def remove(self, data: pd.Series) -> pd.Series:
-        """Drop missingness."""
-        return data
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
+        """Drop missingness in `column`"""
+        return data.dropna(subset=[column_metadata.name]).reset_index(drop=True)
 
 
 class ImputeMissingnessStrategy(GenericMissingnessStrategy):
     """Impute missingness with mean strategy."""
 
-    def __init__(self, value: Any) -> None:
-        super().__init__()
-        self.value = value.lower()
+    def __init__(self, impute: Any) -> None:
+        super().__init__("impute")
+        self.impute = impute.lower() if isinstance(impute, str) else impute
 
-    def remove(self, data: pd.Series) -> pd.Series:
-        """Impute missingness with mean."""
-        if self.value == "mean":
-            return data.fillna(data.mean())
-        elif self.value == "median":
-            return data.fillna(data.median())
-        elif self.value == "mode":
-            return data.fillna(data.mode()[0])
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
+        """Impute missingness."""
+        if self.impute == "mean":
+            self.imputation_value = data[column_metadata.name].mean()
+        elif self.impute == "median":
+            self.imputation_value = data[column_metadata.name].median()
+        elif self.impute == "mode":
+            self.imputation_value = data[column_metadata.name].mode()[0]
         else:
-            return data.fillna(self.value)
+            self.imputation_value = self.impute
+        data[column_metadata.name].fillna(self.imputation_value, inplace=True)
+        return data
 
 
-class AugmentMissingnessStrategy(GenericMissingnessStrategy, RestoreMissingnessMixin):
+class AugmentMissingnessStrategy(GenericMissingnessStrategy):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__("augment")
+        self.missing_value = 0.0
 
-    def remove(
-        self, data: Union[pd.Series, tuple[pd.Series, pd.DataFrame]], categorical: bool
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """Impute missingness with model."""
-        if categorical:
-            if data.dtype.kind == "O":
-                self.missing_value = data.unique()[0] + "_missing"
+        if column_metadata.categorical:
+            if column_metadata.dtype.kind == "O":
+                self.missing_value = column_metadata.name + "_missing"
             else:
-                self.missing_value = data.min() - 1
-            return data.fillna(self.missing_value)
+                self.missing_value = data[column_metadata.name].min() - 1
         else:
-            original_data, transformed_data = data
-            self.missing_column = original_data.name + "_missing"
-            transformed_data = transformed_data.set_index(original_data.index[original_data.notnull()])
-            transformed_data = transformed_data.reindex(original_data.index)
-            transformed_data[original_data.name + "_missing"] = original_data.isnull().astype(int)
-            transformed_data = transformed_data.fillna(0)
-            return transformed_data
+            self.missing_column = column_metadata.name + "_missing"
+            data[self.missing_column] = data[column_metadata.name].isnull().astype(int)
+        if column_metadata.dtype.kind == "M":
+            self.missing_value = np.datetime64("NaT")
+        data[column_metadata.name].fillna(self.missing_value, inplace=True)
+        return data
 
-    def restore(self, data: Union[pd.Series, tuple[pd.Series, pd.DataFrame]], categorical: bool) -> pd.Series:
+    def restore(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.Series:
         """Restore missingness."""
-        if categorical:
-            # if the value of the data is missing, return np.nan
+        if column_metadata.categorical:
             return data.where(data == self.missing_value, np.nan)
         else:
-            # if the value of the data is missing, return np.nan
             return data.where(data[self.missing_column] == 1, np.nan)
+
+
+MISSINGNESS_STRATEGIES: Final = {
+    "none": NullMissingnessStrategy,
+    "impute": ImputeMissingnessStrategy,
+    "augment": AugmentMissingnessStrategy,
+    "drop": DropMissingnessStrategy,
+}
