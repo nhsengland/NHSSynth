@@ -84,7 +84,7 @@ def write_data_outputs(
     fn_typed, fn_prepared, fn_transformer = check_output_paths(
         fn_dataset, args.typed, args.prepared, args.metatransformer, dir_experiment
     )
-    metatransformer.metadata.save(dir_experiment / fn_metadata, args.collapse_yaml)
+    metatransformer.save_metadata(dir_experiment / fn_metadata, args.collapse_yaml)
     metatransformer.get_typed_dataset().to_pickle(dir_experiment / fn_typed)
     metatransformer.get_transformed_dataset().to_pickle(dir_experiment / fn_prepared)
     metatransformer.get_transformed_dataset().to_csv(dir_experiment / (fn_prepared[:-3] + "csv"), index=False)

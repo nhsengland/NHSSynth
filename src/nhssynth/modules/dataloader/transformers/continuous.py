@@ -1,8 +1,10 @@
+import warnings
 from typing import Optional
 
 import numpy as np
 import pandas as pd
 from nhssynth.modules.dataloader.transformers.generic import GenericTransformer
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.mixture import BayesianGaussianMixture
 
 
@@ -10,10 +12,10 @@ class ClusterTransformer(GenericTransformer):
     def __init__(
         self,
         n_components: int = 10,
-        n_init: int = 5,
+        n_init: int = 1,
         init_params: str = "kmeans",
         random_state: int = 0,
-        weight_threshold: float = 0.005,
+        max_iter: int = 1000,
     ) -> None:
         super().__init__()
         self._transformer = BayesianGaussianMixture(
@@ -21,13 +23,14 @@ class ClusterTransformer(GenericTransformer):
             random_state=random_state,
             n_init=n_init,
             init_params=init_params,
+            max_iter=max_iter,
             weight_concentration_prior=1e-3,
         )
         self._n_components = n_components
-        self._weight_threshold = weight_threshold
         self._weights: Optional[list[float]] = None
         self._std_multiplier = 4
         self._missingness_column_name = None
+        self._max_iter = max_iter
 
     def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None) -> pd.DataFrame:
         name = data.name
@@ -41,7 +44,9 @@ class ClusterTransformer(GenericTransformer):
         data = np.array(data.values.reshape(-1, 1), dtype=data.dtype.name.lower())
 
         # TODO consider whether we need to store min and max to clip on reversion
-        self._transformer.fit(data)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=ConvergenceWarning)
+            self._transformer.fit(data)
         self.weights = self._transformer.weights_
         self.means = self._transformer.means_.reshape(-1)
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)

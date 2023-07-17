@@ -20,6 +20,18 @@ class GenericTransformer(ABC):
         """Revert data to pre-transformer state."""
         pass
 
+    def explode(self) -> dict[str, Any]:
+        """
+        Deconstruct a `transformer` into a dictionary of config.
+
+        Args:
+            transformer: A GenericTransformer object.
+
+        Returns:
+            A dictionary containing the transformer's name and arguments.
+        """
+        return {"name": self.__class__.__name__, **self.__dict__}
+
 
 class TransformerWrapper(ABC):
     """Transformer Wrapper class."""
@@ -33,3 +45,6 @@ class TransformerWrapper(ABC):
 
     def revert(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
         return self._wrapped_transformer.revert(data, *args, **kwargs)
+
+    def explode(self) -> dict:
+        return self._wrapped_transformer.explode()

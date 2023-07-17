@@ -6,7 +6,10 @@ import numpy as np
 import pandas as pd
 import yaml
 from nhssynth.common.dicts import filter_dict, get_key_by_value
-from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
+from nhssynth.modules.dataloader.missingness import (
+    MISSINGNESS_STRATEGIES,
+    GenericMissingnessStrategy,
+)
 from nhssynth.modules.dataloader.transformers import *
 from nhssynth.modules.dataloader.transformers.generic import GenericTransformer
 from pandas.core.tools.datetimes import _guess_datetime_format_for_array
@@ -15,37 +18,38 @@ from pandas.core.tools.datetimes import _guess_datetime_format_for_array
 class ColumnMetaData:
     def __init__(self, name: str, data: pd.Series, raw: dict) -> None:
         self.name = name
-        self.dtype = self._validate_dtype(raw.get("dtype"), data)
-        if self.dtype.kind == "M":
-            self.datetime_config = self._setup_datetime_config(raw.get("dtype"), data)
-        elif self.dtype.kind == "f":
-            self.rounding_scheme = self._validate_rounding_scheme(raw.get("dtype"), data)
-        self.categorical = self._validate_categorical(raw.get("categorical"), data)
-        self.missingness_strategy = self._validate_missingness_strategy(raw.get("missingness"))
-        self.transformer = self._validate_transformer(raw.get("transformer"))
+        self.dtype: np.dtype = self._validate_dtype(data, raw.get("dtype"))
+        self.categorical: bool = self._validate_categorical(data, raw.get("categorical"))
+        self.missingness_strategy: GenericMissingnessStrategy = self._validate_missingness_strategy(
+            raw.get("missingness")
+        )
+        self.transformer: GenericTransformer = self._validate_transformer(raw.get("transformer"))
         # self.constraints = self._validate_constraints(raw.get("constraints"), data)
 
-    def _validate_dtype(self, dtype: Optional[Union[dict, str]], data: pd.Series) -> np.dtype:
-        if not dtype:
-            return self._infer_dtype(data)
-        if isinstance(dtype, dict):
-            dtype_name = dtype.pop("name", None)
-        elif isinstance(dtype, str):
-            dtype_name = dtype
+    def _validate_dtype(self, data: pd.Series, dtype_raw: Optional[Union[dict, str]] = None) -> np.dtype:
+        if isinstance(dtype_raw, dict):
+            dtype_name = dtype_raw.pop("name", None)
+        elif isinstance(dtype_raw, str):
+            dtype_name = dtype_raw
         else:
-            return self._infer_dtype(data)
+            dtype_name = self._infer_dtype(data)
         try:
-            return np.dtype(dtype_name)
+            dtype = np.dtype(dtype_name)
         except TypeError:
             warnings.warn(
                 f"Invalid dtype specification '{dtype_name}' for column '{self.name}', ignoring dtype for this column"
             )
-            return self._infer_dtype(data)
+            dtype = self._infer_dtype(data)
+        if dtype.kind == "M":
+            self._setup_datetime_config(data, dtype_raw)
+        # elif dtype.kind == "f":
+        #     self.rounding_scheme = self._validate_rounding_scheme(data, dtype_raw)
+        return dtype
 
     def _infer_dtype(self, data: pd.Series) -> np.dtype:
-        return data.dtype
+        return data.dtype.name
 
-    def _setup_datetime_config(self, datetime_config: dict, data: pd.Series) -> dict:
+    def _setup_datetime_config(self, data: pd.Series, datetime_config: dict) -> dict:
         """
         Add keys to `datetime_config` corresponding to args from the `pd.to_datetime` function
         (see [the docs](https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html))
@@ -53,25 +57,25 @@ class ColumnMetaData:
         if not isinstance(datetime_config, dict):
             datetime_config = {}
         else:
-            datetime_config = filter_dict(datetime_config, {"name"})
+            datetime_config = filter_dict(datetime_config, {"format"}, include=True)
         if "format" not in datetime_config:
             datetime_config["format"] = _guess_datetime_format_for_array(data[data.notna()].astype(str).to_numpy())
-        return datetime_config
+        self.datetime_config = datetime_config
 
-    def _validate_rounding_scheme(self, dtype_dict: dict, data: pd.Series) -> int:
-        if dtype_dict and "rounding_scheme" in dtype_dict:
-            return dtype_dict["rounding_scheme"]
-        else:
-            roundable_data = data[data.notna()]
-            for i in range(np.finfo(roundable_data.dtype).precision):
-                if (roundable_data.round(i) == roundable_data).all():
-                    return i
-        return None
+    # def _validate_rounding_scheme(self, dtype_dict: dict, data: pd.Series) -> int:
+    #     if dtype_dict and "rounding_scheme" in dtype_dict:
+    #         return dtype_dict["rounding_scheme"]
+    #     else:
+    #         roundable_data = data[data.notna()]
+    #         for i in range(np.finfo(roundable_data.dtype).precision):
+    #             if (roundable_data.round(i) == roundable_data).all():
+    #                 return i
+    #     return None
 
-    def _validate_categorical(self, categorical: Optional[bool], data: pd.Series) -> bool:
-        if not categorical:
+    def _validate_categorical(self, data: pd.Series, categorical: Optional[bool] = None) -> bool:
+        if categorical is None:
             return self._infer_categorical(data)
-        if not isinstance(categorical, bool):
+        elif not isinstance(categorical, bool):
             warnings.warn(
                 f"Invalid categorical '{categorical}' for column '{self.name}', ignoring categorical for this column"
             )
@@ -101,32 +105,42 @@ class ColumnMetaData:
             return None
         return MISSINGNESS_STRATEGIES[strategy](impute) if strategy == "impute" else MISSINGNESS_STRATEGIES[strategy]()
 
-    def _validate_transformer(self, transformer: Optional[Union[dict, str]]) -> tuple[str, dict]:
+    def _validate_transformer(self, transformer: Optional[Union[dict, str]] = {}) -> tuple[str, dict]:
+        # if transformer is neither a dict nor a str statement below will raise a TypeError
         if isinstance(transformer, dict):
-            transformer_name = transformer.pop("name", None)
-            transformer_config = transformer
-
+            self.transformer_name = transformer.get("name")
+            self.transformer_config = filter_dict(transformer, "name")
         elif isinstance(transformer, str):
-            transformer_name, transformer_config = transformer, {}
+            self.transformer_name = transformer
+            self.transformer_config = {}
         else:
-            return self._infer_transformer(transformer)
-        try:
-            return eval(transformer_name)(**transformer_config)
-        except:
-            warnings.warn(
-                f"Invalid transformer '{transformer_name}' or transformer config for column '{self.name}', ignoring transformer for this column"
-            )
-            return self._infer_transformer(transformer)
+            if transformer is not None:
+                warnings.warn(
+                    f"Invalid transformer config '{transformer}' for column '{self.name}', ignoring transformer for this column"
+                )
+            self.transformer_name = None
+            self.transformer_config = {}
+        if not self.transformer_name:
+            return self._infer_transformer()
+        else:
+            try:
+                if self.transformer_name == "DatetimeTransformer":
+                    return eval(self.transformer_name)(**self.transformer_config, **self.datetime_config)
+                else:
+                    return eval(self.transformer_name)(**self.transformer_config)
+            except:
+                warnings.warn(
+                    f"Invalid transformer '{self.transformer_name}' or config '{self.transformer_config}' for column '{self.name}', ignoring transformer for this column"
+                )
+                return self._infer_transformer()
 
-    def _infer_transformer(self, transformer_config) -> GenericTransformer:
-        if not isinstance(transformer_config, dict):
-            transformer_config = {}
+    def _infer_transformer(self) -> GenericTransformer:
         if self.categorical:
-            transformer = OHETransformer(**transformer_config)
+            transformer = OHETransformer(**self.transformer_config)
         else:
-            transformer = ClusterTransformer(**transformer_config)
+            transformer = ClusterTransformer(**self.transformer_config)
         if self.dtype.kind == "M":
-            transformer = DatetimeTransformer(transformer, self.datetime_config)
+            transformer = DatetimeTransformer(transformer, **self.datetime_config)
         return transformer
 
 
@@ -150,17 +164,13 @@ class MetaData:
             with open(path) as stream:
                 metadata = yaml.safe_load(stream)
             # Filter out expanded alias/anchor groups
-            metadata = filter_dict(metadata, {"transformers", "column_types"})
+            metadata = filter_dict(metadata, {"column_types"})
         else:
             warnings.warn(f"No metadata found at {path}...")
             metadata = {}
         return cls(data, metadata)
 
-    def save(
-        self,
-        path: pathlib.Path,
-        collapse_yaml: bool,
-    ) -> None:
+    def save(self, path: pathlib.Path, collapse_yaml: bool) -> None:
         """
         Writes metadata to a YAML file.
 
@@ -171,58 +181,77 @@ class MetaData:
         """
         with open(path, "w") as yaml_file:
             yaml.safe_dump(
-                collapse(self._metadata) if collapse_yaml else self._metadata,
+                self.assemble(collapse_yaml),
                 yaml_file,
                 default_flow_style=False,
                 sort_keys=False,
             )
 
+    def assemble(self, collapse_yaml: bool) -> dict[str, dict[str, Any]]:
+        assembled_metadata = {
+            cn: {
+                "dtype": cmd.dtype.name
+                if not hasattr(cmd, "datetime_config")
+                else {"name": cmd.dtype.name, **cmd.datetime_config},
+                "categorical": cmd.categorical,
+            }
+            for cn, cmd in self._metadata.items()
+        }
+        # Only add "missingness" to assembled_data if it is not None
+        for cn, cmd in self._metadata.items():
+            if cmd.missingness_strategy:
+                assembled_metadata[cn]["missingness"] = (
+                    cmd.missingness_strategy.name
+                    if cmd.missingness_strategy.name != "impute"
+                    else {"name": cmd.missingness_strategy.name, "impute": cmd.missingness_strategy.impute}
+                )
+            if cmd.transformer_config:
+                assembled_metadata[cn]["transformer"] = {
+                    **cmd.transformer_config,
+                    "name": cmd.transformer.__class__.__name__,
+                }
+        if collapse_yaml:
+            assembled_metadata = self.collapse(assembled_metadata)
+        return assembled_metadata
+
     def __repr__(self) -> None:
         return yaml.dump(self._metadata, default_flow_style=False, sort_keys=False)
 
-    def get_sdtypes(self) -> dict[str, str]:
-        return {cn: cm.dtype.name for cn, cm in self._metadata.items()}
+    def collapse(self, metadata: dict) -> dict:
+        """
+        Given a metadata dictionary, rewrite to collapse duplicate column types in order to leverage YAML anchors and shrink the file.
 
+        Args:
+            metadata: The metadata dictionary to be rewritten.
 
-def collapse(metadata: dict) -> dict:
-    """
-    Given a metadata dictionary, rewrite to collapse duplicate column types and transformers in order to leverage YAML anchors
+        Returns:
+            dict: A rewritten metadata dictionary with collapsed column types and transformers.
+                The returned dictionary has the following structure:
+                {
+                    "column_types": dict,
+                    **metadata  # one entry for each column that now reference the dicts above
+                }
+                - "column_types" is a dictionary mapping column type indices to column type configurations.
+                - "**metadata" contains the original metadata dictionary, with column types and transformers
+                rewritten to use the indices in "transformers" and "column_types".
+        """
+        c_index = 1
+        column_types = {}
+        column_type_counts = {}
+        for cn, cd in metadata.items():
+            if cd not in column_types.values():
+                column_types[c_index] = cd.copy()
+                column_type_counts[c_index] = 1
+                c_index += 1
+            else:
+                cix = get_key_by_value(column_types, cd)
+                column_type_counts[cix] += 1
 
-    Args:
-        metadata: The metadata dictionary to be rewritten.
-
-    Returns:
-        dict: A rewritten metadata dictionary with collapsed column types and transformers.
-            The returned dictionary has the following structure:
-            {
-                "transformers": dict,
-                "column_types": dict,
-                **metadata  # one entry for each column that now reference the dicts above
-            }
-            - "transformers" is a dictionary mapping transformer indices to transformer configurations.
-            - "column_types" is a dictionary mapping column type indices to column type configurations.
-            - "**metadata" contains the original metadata dictionary, with column types and transformers
-              rewritten to use the indices in "transformers" and "column_types".
-    """
-    c_index = 1
-    column_types = {}
-    t_index = 1
-    transformers = {}
-    for cn, cd in metadata.items():
-        if cd not in column_types.values():
-            column_types[c_index] = cd.copy()
-            metadata[cn] = column_types[c_index]
-            c_index += 1
-        else:
+        for cn, cd in metadata.items():
             cix = get_key_by_value(column_types, cd)
-            metadata[cn] = column_types[cix]
+            if column_type_counts[cix] > 1:
+                metadata[cn] = column_types[cix]
+            else:
+                column_types.pop(cix)
 
-        if cd["transformer"] not in transformers.values() and cd["transformer"]:
-            transformers[t_index] = cd["transformer"].copy()
-            metadata[cn]["transformer"] = transformers[t_index]
-            t_index += 1
-        elif cd["transformer"]:
-            tix = get_key_by_value(transformers, cd["transformer"])
-            metadata[cn]["transformer"] = transformers[tix]
-
-    return {"transformers": transformers, "column_types": column_types, **metadata}
+        return {"column_types": {i + 1: x for i, x in enumerate(column_types.values())}, **metadata}

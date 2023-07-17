@@ -1,10 +1,11 @@
+import pathlib
 import sys
 from typing import Any, Optional
 
 import pandas as pd
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.missingness import *
-from nhssynth.modules.dataloader.transformers.utils import make_transformer_dict
+from tqdm import tqdm
 
 
 # TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
@@ -57,10 +58,6 @@ class MetaTransformer:
             self.metadata: MetaData = metadata
         else:
             self.metadata: MetaData = MetaData(dataset)
-        assert missingness_strategy in MISSINGNESS_STRATEGIES, (
-            f"Invalid missingness strategy '{missingness_strategy}'. "
-            f"Must be one of {list(MISSINGNESS_STRATEGIES.keys())}"
-        )
         if missingness_strategy == "impute":
             assert (
                 impute_value is not None
@@ -137,41 +134,13 @@ class MetaTransformer:
             if not column_metadata.missingness_strategy:
                 column_metadata.missingness_strategy = (
                     self.missingness_strategy(self.impute_value)
-                    if hasattr(self, "impute_value")
+                    if isinstance(self.missingness_strategy, ImputeMissingnessStrategy)
                     else self.missingness_strategy()
                 )
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
         return working_data
-
-    def assemble(self) -> dict[str, dict[str, Any]]:
-        """
-        Rearranges the dtype, sdtype and transformer metadata into a consistent format ready for output.
-
-        Returns:
-            A dictionary mapping column names to column metadata.
-                The metadata for each column has the following keys:
-                - dtype: The pandas dataset type for the column
-                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
-                    - name: The name of the transformer.
-                    - Any other properties of the transformer that we want to record in output.
-        Raises:
-            ValueError: If the metatransformer has not yet been instantiated.
-        """
-        if not self.metatransformer:
-            raise ValueError(
-                "The metatransformer has not yet been instantiated. Call `mt.apply(dataset)` first (or `mt.instantiate(dataset)`)."
-            )
-        transformers = self.metatransformer.get_transformers()
-        return {
-            cn: {
-                **cd,
-                "transformer": make_transformer_dict(transformers[cn]) if transformers[cn] else None,
-                "dtype": self.metadata[cn].dtype,
-            }
-            for cn, cd in self.metatransformer.metadata.columns.items()
-        }
 
     def transform(self) -> pd.DataFrame:
         """
@@ -191,7 +160,9 @@ class MetaTransformer:
         self.multi_idxs = []
         col_counter = 0
         working_data = self.prepared_dataset.copy()
-        for column_metadata in self.metadata:
+        for column_metadata in tqdm(
+            self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
+        ):
             # TODO is there a nicer way of doing this, the transformer and augment strategy create a chicken and egg problem
             if hasattr(column_metadata.missingness_strategy, "missing_column") and not column_metadata.categorical:
                 transformed_data = column_metadata.transformer.apply(
@@ -222,7 +193,6 @@ class MetaTransformer:
         self.typed_dataset = self.apply_dtypes()
         self.prepared_dataset = self.apply_missingness_strategy()
         self.transformed_dataset = self.transform()
-        print(self.transformed_dataset.columns)
 
     def get_typed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "typed_dataset"):
@@ -245,26 +215,8 @@ class MetaTransformer:
             )
         return self.transformed_dataset
 
-    def get_assembled_metadata(self) -> dict[str, dict[str, Any]]:
-        """
-        Returns the assembled metadata for the transformer.
-
-        Returns:
-            A dictionary mapping column names to column metadata.
-                The metadata for each column has the following keys:
-                - dtype: The pandas dataset type for the column
-                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
-                    - name: The name of the transformer.
-                    - Any other properties of the transformer that we want to record in output.
-
-        Raises:
-            ValueError: If the metadata has not yet been assembled.
-        """
-        if not hasattr(self, "assembled_metadata"):
-            raise ValueError(
-                "MetaData has not yet been assembled. Call `mt.apply(dataset)` (or `mt.assemble()`) first."
-            )
-        return self.assembled_metadata
+    def save_metadata(self, path: pathlib.Path, collapse_yaml: bool = False) -> None:
+        return self.metadata.save(path, collapse_yaml)
 
     def inverse_apply(self, dataset: pd.DataFrame) -> pd.DataFrame:
         """

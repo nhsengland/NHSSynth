@@ -66,7 +66,7 @@ git checkout release
 python setup.py install
 ```
 
-#### Advanced Usage
+#### Advanced Installation
 
 If you intend on contributing or working with the codebase directly, or if you want to reproduce the results of this project, follow the steps below:
 
@@ -108,7 +108,7 @@ See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of pro
 
 ### Contributing
 
-Any contributions you wish to make are **greatly appreciated**, we encourage you to first raise an issue to discuss with the maintainers. If you are interested in contributing, please follow these steps:
+Contributions are welcome! We encourage you to first raise an issue with your proposed contribution to enable discussion with the maintainers. After that, please follow these steps:
 
 1. Fork the project
 2. Create your branch (`git checkout -b <yourusername>/<featurename>`)
