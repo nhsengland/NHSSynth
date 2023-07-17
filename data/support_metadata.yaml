@@ -1,78 +1,38 @@
 dob:
-  sdtype: datetime
-  transformer:
-    name: OptimizedTimestampEncoder
   dtype: datetime64
 x1:
-  sdtype: categorical
-  transformer: OneHotEncoder
+  categorical: true
   dtype: int64
 x2:
-  sdtype: categorical
-  transformer: OneHotEncoder
+  categorical: true
   dtype: int64
 x3:
-  sdtype: categorical
-  transformer:
-    name: OneHotEncoder
-  dtype: object
+  categorical: true
 x4:
-  sdtype: categorical
-  transformer:
-    name: OneHotEncoder
+  categorical: true
   dtype: int64
 x5:
-  sdtype: categorical
-  transformer:
-    name: OneHotEncoder
+  categorical: true
   dtype: int64
 x6:
-  sdtype: categorical
-  transformer:
-    name: OneHotEncoder
+  categorical: true
   dtype: int64
 x7:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: int64
 x8:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
-  dtype: int64
+  dtype: float64
 x9:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: int64
 x10:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: float64
 x11:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: int64
 x12:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: float64
 x13:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: float64
 duration:
-  sdtype: numerical
-  transformer:
-    name: ClusterBasedNormalizer
   dtype: int64
 event:
-  sdtype: categorical
-  transformer:
-    name: OneHotEncoder
+  categorical: true
   dtype: int64

@@ -1,5 +1,4 @@
 seed: 1
 experiment_name: test
 dataloader:
-  allow_null_transformers: False
   collapse_yaml: false

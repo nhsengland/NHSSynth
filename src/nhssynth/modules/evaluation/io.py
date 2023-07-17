@@ -5,7 +5,7 @@ from typing import Any
 
 import pandas as pd
 from nhssynth.common.io import *
-from nhssynth.modules.dataloader.metadata import get_sdtypes, load_metadata
+from nhssynth.modules.dataloader.metadata import MetaData
 
 
 def check_input_paths(
@@ -62,6 +62,6 @@ def load_required_data(
             real_data = pickle.load(f)
         with open(dir_experiment / fn_synthetic, "rb") as f:
             synthetic_data = pickle.load(f)
-        sdtypes = get_sdtypes(load_metadata(dir_experiment / fn_metadata, real_data))
+        sdtypes = MetaData.load(dir_experiment / fn_metadata, real_data).get_sdtypes()
 
         return fn_dataset, real_data, synthetic_data, sdtypes

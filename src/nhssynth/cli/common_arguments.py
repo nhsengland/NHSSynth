@@ -79,13 +79,27 @@ COMMON_PARSERS: Final = {
     "dataset": get_dataset_parser,
     "core": get_core_parser,
     "metadata": suffix_parser_generator(
-        "metadata", "filename of the metadata, NOTE that `dataloader` attempts to read this from `<DATA_DIR>`"
+        "metadata",
+        "filename of the metadata, NOTE that `dataloader` attempts to read this from `<DATA_DIR>`",
     ),
-    "typed": suffix_parser_generator("typed", "filename of the typed data"),
-    "prepared": suffix_parser_generator("prepared", "filename of the prepared data"),
+    "typed": suffix_parser_generator(
+        "typed",
+        "filename of the typed data",
+    ),
+    "transformed": suffix_parser_generator(
+        "transformed",
+        "filename of the transformed data",
+    ),
     "metatransformer": suffix_parser_generator(
-        "metatransformer", "filename of the `MetaTransformer` used to prepare the data"
+        "metatransformer",
+        "filename of the `MetaTransformer` used to prepare the data",
     ),
-    "synthetic": suffix_parser_generator("synthetic", "filename of the synthetic data"),
-    "report": suffix_parser_generator("report", "filename of the (collection of) report(s)"),
+    "synthetic": suffix_parser_generator(
+        "synthetic",
+        "filename of the synthetic data",
+    ),
+    "report": suffix_parser_generator(
+        "report",
+        "filename of the (collection of) report(s)",
+    ),
 }

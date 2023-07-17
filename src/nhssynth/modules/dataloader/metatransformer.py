@@ -1,366 +1,250 @@
-import warnings
-from typing import Any, Union
+import pathlib
+import sys
+from typing import Any, Optional
 
-import numpy as np
 import pandas as pd
-from nhssynth.common.constants import SDV_SYNTHESIZERS
-from nhssynth.common.dicts import filter_dict
-from nhssynth.modules.dataloader.metadata import get_sdtypes
-from rdt.transformers import *
-from sdv.metadata import SingleTableMetadata
-from sdv.single_table.base import BaseSingleTableSynthesizer
-
-
-# TODO should this be an @classmethod?
-def get_transformer(d: dict) -> Union[BaseTransformer, None]:
-    """
-    Return a callable transformer object constructed from data in the given dictionary.
-
-    Args:
-        d: A dictionary containing the transformer data.
-
-    Returns:
-        An instantiated `BaseTransformer` if the dictionary contains valid transformer data, else None.
-    """
-    transformer_data = d.get("transformer", None)
-    if isinstance(transformer_data, dict) and "name" in transformer_data:
-        # Need to copy in case dicts are shared across columns, this can happen when reading a yaml with anchors
-        transformer_data = transformer_data.copy()
-        transformer_name = transformer_data.pop("name")
-        return eval(transformer_name)(**transformer_data)
-    elif isinstance(transformer_data, str):
-        return eval(transformer_data)()
-    else:
-        return None
-
-
-# TODO should this be an @classmethod?
-def make_transformer_dict(transformer: BaseTransformer) -> dict[str, Any]:
-    """
-    Deconstruct a `transformer` into a dictionary of config.
-
-    Args:
-        transformer: A BaseTransformer object from RDT (SDV).
-
-    Returns:
-        A dictionary containing the transformer's name and arguments.
-    """
-    return {
-        "name": type(transformer).__name__,
-        **filter_dict(
-            transformer.__dict__,
-            {"output_properties", "random_states", "transform", "reverse_transform", "_dtype"},
-        ),
-    }
+from nhssynth.modules.dataloader.metadata import MetaData
+from nhssynth.modules.dataloader.missingness import *
+from tqdm import tqdm
 
 
 # TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
 class MetaTransformer:
     """
-    A metatransformer object that can wrap a [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)
-    from SDV. The metatransformer is responsible for transforming input data into a format that can be used by the model module, and transforming
-    the module's output back to the original format of the input data.
+    A metatransformer object that can wrap a [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-dataset/modeling/synthesizers)
+    from SDV. The metatransformer is responsible for transforming input dataset into a format that can be used by the model module, and transforming
+    the module's output back to the original format of the input dataset.
 
     Args:
         metadata: A dictionary mapping column names to their metadata.
-        allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.
-        synthesizer: The `BaseSingleTableSynthesizer` class to use as the "host" for the MetaTransformer.
 
     Once instantiated via `mt = MetaTransformer(<parameters>)`, the following attributes will be available:
 
     Attributes:
-        allow_null_transformers: A flag indicating whether or not to allow null transformers on some / all columns.
-        Synthesizer: The `BaseSingleTableSynthesizer` host class.
         dtypes: A dictionary mapping each column to its specified pandas dtype (will infer from pandas defaults if this is missing).
-        sdtypes: A dictionary mapping each column to the appropriate SDV-specific data type.
+        sdtypes: A dictionary mapping each column to the appropriate SDV-specific dataset type.
         transformers: A dictionary mapping each column to their assigned (if any) transformer.
 
-    After preparing some data with the MetaTransformer, i.e. `prepared_data = mt.apply(data)`, the following attributes and methods will be available:
+    After preparing some dataset with the MetaTransformer, i.e. `transformed_dataset = mt.apply(dataset)`, the following attributes and methods will be available:
 
     Attributes:
-        metatransformer (self.Synthesizer): An instanatiated `self.Synthesizer` object, ready to use on data.
+        metatransformer (self.Synthesizer): An instanatiated `self.Synthesizer` object, ready to use on dataset.
         assembled_metadata (dict[str, dict[str, Any]]): A dictionary containing the formatted and complete metadata for the MetaTransformer.
-        onehots (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
-        singles (list[int]): The indices of non-one-hotted columns.
+        multi_column_indices (list[list[int]]): The groups of indices of one-hotted columns (i.e. each inner list contains all levels of one categorical).
+        single_column_indices (list[int]): The indices of non-one-hotted columns.
 
     **Methods:**
 
     - `get_assembled_metadata()`: Returns the assembled metadata.
     - `get_sdtypes()`: Returns the sdtypes from the assembled metadata in the correct format for SDMetrics.
-    - `get_onehots_and_singles()`: Returns the values of the MetaTransformer's `onehots` and `singles` attributes.
-    - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given data.
+    - `get_multi_column_indices_and_single_column_indices()`: Returns the values of the MetaTransformer's `multi_column_indices` and `single_column_indices` attributes.
+    - `inverse_apply(synthetic_data)`: Apply the inverse of the MetaTransformer to the given dataset.
 
     Note that `mt.apply` is a helper function that runs `mt.apply_dtypes`, `mt.instaniate`, `mt.assemble`, `mt.prepare` and finally
-    `mt.count_onehots_and_singles` in sequence on a given raw dataset. Along the way it assigns the attributes listed above. *This workflow is highly
+    `mt.count_multi_column_indices_and_single_column_indices` in sequence on a given raw dataset. Along the way it assigns the attributes listed above. *This workflow is highly
     encouraged to ensure that the MetaTransformer is properly instantiated for use with the model module.*
     """
 
     def __init__(
         self,
-        metadata,
-        allow_null_transformers=False,
-        synthesizer="TVAE",
-    ) -> None:
-        self.allow_null_transformers: bool = allow_null_transformers
-        self.Synthesizer: BaseSingleTableSynthesizer = SDV_SYNTHESIZERS[synthesizer]
-        self.dtypes: dict[str, dict[str, Any]] = {cn: cd.get("dtype", {}) for cn, cd in metadata.items()}
-        self.sdtypes: dict[str, dict[str, Any]] = {
-            cn: filter_dict(cd, {"dtype", "transformer"}) for cn, cd in metadata.items()
-        }
-        self.transformers: dict[str, Union[BaseTransformer, None]] = {
-            cn: get_transformer(cd) for cn, cd in metadata.items()
-        }
-
-    def apply_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Applies dtypes from the metadata to `data` and infers missing dtypes by reading pandas defaults.
-
-        Args:
-            data: The raw input DataFrame.
-
-        Returns:
-            The data with the dtypes applied.
-        """
-        if not all(self.dtypes.values()):
-            warnings.warn(
-                f"Incomplete metadata, detecting missing `dtype`s for column(s): {[k for k, v in self.dtypes.items() if not v]} automatically...",
-                UserWarning,
-            )
-            self.dtypes.update({cn: data[cn].dtype for cn, cv in self.dtypes.items() if not cv})
-        return data.astype(self.dtypes, errors="ignore")
-
-    def _instantiate_ohe_component_transformers(
-        self, transformers: dict[str, Union[BaseTransformer, None]]
-    ) -> dict[str, BaseTransformer]:
-        """
-        Instantiates a OneHotEncoder for each resulting `*.component` column that arises from a ClusterBasedNormalizer.
-
-        Args:
-            transformers: A dictionary mapping column names to their assigned transformers.
-
-        Returns:
-            A dictionary mapping each `*.component` column to a OneHotEncoder.
-        """
-        return {
-            f"{cn}.component": OneHotEncoder()
-            for cn, transformer in transformers.items()
-            if transformer and transformer.get_name() == "ClusterBasedNormalizer"
-        }
-
-    def instantiate(self, data: pd.DataFrame) -> BaseSingleTableSynthesizer:
-        """
-        Instantiates a `self.Synthesizer` object from the given metadata and data. Infers missing metadata (sdtypes and transformers).
-
-        Args:
-            data: The input DataFrame.
-
-        Returns:
-            A fully instantiated `self.Synthesizer` object and a transformer for the `*.component` columns.
-
-        Raises:
-            UserWarning: If the metadata is incomplete (and `self.allow_null_transformers` is `False`) in the case of missing transformer metadata.
-        """
-        if all(self.sdtypes.values()):
-            metadata = SingleTableMetadata.load_from_dict({"columns": self.sdtypes})
+        dataset: pd.DataFrame,
+        metadata: Optional[MetaData] = None,
+        missingness_strategy: Optional[str] = "augment",
+        impute_value: Optional[Any] = None,
+    ):
+        self.raw_dataset: pd.DataFrame = dataset
+        if metadata:
+            assert metadata.columns.equals(dataset.columns), "`dataset`'s columns must match those in `metadata`"
+            self.metadata: MetaData = metadata
         else:
-            warnings.warn(
-                f"Incomplete metadata, detecting missing `sdtype`s for column(s): {[k for k, v in self.sdtypes.items() if not v]} automatically...",
-                UserWarning,
-            )
-            metadata = SingleTableMetadata()
-            metadata.detect_from_dataframe(data)
-            for column_name, values in self.sdtypes.items():
-                if values:
-                    metadata.update_column(column_name=column_name, **values)
-        if not all(self.transformers.values()) and not self.allow_null_transformers:
-            warnings.warn(
-                f"Incomplete metadata, detecting missing `transformers`s for column(s): {[k for k, v in self.transformers.items() if not v]} automatically...",
-                UserWarning,
-            )
-        synthesizer = self.Synthesizer(metadata)
-        synthesizer.auto_assign_transformers(data)
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="Replacing the default transformer for column")
-            synthesizer.update_transformers(
-                self.transformers if self.allow_null_transformers else {k: v for k, v in self.transformers.items() if v}
-            )
-        # TODO this is a hacky way to get the component columns we want to apply OneHotEncoder to
-        component_transformer = self._instantiate_ohe_component_transformers(synthesizer.get_transformers())
-        return synthesizer, component_transformer
+            self.metadata: MetaData = MetaData(dataset)
+        if missingness_strategy == "impute":
+            assert (
+                impute_value is not None
+            ), "`impute_value` must be specified when using the imputation missingness strategy"
+            self.impute_value: Any = impute_value
+        self.missingness_strategy: GenericMissingnessStrategy = MISSINGNESS_STRATEGIES[missingness_strategy]
 
-    def _get_dtype(self, cn: str) -> Union[str, np.dtype]:
-        """Returns the dtype for the given column name `cn`."""
-        return self.dtypes[cn].name if not isinstance(self.dtypes[cn], str) else self.dtypes[cn]
-
-    def assemble(self) -> dict[str, dict[str, Any]]:
+    @classmethod
+    def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs):
         """
-        Rearranges the dtype, sdtype and transformer metadata into a consistent format ready for output.
-
-        Returns:
-            A dictionary mapping column names to column metadata.
-                The metadata for each column has the following keys:
-                - dtype: The pandas data type for the column
-                - sdtype: The SDV-specific data type for the column.
-                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
-                    - name: The name of the transformer.
-                    - Any other properties of the transformer that we want to record in output.
-        Raises:
-            ValueError: If the metatransformer has not yet been instantiated.
-        """
-        if not self.metatransformer:
-            raise ValueError(
-                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
-            )
-        transformers = self.metatransformer.get_transformers()
-        return {
-            cn: {
-                **cd,
-                "transformer": make_transformer_dict(transformers[cn]) if transformers[cn] else None,
-                "dtype": self._get_dtype(cn),
-            }
-            for cn, cd in self.metatransformer.metadata.columns.items()
-        }
-
-    def prepare(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Prepares the data by processing it via the metatransformer.
+        Instantiates a MetaTransformer from a metadata file.
 
         Args:
-            data: The data to fit and apply the transformer to.
+            dataset: The raw input DataFrame.
+            metadata_path: The path to the metadata file.
 
         Returns:
-            The transformed data.
-
-        Raises:
-            ValueError: If the metatransformer has not yet been instantiated.
+            A MetaTransformer object.
         """
-        if not self.metatransformer:
-            raise ValueError(
-                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
-            )
-        prepared_data = self.metatransformer.preprocess(data)
-        # TODO this is kind of a hacky way to solve the component column problem
-        for cn, transformer in self.component_transformer.items():
-            prepared_data = transformer.fit_transform(prepared_data, cn)
-        return prepared_data
+        return cls(dataset, MetaData.load(metadata_path, dataset), **kwargs)
 
-    def count_onehots_and_singles(self, data: pd.DataFrame) -> tuple[list[list[int]], list[int]]:
+    @classmethod
+    def from_dict(cls, dataset: pd.DataFrame, metadata: dict, **kwargs):
         """
-        Uses the assembled metadata to identify and record the indices of one-hotted column groups.
-        Also records the indices of non-one-hotted columns in a separate list.
+        Instantiates a MetaTransformer from a metadata dictionary.
 
         Args:
-            data: The data to extract column indices from.
+            dataset: The raw input DataFrame.
+            metadata_dict: The metadata dictionary.
 
         Returns:
-            A pair of lists:
-                - One-hotted column index groups (i.e. one inner list with all corresponding indices per categorical variable)
-                - Non-one-hotted column indices
+            A MetaTransformer object.
         """
-        if not self.assembled_metadata:
-            self.assembled_metadata = self.assemble()
-        onehot_idxs = []
-        single_idxs = []
-        for cn, cd in self.assembled_metadata.items():
-            if cd["transformer"] and cd["transformer"].get("name") == "OneHotEncoder":
-                onehot_idxs.append(data.columns.get_indexer(data.filter(regex=f"^{cn}.value").columns).tolist())
-            elif cd["transformer"] and cd["transformer"].get("name") == "ClusterBasedNormalizer":
-                onehot_idxs.append(
-                    data.columns.get_indexer(data.filter(regex=f"^{cn}.component.value").columns).tolist()
+        return cls(dataset, MetaData(dataset, metadata), **kwargs)
+
+    def apply_dtypes(self) -> pd.DataFrame:
+        """
+        Applies dtypes from the metadata to `dataset` and infers missing dtypes by reading pandas defaults.
+
+        Args:
+            dataset: The raw input DataFrame.
+
+        Returns:
+            The dataset with the dtypes applied.
+        """
+        working_data = self.raw_dataset.copy()
+        for column_metadata in self.metadata:
+            dtype = column_metadata.dtype
+            cn = column_metadata.name
+            try:
+                if dtype.kind == "M":
+                    working_data[cn] = pd.to_datetime(working_data[cn], **column_metadata.datetime_config)
+                elif working_data[cn].isnull().any() and dtype.kind in ["i", "u", "f"]:
+                    working_data[cn] = working_data[cn].astype(dtype.name.capitalize())
+                else:
+                    working_data[cn] = working_data[cn].astype(dtype)
+            except:
+                # Print the error message along with the column name to make it easier to debug
+                raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{cn}'")
+        return working_data
+
+    def apply_missingness_strategy(self) -> pd.DataFrame:
+        """
+        Applies the missingness strategy to the dataset.
+
+        Args:
+            dataset: The dataset to apply the missingness strategy to.
+
+        Returns:
+            The dataset with the missingness strategy applied.
+        """
+        working_data = self.typed_dataset.copy()
+        for column_metadata in self.metadata:
+            if not column_metadata.missingness_strategy:
+                column_metadata.missingness_strategy = (
+                    self.missingness_strategy(self.impute_value)
+                    if isinstance(self.missingness_strategy, ImputeMissingnessStrategy)
+                    else self.missingness_strategy()
                 )
-                single_idxs.append(data.columns.get_loc(cn + ".normalized"))
-            elif not cd["transformer"] or cd["transformer"].get("name") != "RegexGenerator":
-                single_idxs.append(data.columns.get_loc(cn))
-        if not onehot_idxs:
-            onehot_idxs.append([])
-        return onehot_idxs, single_idxs
+            if not working_data[column_metadata.name].isnull().any():
+                continue
+            working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
+            if column_metadata.dtype.kind in ["f", "i", "u"]:
+                working_data[column_metadata.name] = working_data[column_metadata.name].astype(
+                    column_metadata.dtype.name.lower()
+                )
+        return working_data
 
-    def apply(self, data: pd.DataFrame) -> pd.DataFrame:
+    def transform(self) -> pd.DataFrame:
+        """
+        Prepares the dataset by processing it via the metatransformer.
+
+        Args:
+            dataset: The dataset to fit and apply the transformer to.
+
+        Returns:
+            The transformed dataset.
+
+        Raises:
+            ValueError: If the metatransformer has not yet been instantiated.
+        """
+        transformed_columns = []
+        self.single_column_indices = []
+        self.multi_column_indices = []
+        col_counter = 0
+        working_data = self.prepared_dataset.copy()
+        for column_metadata in tqdm(
+            self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
+        ):
+            # TODO is there a nicer way of doing this, the transformer and augment strategy create a chicken and egg problem
+            if hasattr(column_metadata.missingness_strategy, "missing_column") and not column_metadata.categorical:
+                transformed_data = column_metadata.transformer.apply(
+                    working_data[column_metadata.name],
+                    working_data[column_metadata.missingness_strategy.missing_column],
+                )
+            else:
+                transformed_data = column_metadata.transformer.apply(working_data[column_metadata.name])
+            transformed_columns.append(transformed_data)
+            if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
+                self.multi_column_indices.append(list(range(col_counter, col_counter + transformed_data.shape[1])))
+                col_counter += transformed_data.shape[1]
+            else:
+                self.single_column_indices.append(col_counter)
+                col_counter += 1
+        return pd.concat(transformed_columns, axis=1)
+
+    def apply(self) -> None:
         """
         Applies the various steps of the MetaTransformer to a passed DataFrame.
 
         Args:
-            data: The DataFrame to transform.
+            dataset: The DataFrame to transform.
 
         Returns:
-            The transformed data.
+            The transformed dataset.
         """
-        typed_data = self.apply_dtypes(data)
-        self.metatransformer, self.component_transformer = self.instantiate(typed_data)
-        self.assembled_metadata = self.assemble()
-        prepared_data = self.prepare(typed_data)
-        self.onehots, self.singles = self.count_onehots_and_singles(prepared_data)
-        return typed_data, prepared_data
+        self.typed_dataset = self.apply_dtypes()
+        self.prepared_dataset = self.apply_missingness_strategy()
+        self.transformed_dataset = self.transform()
 
-    def get_assembled_metadata(self) -> dict[str, dict[str, Any]]:
-        """
-        Returns the assembled metadata for the transformer.
-
-        Returns:
-            A dictionary mapping column names to column metadata.
-                The metadata for each column has the following keys:
-                - dtype: The pandas data type for the column
-                - sdtype: The SDV-specific data type for the column.
-                - transformer: A dictionary containing information about the transformer used for the column (if any). The dictionary has the following keys:
-                    - name: The name of the transformer.
-                    - Any other properties of the transformer that we want to record in output.
-
-        Raises:
-            ValueError: If the metadata has not yet been assembled.
-        """
-        if not hasattr(self, "assembled_metadata"):
-            raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
-        return self.assembled_metadata
-
-    def get_sdtypes(self) -> dict[str, dict[str, dict[str, str]]]:
-        """
-        Returns the sdtypes extracted from the assembled metadata for SDMetrics.
-
-        Returns:
-            A dictionary mapping column names to sdtypes.
-
-        Raises:
-            ValueError: If the metadata has not yet been assembled.
-        """
-        if not hasattr(self, "assembled_metadata"):
-            raise ValueError("Metadata has not yet been assembled. Call `my.apply(data)` (or `mt.assemble()`) first.")
-        return get_sdtypes(self.assembled_metadata)
-
-    def get_onehots_and_singles(self) -> tuple[list[list[int]], list[int]]:
-        """
-        Get the values of the MetaTransformer's `onehots` and `singles` attributes.
-
-        Returns:
-            A pair of lists:
-                - One-hotted column index groups (i.e. one inner list with all corresponding indices per categorical variable)
-                - Non-one-hotted column indices
-
-        Raises:
-            ValueError: If `self.onehots` and `self.singles` have yet to be counted.
-        """
-        if not hasattr(self, "onehots") or not hasattr(self, "singles"):
+    def get_typed_dataset(self) -> pd.DataFrame:
+        if not hasattr(self, "typed_dataset"):
             raise ValueError(
-                "Some metadata is missing. Call `mt.apply(data)` first (or `mt.count_onehots_and_singles(data)`)."
+                "The typed dataset has not yet been created. Call `mt.apply()` (or `mt.apply_dtypes()`) first."
             )
-        return self.onehots, self.singles
+        return self.typed_dataset
 
-    def inverse_apply(self, data: pd.DataFrame) -> pd.DataFrame:
+    def get_prepared_dataset(self) -> pd.DataFrame:
+        if not hasattr(self, "prepared_dataset"):
+            raise ValueError(
+                "The prepared dataset has not yet been created. Call `mt.apply()` (or `mt.apply_missingness_strategy()`) first."
+            )
+        return self.prepared_dataset
+
+    def get_transformed_dataset(self) -> pd.DataFrame:
+        if not hasattr(self, "transformed_dataset"):
+            raise ValueError(
+                "The prepared dataset has not yet been created. Call `mt.apply()` (or `mt.transform()`) first."
+            )
+        return self.transformed_dataset
+
+    def save_metadata(self, path: pathlib.Path, collapse_yaml: bool = False) -> None:
+        return self.metadata.save(path, collapse_yaml)
+
+    def get_multi_and_single_column_indices(self) -> tuple[list[int], list[int]]:
+        """
+        Returns the indices of the columns that were transformed into one or multiple column(s).
+
+        Returns:
+            A tuple containing the indices of the single and multi columns.
+        """
+        if not hasattr(self, "multi_column_indices") or not hasattr(self, "single_column_indices"):
+            raise ValueError(
+                "The single and multi column indices have not yet been created. Call `mt.apply()` (or `mt.transform()`) first."
+            )
+        return self.multi_column_indices, self.single_column_indices
+
+    def inverse_apply(self, dataset: pd.DataFrame) -> pd.DataFrame:
         """
         Reverses the transformation applied by the MetaTransformer.
 
         Args:
-            data: The transformed data.
+            dataset: The transformed dataset.
 
         Returns:
-            The original data.
-
-        Raises:
-            ValueError: If the metatransformer has not yet been instantiated.
+            The original dataset.
         """
-        if not hasattr(self, "metatransformer"):
-            raise ValueError(
-                "The metatransformer has not yet been instantiated. Call `mt.apply(data)` first (or `mt.instantiate(data)`)."
-            )
         for transformer in self.component_transformer.values():
-            data = transformer.reverse_transform(data)
-        return self.metatransformer._data_processor.reverse_transform(data)
+            dataset = transformer.reverse_transform(dataset)
+        return self.metatransformer._data_processor.reverse_transform(dataset)

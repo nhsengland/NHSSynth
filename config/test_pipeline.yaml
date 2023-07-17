@@ -1,7 +1,6 @@
 seed: 1
 experiment_name: test
 dataloader:
-  allow_null_transformers: false
   collapse_yaml: false
 model:
   architecture:

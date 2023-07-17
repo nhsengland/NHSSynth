@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from nhssynth.common.constants import ACTIVATION_FUNCTIONS
-from nhssynth.modules.model.common.Model import Model
+from nhssynth.modules.model.common.model import Model
 from torch.distributions.normal import Normal
 from tqdm import tqdm
 
@@ -74,10 +74,10 @@ class Decoder(nn.Module):
 class Noiser(nn.Module):
     def __init__(
         self,
-        num_singles: list[int],
+        num_single_column_indices: list[int],
     ) -> None:
         super().__init__()
-        self.output_logsigma_fn = nn.Linear(num_singles, num_singles, bias=True)
+        self.output_logsigma_fn = nn.Linear(num_single_column_indices, num_single_column_indices, bias=True)
         torch.nn.init.zeros_(self.output_logsigma_fn.weight)
         torch.nn.init.zeros_(self.output_logsigma_fn.bias)
         self.output_logsigma_fn.weight.requires_grad = False
@@ -136,7 +136,7 @@ class VAE(Model):
             self.shared_optimizer,
         ).to(self.device)
         self.noiser = Noiser(
-            len(self.singles),
+            len(self.single_column_indices),
         ).to(self.device)
         if self.shared_optimizer:
             assert (
@@ -179,15 +179,15 @@ class VAE(Model):
             x_gen = self.decoder(z_samples)
         x_gen_ = torch.ones_like(x_gen, device=self.device)
 
-        if self.onehots != [[]]:
-            for cat_idxs in self.onehots:
+        if self.multi_column_indices != [[]]:
+            for cat_idxs in self.multi_column_indices:
                 x_gen_[:, cat_idxs] = torch.distributions.one_hot_categorical.OneHotCategorical(
                     logits=x_gen[:, cat_idxs]
                 ).sample()
 
-        x_gen_[:, self.singles] = x_gen[:, self.singles] + torch.exp(
-            self.noiser(x_gen[:, self.singles])
-        ) * torch.randn_like(x_gen[:, self.singles])
+        x_gen_[:, self.single_column_indices] = x_gen[:, self.single_column_indices] + torch.exp(
+            self.noiser(x_gen[:, self.single_column_indices])
+        ) * torch.randn_like(x_gen[:, self.single_column_indices])
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
         return pd.DataFrame(x_gen_.detach(), columns=self.columns)
@@ -207,21 +207,21 @@ class VAE(Model):
 
         categoric_loglik = 0
 
-        if self.onehots != [[]]:
-            for cat_idxs in self.onehots:
+        if self.multi_column_indices != [[]]:
+            for cat_idxs in self.multi_column_indices:
                 categoric_loglik += -torch.nn.functional.cross_entropy(
                     x_recon[:, cat_idxs],
                     torch.max(X[:, cat_idxs], 1)[1],
                 ).sum()
 
         gauss_loglik = 0
-        if self.singles:
+        if self.single_column_indices:
             gauss_loglik = (
                 Normal(
-                    loc=x_recon[:, self.singles],
-                    scale=torch.exp(self.noiser(x_recon[:, self.singles])),
+                    loc=x_recon[:, self.single_column_indices],
+                    scale=torch.exp(self.noiser(x_recon[:, self.single_column_indices])),
                 )
-                .log_prob(X[:, self.singles])
+                .log_prob(X[:, self.single_column_indices])
                 .sum()
             )
 

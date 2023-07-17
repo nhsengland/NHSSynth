@@ -12,12 +12,12 @@ def experiment_dir(tmp_path) -> Path:
 
 
 @pytest.fixture
-def fn_prepared() -> str:
-    return "prepared"
+def fn_transformed() -> str:
+    return "transformed"
 
 
 @pytest.fixture(autouse=True)
-def prepared(experiment_dir, fn_prepared) -> pd.DataFrame:
-    prepared = pd.DataFrame({"c": [7, 8, 9], "d": [10, 11, 12]})
-    prepared.to_pickle(experiment_dir / (fn_prepared + ".pkl"))
-    return prepared
+def transformed(experiment_dir, fn_transformed) -> pd.DataFrame:
+    transformed = pd.DataFrame({"c": [7, 8, 9], "d": [10, 11, 12]})
+    transformed.to_pickle(experiment_dir / (fn_transformed + ".pkl"))
+    return transformed

@@ -4,7 +4,6 @@ from typing import Final
 
 import torch.nn as nn
 from sdmetrics.single_table import *
-from sdv.single_table import *
 
 TIME: Final = strftime("%Y_%m_%d___%H_%M_%S")
 
@@ -24,13 +23,6 @@ ACTIVATION_FUNCTIONS: Final = {
     "leaky_relu": nn.LeakyReLU,
     "tanh": nn.Tanh,
     "sigmoid": nn.Sigmoid,
-}
-
-SDV_SYNTHESIZERS: Final = {
-    "TVAE": TVAESynthesizer,
-    "CTGAN": CTGANSynthesizer,
-    "CopulaGAN": CopulaGANSynthesizer,
-    "Copula": GaussianCopulaSynthesizer,
 }
 
 SDV_DETECTION_METRIC_CHOICES: Final = {

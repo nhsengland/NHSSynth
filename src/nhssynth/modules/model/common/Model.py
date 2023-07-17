@@ -18,8 +18,8 @@ class Model(nn.Module, ABC):
 
     Args:
         data: The data to train on
-        onehots: A list of lists of column indices, where each sublist containts the indices for a one-hot encoded column
-        singles: Indices of all non-onehot columns
+        multi_column_indices: A list of lists of column indices, where each sublist containts the indices for a one-hot encoded column
+        single_column_indices: Indices of all non-onehot columns
         batch_size: The batch size to use during training
         use_gpu: Flag to determine whether to use the GPU (if available)
 
@@ -27,23 +27,23 @@ class Model(nn.Module, ABC):
         nrows: The number of rows in the `data`
         ncols: The number of columns in the `data`
         columns: The names of the columns in the `data`
-        onehots: A list of lists of column indices, where each sublist containts the indices for a one-hot encoded column
-        singles: Indices of all non-onehot columns
+        multi_column_indices: A list of lists of column indices, where each sublist containts the indices for a one-hot encoded column
+        single_column_indices: Indices of all non-onehot columns
         data_loader: A PyTorch DataLoader for the `data`
         private: Whether the model is private, i.e. whether the `DPMixin` class has been inherited
         device: The device to use for training (CPU or GPU)
 
     Raises:
         TypeError: If the `Model` class is directly instantiated (i.e. not inherited)
-        AssertionError: If the number of columns in the `data` does not match the number of indices in `onehots` and `singles`
+        AssertionError: If the number of columns in the `data` does not match the number of indices in `multi_column_indices` and `single_column_indices`
         UserWarning: If `use_gpu` is True but no GPU is available
     """
 
     def __init__(
         self,
         data: pd.DataFrame,
-        onehots: Optional[list[list[int]]] = [[]],
-        singles: Optional[list[int]] = [],
+        multi_column_indices: Optional[list[list[int]]] = [[]],
+        single_column_indices: Optional[list[int]] = [],
         batch_size: int = 32,
         use_gpu: bool = False,
     ) -> None:
@@ -52,9 +52,14 @@ class Model(nn.Module, ABC):
         super(Model, self).__init__()
         self.nrows, self.ncols = data.shape
         self.columns: pd.Index = data.columns
-        self.onehots: list[list[int]] = onehots
-        self.singles: list[int] = singles
-        assert len(singles) + sum([len(x) for x in onehots]) == self.ncols
+        self.multi_column_indices: list[list[int]] = multi_column_indices
+        self.single_column_indices: list[int] = single_column_indices
+        assert len(single_column_indices) + sum([len(x) for x in multi_column_indices]) == self.ncols
+        # tabulate the data dtypes with counts of each
+        print(data.dtypes.value_counts())
+        # show the columns that are Float64 type and NOT float64 (lower case)
+        print(data.select_dtypes(include=["Float64"]).columns)
+        print(data["x1_-1"])
         self.data_loader: DataLoader = DataLoader(
             # Should the data also all be turned into floats?
             TensorDataset(torch.Tensor(data.to_numpy())),
@@ -87,12 +92,12 @@ class Model(nn.Module, ABC):
         raise NotImplementedError
 
     @classmethod
-    def from_args(cls, args, data, onehots, singles):
+    def from_args(cls, args, data, multi_column_indices, single_column_indices):
         """Creates an instance from an `argparse.Namespace`."""
         return cls(
             data,
-            onehots,
-            singles,
+            multi_column_indices,
+            single_column_indices,
             **{k: getattr(args, k) for k in ["batch_size", "use_gpu"] + cls._get_args() if getattr(args, k)},
         )
 
