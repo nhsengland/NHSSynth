@@ -140,6 +140,10 @@ class MetaTransformer:
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
+            if column_metadata.dtype.kind in ["i", "u", "f"]:
+                working_data[column_metadata.name] = working_data[column_metadata.name].astype(
+                    column_metadata.dtype.name.lower()
+                )
         return working_data
 
     def transform(self) -> pd.DataFrame:
