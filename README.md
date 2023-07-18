@@ -1,7 +1,7 @@
 <!-- PROJECT SHIELDS -->
 <div align="center">
 
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/coverage.json)
+<!-- ![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/coverage.json) -->
 ![Tests Passing](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/tests.json)
 ![Lines of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/loc.json)
 ![Percentage Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/comments.json)
@@ -72,13 +72,28 @@ If you intend on contributing or working with the codebase directly, or if you w
 
 1. Clone the repo
 2. Ensure one of the required versions of Python is installed
-3. Install [`poetry`](https://python-poetry.org/docs/#installation)
-4. Instantiate a virtual environment, e.g. via `python -m venv nhssynth`
-3. Activate the virtual environment, e.g. via `source nhssynth/bin/activate`
-4. Install the project dependencies with `poetry install` (optionally install the dev dependencies `--with dev` to work with the [auxiliary notebooks](auxiliary/), or `--with docs` to work with the [documentation](docs/))
+3. Install [`poetry`](https://python-poetry.org/docs/#installation) and either:
+    - Skip to step four
+    - Change `poetry`'s configuration to manage your own virtual environments:
+      
+      ```bash
+      > poetry config virtualenvs.create false
+      > poetry config virtualenvs.in-project false
+      ```
+
+      You can now instantiate a virtual environment in the usual way (e.g. via `python -m venv nhssynth`) and activate it via `source nhssynth/bin/activate` before moving to the next step
+
+4. Install the project dependencies with `poetry install` (optionally install `--with aux` to work with the [auxiliary notebooks](auxiliary/), `--with docs` to work with the [documentation](docs/), and/or `--with test` to be able to run the [testing suite](tests/))
 5. You can then interact with the package in one of two ways:
-    - Via the [CLI](src/nhssynth/cli/) module using `nhssynth ...`
-    - Through building the package with `poetry build` and using it in an existing project (`import nhssynth`). You can then actively develop the package and test it.
+    - Via the [CLI](src/nhssynth/cli/) module, which is accessed using the `nhssynth` command, e.g.
+      
+      ```bash
+      poetry run nhssynth ...
+      ```
+      
+      *Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
+    
+    - Through building the package with `poetry build` and using it in an existing project (`from nhssynth.modules... import ...`). You can then actively develop the package and test it.
 
 ### Usage
 
