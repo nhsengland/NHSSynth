@@ -1,3 +1,4 @@
+import argparse
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -8,6 +9,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from nhssynth.common.strings import add_spaces_before_caps
+from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
@@ -22,6 +24,7 @@ class Model(nn.Module, ABC):
         single_column_indices: Indices of all non-onehot columns
         batch_size: The batch size to use during training
         use_gpu: Flag to determine whether to use the GPU (if available)
+        metatransformer: A `MetaTransformer` to use for converting the generated data to match the original data
 
     Attributes:
         nrows: The number of rows in the `data`
@@ -32,6 +35,8 @@ class Model(nn.Module, ABC):
         data_loader: A PyTorch DataLoader for the `data`
         private: Whether the model is private, i.e. whether the `DPMixin` class has been inherited
         device: The device to use for training (CPU or GPU)
+        metatransformer: The `MetaTransformer` (potentially) associated with the model
+        has_metatransformer: Whether the model has a `MetaTransformer` associated
 
     Raises:
         TypeError: If the `Model` class is directly instantiated (i.e. not inherited)
@@ -46,6 +51,7 @@ class Model(nn.Module, ABC):
         single_column_indices: Optional[list[int]] = [],
         batch_size: int = 32,
         use_gpu: bool = False,
+        metatransformer: Optional[MetaTransformer] = None,
     ) -> None:
         if type(self) is Model:
             raise TypeError("Cannot directly instantiate the `Model` class")
@@ -62,6 +68,11 @@ class Model(nn.Module, ABC):
             batch_size=batch_size,
         )
         self.setup_device(use_gpu)
+        if metatransformer:
+            self.metatransformer = metatransformer
+            self.has_metatransformer = True
+        else:
+            self.has_metatransformer = False
 
     def setup_device(self, use_gpu: bool) -> None:
         """Sets up the device to use for training (CPU or GPU) depending on `use_gpu` and device availability."""
@@ -87,13 +98,30 @@ class Model(nn.Module, ABC):
         raise NotImplementedError
 
     @classmethod
-    def from_args(cls, args, data, multi_column_indices, single_column_indices):
+    def from_args(
+        cls,
+        args: argparse.Namespace,
+        data: pd.DataFrame,
+        multi_column_indices: list[list[int]],
+        single_column_indices: list[int],
+    ):
         """Creates an instance from an `argparse.Namespace`."""
         return cls(
             data,
             multi_column_indices,
             single_column_indices,
             **{k: getattr(args, k) for k in ["batch_size", "use_gpu"] + cls._get_args() if getattr(args, k)},
+        )
+
+    @classmethod
+    def from_metatransformer(cls, data: pd.DataFrame, metatransformer: MetaTransformer, **kwargs):
+        """Creates an instance from a `MetaTransformer`."""
+        return cls(
+            data,
+            metatransformer.multi_column_indices,
+            metatransformer.single_column_indices,
+            metatransformer=metatransformer,
+            **kwargs,
         )
 
     def _start_training(self, num_epochs: int, patience: int, tracked_metrics: list[str]) -> None:

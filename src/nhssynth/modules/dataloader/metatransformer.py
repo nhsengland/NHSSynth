@@ -200,7 +200,7 @@ class MetaTransformer:
 
         return pd.concat(transformed_columns, axis=1)
 
-    def apply(self) -> None:
+    def apply(self) -> pd.DataFrame:
         """
         Applies the various steps of the MetaTransformer to a passed DataFrame.
 
@@ -213,6 +213,7 @@ class MetaTransformer:
         self.typed_dataset = self.apply_dtypes()
         self.prepared_dataset = self.apply_missingness_strategy()
         self.transformed_dataset = self.transform()
+        return self.transformed_dataset
 
     def get_typed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "typed_dataset"):
