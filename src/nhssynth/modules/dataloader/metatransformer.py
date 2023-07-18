@@ -140,7 +140,9 @@ class MetaTransformer:
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
-            if column_metadata.dtype.kind in ["i", "u", "f"]:
+            if column_metadata.dtype.kind in ["i", "u", "f"] and not isinstance(
+                column_metadata.missingness_strategy, AugmentMissingnessStrategy
+            ):
                 working_data[column_metadata.name] = working_data[column_metadata.name].astype(
                     column_metadata.dtype.name.lower()
                 )
@@ -171,13 +173,10 @@ class MetaTransformer:
             self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
         ):
             # TODO is there a nicer way of doing this, the transformer and augment strategy create a chicken and egg problem
-            if hasattr(column_metadata.missingness_strategy, "missing_column") and not column_metadata.categorical:
-                transformed_data = column_metadata.transformer.apply(
-                    working_data[column_metadata.name],
-                    working_data[column_metadata.missingness_strategy.missing_column],
-                )
-            else:
-                transformed_data = column_metadata.transformer.apply(working_data[column_metadata.name])
+            transformed_data = column_metadata.transformer.apply(
+                working_data[column_metadata.name],
+                getattr(column_metadata.missingness_strategy, "missingness_carrier", None),
+            )
             if column_metadata.dtype.kind in ["f", "i", "u"]:
                 if isinstance(transformed_data, pd.DataFrame):
                     transformed_data = transformed_data.apply(lambda x: x.astype(column_metadata.dtype.name.lower()))

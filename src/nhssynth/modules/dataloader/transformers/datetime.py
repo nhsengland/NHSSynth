@@ -12,7 +12,8 @@ class DatetimeTransformer(TransformerWrapper):
     def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None, **kwargs) -> pd.DataFrame:
         self.column_name = data.name
         numeric_data = pd.Series(data.dt.floor("ns").to_numpy().astype(float), name=data.name)
-        numeric_data[missingness_column == 1] = 0.0
+        if missingness_column is not None:
+            numeric_data[missingness_column == 1] = 0.0
         return super().apply(numeric_data, missingness_column, **kwargs)
 
     def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:

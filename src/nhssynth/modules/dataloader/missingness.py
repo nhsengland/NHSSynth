@@ -71,29 +71,28 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
 class AugmentMissingnessStrategy(GenericMissingnessStrategy):
     def __init__(self) -> None:
         super().__init__("augment")
-        self.missing_value = 0.0
+        self.missingness_carrier = 0.0
 
     def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """Impute missingness with model."""
         if column_metadata.categorical:
             if column_metadata.dtype.kind == "O":
-                self.missing_value = column_metadata.name + "_missing"
+                self.missingness_carrier = column_metadata.name + "_missing"
+            elif column_metadata.dtype.kind == "M":
+                self.missingness_carrier = np.datetime64("NaT")
             else:
-                self.missing_value = data[column_metadata.name].min() - 1
+                self.missingness_carrier = data[column_metadata.name].min() - 1
         else:
-            self.missing_column = column_metadata.name + "_missing"
-            data[self.missing_column] = data[column_metadata.name].isnull().astype(int)
-        if column_metadata.dtype.kind == "M":
-            self.missing_value = np.datetime64("NaT")
-        data[column_metadata.name].fillna(self.missing_value, inplace=True)
+            data[column_metadata.name + "_missing"] = data[column_metadata.name].isnull().astype(int)
+            self.missingness_carrier = data[column_metadata.name + "_missing"]
         return data
 
-    def restore(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.Series:
-        """Restore missingness."""
-        if column_metadata.categorical:
-            return data.where(data == self.missing_value, np.nan)
-        else:
-            return data.where(data[self.missing_column] == 1, np.nan)
+    # def restore(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.Series:
+    #     """Restore missingness."""
+    #     if column_metadata.categorical:
+    #         return data.where(data == self.missing_value, np.nan)
+    #     else:
+    #         return data.where(data[self.missing_column] == 1, np.nan)
 
 
 MISSINGNESS_STRATEGIES: Final = {
