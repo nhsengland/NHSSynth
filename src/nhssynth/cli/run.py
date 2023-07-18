@@ -5,7 +5,7 @@ from nhssynth.cli.config import get_modules_to_run, read_config, write_config
 from nhssynth.cli.module_setup import MODULE_MAP, add_subparser
 
 
-def run() -> None:
+def run(sysargv) -> None:
     parser = argparse.ArgumentParser(
         prog="nhssynth",
         description="CLI for preparing, training and evaluating a synthetic data generator.",
@@ -18,7 +18,7 @@ def run() -> None:
         name: add_subparser(subparsers, name, option_config) for name, option_config in MODULE_MAP.items()
     }
 
-    args = parser.parse_args()
+    args = parser.parse_args(sysargv)
 
     executor = vars(args).get("func", None)
     if executor:
