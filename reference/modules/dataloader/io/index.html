@@ -17,7 +17,7 @@
         <link rel="next" href="../metadata/">
       
       <link rel="icon" href="../../../../assets/NHS.svg">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.11">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -25,10 +25,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -852,9 +852,119 @@
   
   
     <li class="md-nav__item">
+      <a href="../missingness/" class="md-nav__link">
+        missingness
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../run/" class="md-nav__link">
         run
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_1_6" >
+      
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../transformers/">transformers</a>
+          
+            <label for="__nav_3_3_1_6">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_3_3_1_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3_1_6">
+          <span class="md-nav__icon md-icon"></span>
+          transformers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/categorical/" class="md-nav__link">
+        categorical
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/continuous/" class="md-nav__link">
+        continuous
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/datetime/" class="md-nav__link">
+        datetime
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformers/generic/" class="md-nav__link">
+        generic
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1029,8 +1139,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/common/DPMixin/" class="md-nav__link">
-        DPMixin
+      <a href="../../model/common/dp/" class="md-nav__link">
+        dp
       </a>
     </li>
   
@@ -1043,8 +1153,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/common/Model/" class="md-nav__link">
-        Model
+      <a href="../../model/common/model/" class="md-nav__link">
+        model
       </a>
     </li>
   
@@ -1111,8 +1221,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/models/DPVAE/" class="md-nav__link">
-        DPVAE
+      <a href="../../model/models/dpvae/" class="md-nav__link">
+        dpvae
       </a>
     </li>
   
@@ -1125,8 +1235,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/models/VAE/" class="md-nav__link">
-        VAE
+      <a href="../../model/models/vae/" class="md-nav__link">
+        vae
       </a>
     </li>
   
@@ -1464,7 +1574,7 @@
 
 
 <h2 id="nhssynth.modules.dataloader.io.check_output_paths" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
 
 
 </h2>
@@ -1497,7 +1607,7 @@
         <td><em>required</em></td>
       </tr>
       <tr>
-        <td><code>fn_prepared</code></td>
+        <td><code>fn_transformed</code></td>
         <td><code>str</code></td>
         <td><p>The output data filename/suffix to append to <code>fn_input</code>.</p></td>
         <td><em>required</em></td>
@@ -1531,7 +1641,7 @@
     </tr>
   </tbody>
 </table>      <p>!!! warnings
-    Raises a UserWarning when the path to <code>fn_prepared</code> includes directory separators, as this is not supported and may not work as intended.
+    Raises a UserWarning when the path to <code>fn_transformed</code> includes directory separators, as this is not supported and may not work as intended.
     Raises a UserWarning when the path to <code>fn_transformer</code> includes directory separators, as this is not supported and may not work as intended.</p>
 
         <details class="quote">
@@ -1539,7 +1649,7 @@
           <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">check_output_paths</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">fn_input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">fn_typed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">fn_prepared</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">fn_transformed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
@@ -1549,7 +1659,7 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        fn_input: The input data filename.</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">        fn_typed: The typed input data filename/suffix to append to `fn_input`.</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        fn_prepared: The output data filename/suffix to append to `fn_input`.</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        fn_transformed: The output data filename/suffix to append to `fn_input`.</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        fn_transformer: The transformer filename/suffix to append to `fn_input`.</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
@@ -1557,13 +1667,13 @@
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd">        A tuple containing the formatted output filenames.</span>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="sd">    Warnings:</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="sd">        Raises a UserWarning when the path to `fn_prepared` includes directory separators, as this is not supported and may not work as intended.</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="sd">        Raises a UserWarning when the path to `fn_transformed` includes directory separators, as this is not supported and may not work as intended.</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="sd">        Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.</span>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">])</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">fn_input</span><span class="p">)</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="k">return</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">])</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">fn_input</span><span class="p">)</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="k">return</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -1577,7 +1687,7 @@
 
 
 <h2 id="nhssynth.modules.dataloader.io.write_data_outputs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">write_data_outputs</span><span class="p">(</span><span class="n">typed_dataset</span><span class="p">,</span> <span class="n">prepared_dataset</span><span class="p">,</span> <span class="n">metatransformer</span><span class="p">,</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">write_data_outputs</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
 
 
 </h2>
@@ -1598,21 +1708,9 @@
   </thead>
   <tbody>
       <tr>
-        <td><code>typed_dataset</code></td>
-        <td><code>DataFrame</code></td>
-        <td><p>The typed version of the input dataset.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
-        <td><code>prepared_dataset</code></td>
-        <td><code>DataFrame</code></td>
-        <td><p>The prepared version of the input dataset.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
         <td><code>metatransformer</code></td>
         <td><code>MetaTransformer</code></td>
-        <td><p>The metatransformer used to transform the data into its prepared state.</p></td>
+        <td><p>The metatransformer used to transform the data into its transformed state.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
@@ -1644,35 +1742,31 @@
         <details class="quote">
           <summary>Source code in <code>modules/dataloader/io.py</code></summary>
           <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span> <span class="nf">write_data_outputs</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">typed_dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">prepared_dataset</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">MetaTransformer</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">fn_dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">fn_metadata</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Writes the transformed data and metatransformer to disk.</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        typed_dataset: The typed version of the input dataset.</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        prepared_dataset: The prepared version of the input dataset.</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">        metatransformer: The metatransformer used to transform the data into its prepared state.</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd">        fn_dataset: The base dataset filename.</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="sd">        fn_metadata: The metadata filename.</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="sd">        args: The parsed command line arguments.</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_prepared</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">check_output_paths</span><span class="p">(</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">prepared</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">dir_experiment</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="p">)</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">output_metadata</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">metatransformer</span><span class="o">.</span><span class="n">get_assembled_metadata</span><span class="p">(),</span> <span class="n">args</span><span class="o">.</span><span class="n">collapse_yaml</span><span class="p">)</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">typed_dataset</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_typed</span><span class="p">)</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">prepared_dataset</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_prepared</span><span class="p">)</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n">prepared_dataset</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_prepared</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">metatransformer</span><span class="p">:</span> <span class="n">MetaTransformer</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">fn_dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">fn_metadata</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    Writes the transformed data and metatransformer to disk.</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">        metatransformer: The metatransformer used to transform the data into its transformed state.</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd">        fn_dataset: The base dataset filename.</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd">        fn_metadata: The metadata filename.</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd">        args: The parsed command line arguments.</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span> <span class="o">=</span> <span class="n">check_output_paths</span><span class="p">(</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">transformed</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">dir_experiment</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="p">)</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">metatransformer</span><span class="o">.</span><span class="n">save_metadata</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_metadata</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">collapse_yaml</span><span class="p">)</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">metatransformer</span><span class="o">.</span><span class="n">get_typed_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_typed</span><span class="p">)</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">metatransformer</span><span class="o">.</span><span class="n">get_transformed_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformed</span><span class="p">)</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">metatransformer</span><span class="o">.</span><span class="n">get_transformed_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_transformed</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 </span></code></pre></div>
         </details>
     </div>
@@ -1695,7 +1789,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 11, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 18, 2023</span>
       
     
   </small>
@@ -1778,7 +1872,7 @@
     <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../../assets/javascripts/bundle.fac441b0.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
