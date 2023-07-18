@@ -190,10 +190,7 @@ class VAE(Model):
         ) * torch.randn_like(x_gen[:, self.single_column_indices])
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
-        data = pd.DataFrame(x_gen_.detach(), columns=self.columns)
-        if self.has_metatransformer:
-            data = self.metatransformer.inverse_apply(data)
-        return data
+        return self.metatransformer.inverse_apply(pd.DataFrame(x_gen_.detach(), columns=self.columns))
 
     def loss(self, X):
         mu_z, logsigma_z = self.encoder(X)
