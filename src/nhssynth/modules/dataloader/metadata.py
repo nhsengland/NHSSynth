@@ -159,7 +159,8 @@ class MetaData:
         return iter(self._metadata.values())
 
     @classmethod
-    def load(cls, path: str, data: pd.DataFrame):
+    def load(cls, path_str: str, data: pd.DataFrame):
+        path = pathlib.Path(path_str)
         if path.exists():
             with open(path) as stream:
                 metadata = yaml.safe_load(stream)
