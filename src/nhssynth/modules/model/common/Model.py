@@ -55,11 +55,6 @@ class Model(nn.Module, ABC):
         self.multi_column_indices: list[list[int]] = multi_column_indices
         self.single_column_indices: list[int] = single_column_indices
         assert len(single_column_indices) + sum([len(x) for x in multi_column_indices]) == self.ncols
-        # tabulate the data dtypes with counts of each
-        print(data.dtypes.value_counts())
-        # show the columns that are Float64 type and NOT float64 (lower case)
-        print(data.select_dtypes(include=["Float64"]).columns)
-        print(data["x1_-1"])
         self.data_loader: DataLoader = DataLoader(
             # Should the data also all be turned into floats?
             TensorDataset(torch.Tensor(data.to_numpy())),

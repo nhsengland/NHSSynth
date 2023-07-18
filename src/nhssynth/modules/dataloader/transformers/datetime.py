@@ -9,8 +9,13 @@ class DatetimeTransformer(TransformerWrapper):
         super().__init__(transformer)
         self._format = format
 
-    def apply(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
-        return super().apply(pd.Series(pd.to_numeric(data).to_numpy().astype(float), name=data.name), *args, **kwargs)
+    def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None, **kwargs) -> pd.DataFrame:
+        self.column_name = data.name
+        numeric_data = pd.Series(data.dt.floor("ns").to_numpy().astype(float), name=data.name)
+        numeric_data[missingness_column == 1] = 0.0
+        return super().apply(numeric_data, missingness_column, **kwargs)
 
-    def revert(self, data: pd.Series, *args, **kwargs) -> pd.Series:
-        return pd.to_datetime(super().revert(data, *args, **kwargs), format=self._format)
+    def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        reverted_data = super().revert(data, **kwargs)
+        data[self.column_name] = pd.to_datetime(reverted_data[self.column_name].astype("Int64"), unit="ns")
+        return data

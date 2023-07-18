@@ -16,21 +16,9 @@ class GenericTransformer(ABC):
         pass
 
     @abstractmethod
-    def revert(self, data: pd.DataFrame, missingness_column: Optional[pd.Series], missing_value: Optional[Any]) -> None:
+    def revert(self, data: pd.DataFrame) -> None:
         """Revert data to pre-transformer state."""
         pass
-
-    def explode(self) -> dict[str, Any]:
-        """
-        Deconstruct a `transformer` into a dictionary of config.
-
-        Args:
-            transformer: A GenericTransformer object.
-
-        Returns:
-            A dictionary containing the transformer's name and arguments.
-        """
-        return {"name": self.__class__.__name__, **self.__dict__}
 
 
 class TransformerWrapper(ABC):
@@ -40,11 +28,8 @@ class TransformerWrapper(ABC):
         super().__init__()
         self._wrapped_transformer = wrapped_transformer
 
-    def apply(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
-        return self._wrapped_transformer.apply(data, *args, **kwargs)
+    def apply(self, data: pd.Series, missingness_column: Optional[pd.Series], **kwargs) -> pd.DataFrame:
+        return self._wrapped_transformer.apply(data, missingness_column, **kwargs)
 
-    def revert(self, data: pd.Series, *args, **kwargs) -> pd.DataFrame:
-        return self._wrapped_transformer.revert(data, *args, **kwargs)
-
-    def explode(self) -> dict:
-        return self._wrapped_transformer.explode()
+    def revert(self, data: pd.Series, **kwargs) -> pd.DataFrame:
+        return self._wrapped_transformer.revert(data, **kwargs)
