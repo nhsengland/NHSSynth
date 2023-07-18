@@ -173,9 +173,11 @@ class MetaTransformer:
             self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
         ):
             # TODO is there a nicer way of doing this, the transformer and augment strategy create a chicken and egg problem
+            missingness_carrier = getattr(column_metadata.missingness_strategy, "missingness_carrier", None)
+            if missingness_carrier in working_data.columns:
+                missingness_carrier = working_data[missingness_carrier]
             transformed_data = column_metadata.transformer.apply(
-                working_data[column_metadata.name],
-                getattr(column_metadata.missingness_strategy, "missingness_carrier", None),
+                working_data[column_metadata.name], missingness_carrier
             )
             if column_metadata.dtype.kind in ["f", "i", "u"]:
                 if isinstance(transformed_data, pd.DataFrame):
