@@ -97,7 +97,9 @@ If you intend on contributing or working with the codebase directly, or if you w
 
 ### Usage
 
-This package comprises a set of modules that can be run individually, as part of a pipeline, or via a configuration file. These options are available via the `nhssynth` command:
+#### CLI
+
+This package comprises a set of modules that can be run using the `CLI` individually, as part of a pipeline, or via a configuration file. These options are available via the aforementioned `(poetry run) nhssynth` command:
 
 ```
 nhssynth <module name> --<args>
@@ -109,7 +111,13 @@ To see the modules that are available and their corresponding arguments, run `nh
 
 Configuration files can be used to run the pipeline or a chosen set of modules. They should be placed in the [`config`](config/) folder and their layout should match that of the examples provided. They can be run as in the latter case above by providing their filename (without the `.yaml` extension). You can also override any of the arguments provided in the configuration file by passing them as arguments in the command line.
 
-To ensure reproducibility, you should always specify a `--seed` value and provide the `--save-config` flag to dump the exact configuration specified / inferred for the run. This configuration file can then be used in the future to reproduce the exact same run or shared with others to run the same configuration on their dataset, etc.
+To ensure reproducibility, you should always specify a `--seed` value and provide the `--save-config` flag to dump the exact configuration specified / inferred for the run (missing options will be populated in the outputted config, so it may be larger than one you would specify yourself). This configuration file can then be used in the future to reproduce the exact same run or shared with others to run the same configuration on their dataset, etc.
+
+#### Python API
+
+Alternatively, you may want to import parts of the package into your own project or notebook. There is a minimum working example of this [in the auxiliary folder](auxiliary/mwe.ipynb). You can learn more about the API and structure of the package and its modules in the docs to reuse components as you see fit.
+
+### Package Structure
 
 The figure below shows the structure and workflow of the package and its modules.
 

@@ -21,20 +21,18 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             set_seed(args.seed + i if args.seed else None)
 
             fn_dataset, transformed_dataset, mt = load_required_data(args, dir_experiment)
-            multi_column_indices, single_column_indices = mt.get_multi_and_single_column_indices()
 
             model = MODELS[architecture].from_args(
                 args=args,
                 data=transformed_dataset,
-                multi_column_indices=multi_column_indices,
-                single_column_indices=single_column_indices,
+                metatransformer=mt,
             )
             num_epochs, results = model.train(
                 num_epochs=args.num_epochs,
                 patience=args.patience,
                 tracked_metrics=args.tracked_metrics,
             )
-            synthetic = mt.inverse_apply(model.generate())
+            synthetic = model.generate()
 
             fn_output, fn_model = check_output_paths(
                 fn_dataset,
