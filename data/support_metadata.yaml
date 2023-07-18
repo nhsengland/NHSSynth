@@ -6,6 +6,7 @@ x1:
 x2:
   categorical: true
   dtype: int64
+  missingness: drop
 x3:
   categorical: true
 x4:
@@ -21,6 +22,8 @@ x7:
   dtype: int64
 x8:
   dtype: float64
+  missingness:
+    impute: mean
 x9:
   dtype: int64
 x10:
