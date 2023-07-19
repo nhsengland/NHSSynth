@@ -120,6 +120,12 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         action="store_true",
         help="use the GPU for training",
     )
+    group.add_argument(
+        "--num-samples",
+        type=int,
+        default=None,
+        help="the number of samples to generate from the model, defaults to the size of the original dataset",
+    )
     privacy_group = parser.add_argument_group(title="model privacy options")
     privacy_group.add_argument(
         "--non-private",
