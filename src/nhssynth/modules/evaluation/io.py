@@ -35,6 +35,30 @@ def check_input_paths(
     return fn_dataset, fn_typed, fn_experiment_bundle, fn_metadata
 
 
+def output_eval(
+    eval_bundle: dict,
+    fn_dataset: Path,
+    fn_eval_bundle: str,
+    dir_experiment: Path,
+):
+    """
+    Sets up the input and output paths for the model files.
+
+    Args:
+        fn_dataset: The base name of the dataset.
+        fn_eval_bundle: The name of the evaluation bundle file.
+        dir_experiment: The path to the experiment output directory.
+
+    Returns:
+        The path to output the model.
+    """
+    fn_eval_bundle = consistent_ending(fn_eval_bundle)
+    fn_eval_bundle = potential_suffix(fn_eval_bundle, fn_dataset)
+    warn_if_path_supplied([fn_eval_bundle], dir_experiment)
+    with open(dir_experiment / fn_eval_bundle, "wb") as f:
+        pickle.dump(eval_bundle, f)
+
+
 def load_required_data(
     args: argparse.Namespace, dir_experiment: Path
 ) -> tuple[str, pd.DataFrame, pd.DataFrame, dict[str, dict[str, Any]]]:

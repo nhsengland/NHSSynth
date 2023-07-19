@@ -193,6 +193,16 @@ def add_plotting_args(parser: argparse.ArgumentParser, group_title: str, overrid
     """Adds arguments to an existing plotting module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
+        "--plot-quality",
+        action="store_true",
+        help="plot the SDV quality report",
+    )
+    group.add_argument(
+        "--plot-diagnostic",
+        action="store_true",
+        help="plot the SDV diagnostic report",
+    )
+    group.add_argument(
         "--plot-sdv-report",
         action="store_true",
         help="plot the SDV report",
