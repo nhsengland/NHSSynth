@@ -116,14 +116,14 @@ MODULE_MAP: Final = {
         add_args=add_evaluation_args,
         description="run the evaluation module, to evaluate an experiment",
         help="evaluate an experiment",
-        common_parsers=["metadata", "typed", "synthetic", "report", "experiment_bundle"],
+        common_parsers=["metadata", "typed", "experiment_bundle", "eval_bundle"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,
         add_args=add_plotting_args,
         description="run the plotting module, to generate plots for a given model and / or evaluation",
         help="generate plots",
-        common_parsers=["typed", "synthetic", "report"],
+        common_parsers=["typed", "eval_bundle"],
     ),
     "pipeline": ModuleConfig(
         func=run_pipeline,

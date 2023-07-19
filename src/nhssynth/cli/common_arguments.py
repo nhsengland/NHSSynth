@@ -102,8 +102,8 @@ COMMON_PARSERS: Final = {
         "experiment_bundle",
         "filename of the experiment bundle, i.e. the collection of all seeds, models, and synthetic datasets",
     ),
-    "report": suffix_parser_generator(
-        "report",
-        "filename of the (collection of) report(s)",
+    "eval_bundle": suffix_parser_generator(
+        "eval_bundle",
+        "filename of the (collection of) report(s) and evaluation(s) for a given `experiment_bundle`",
     ),
 }

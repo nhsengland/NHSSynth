@@ -38,8 +38,7 @@ def check_output_paths(
     fn_synthetic: str,
     fn_model: str,
     dir_experiment: Path,
-    model: str,
-    iter_seed: Optional[int] = None,
+    suffix: str,
 ) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
@@ -49,18 +48,12 @@ def check_output_paths(
         fn_synthetic: The name of the synthetic data file.
         fn_model: The name of the model file.
         dir_experiment: The path to the experiment output directory.
-        model: The name of the model used.
-        iter_seed: The seed used to generate the synthetic data.
+        suffix: The suffix to append to the output files, usually the model architecture (and seed if applicable).
 
     Returns:
         The path to output the model.
     """
-    fn_synthetic, fn_model = consistent_endings(
-        [
-            (fn_synthetic, ".csv", f"_{model}" + (f"_{str(iter_seed)}" if iter_seed else "")),
-            (fn_model, ".pt", f"_{model}" + (f"_{str(iter_seed)}" if iter_seed else "")),
-        ]
-    )
+    fn_synthetic, fn_model = consistent_endings([(fn_synthetic, ".csv", suffix), (fn_model, ".pt", suffix)])
     fn_synthetic, fn_model = potential_suffixes([fn_synthetic, fn_model], fn_dataset)
     warn_if_path_supplied([fn_synthetic, fn_model], dir_experiment)
     return fn_synthetic, fn_model
@@ -73,14 +66,11 @@ def output_iter(
     synthetic_name: str,
     model_name: str,
     dir_experiment: Path,
-    architecture: str,
-    iter_seed: Optional[int] = None,
+    suffix: str,
 ) -> None:
-    dir_iter = dir_experiment / (f"out_{architecture}_{iter_seed}" if iter_seed else f"out_{architecture}")
+    dir_iter = dir_experiment / suffix
     dir_iter.mkdir(parents=True, exist_ok=True)
-    fn_output, fn_model = check_output_paths(
-        fn_dataset, synthetic_name, model_name, dir_experiment, architecture, iter_seed
-    )
+    fn_output, fn_model = check_output_paths(fn_dataset, synthetic_name, model_name, dir_experiment, suffix)
     synthetic.to_csv(dir_iter / fn_output, index=False)
     synthetic.to_pickle(dir_iter / (fn_output[:-3] + "pkl"))
     model.save(dir_iter / fn_model)
