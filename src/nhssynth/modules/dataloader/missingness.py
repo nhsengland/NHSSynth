@@ -71,7 +71,7 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
 class AugmentMissingnessStrategy(GenericMissingnessStrategy):
     def __init__(self) -> None:
         super().__init__("augment")
-        self.missingness_carrier: Any = 0.0
+        # self.missingness_carrier: Any = 0.0
 
     def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """Impute missingness with model."""

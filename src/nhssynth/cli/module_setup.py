@@ -109,14 +109,14 @@ MODULE_MAP: Final = {
         add_args=add_model_args,
         description="run the model architecture module, to train a synthetic data generator",
         help="train a model",
-        common_parsers=["transformed", "metatransformer", "synthetic"],
+        common_parsers=["transformed", "metatransformer", "synthetic", "experiment_bundle"],
     ),
     "evaluation": ModuleConfig(
         func=evaluation.run,
         add_args=add_evaluation_args,
         description="run the evaluation module, to evaluate an experiment",
         help="evaluate an experiment",
-        common_parsers=["metadata", "typed", "synthetic", "report"],
+        common_parsers=["metadata", "typed", "synthetic", "report", "experiment_bundle"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,

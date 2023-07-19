@@ -2,7 +2,7 @@ import argparse
 
 from nhssynth.common import *
 from nhssynth.modules.model import MODELS
-from nhssynth.modules.model.io import check_output_paths, load_required_data
+from nhssynth.modules.model.io import load_required_data, output_full, output_iter
 
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
@@ -11,9 +11,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    synthetic_list = []
-    results_list = []
-    num_epochs_list = []
+    experiment_bundle = []
     for architecture in args.architecture:
         for i in range(args.repeats):
             print(f"\nModel architecture: {architecture}\nRepeat: {i + 1} of {args.repeats}")
@@ -32,9 +30,11 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
                 patience=args.patience,
                 tracked_metrics=args.tracked_metrics,
             )
-            synthetic = model.generate()
+            synthetic = model.generate(args.num_samples)
 
-            fn_output, fn_model = check_output_paths(
+            output_iter(
+                model,
+                synthetic,
                 fn_dataset,
                 args.synthetic,
                 args.model_file,
@@ -42,17 +42,14 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
                 architecture,
                 args.seed + i if args.repeats > 1 else None,
             )
-            synthetic.to_pickle(dir_experiment / fn_output)
-            synthetic.to_csv(dir_experiment / (fn_output[:-3] + "csv"), index=False)
-            model.save(dir_experiment / fn_model)
-            synthetic_list.append(synthetic)
-            results_list.append(results)
-            num_epochs_list.append(num_epochs)
+            experiment_bundle.append((args.seed + i, architecture, synthetic))
+
+    output_full(experiment_bundle, fn_dataset, args.experiment_bundle, dir_experiment)
 
     if "evaluation" in args.modules_to_run or "plotting" in args.modules_to_run:
-        args.module_handover.update({"fn_dataset": fn_dataset, "synthetic": synthetic_list[-1]})
-    if "plotting" in args.modules_to_run:
-        args.module_handover.update({"results": results_list[-1], "num_epochs": num_epochs_list[-1]})
+        args.module_handover.update({"fn_dataset": fn_dataset, "experiment_bundle": experiment_bundle})
+    # if "plotting" in args.modules_to_run:
+    #     args.module_handover.update({"results": results_list[-1], "num_epochs": num_epochs_list[-1]})
 
     print("")
 

@@ -6,6 +6,7 @@ from typing import Optional
 import pandas as pd
 from nhssynth.common.io import *
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
+from nhssynth.modules.model.common.model import Model
 
 
 def check_input_paths(
@@ -38,7 +39,7 @@ def check_output_paths(
     fn_model: str,
     dir_experiment: Path,
     model: str,
-    seed: Optional[int] = None,
+    iter_seed: Optional[int] = None,
 ) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
@@ -49,20 +50,54 @@ def check_output_paths(
         fn_model: The name of the model file.
         dir_experiment: The path to the experiment output directory.
         model: The name of the model used.
-        seed: The seed used to generate the synthetic data.
+        iter_seed: The seed used to generate the synthetic data.
 
     Returns:
         The path to output the model.
     """
     fn_synthetic, fn_model = consistent_endings(
         [
-            (fn_synthetic, ".pkl", f"_{model}" + (f"_{str(seed)}" if seed else "")),
-            (fn_model, ".pt", f"_{model}" + (f"_{str(seed)}" if seed else "")),
+            (fn_synthetic, ".csv", f"_{model}" + (f"_{str(iter_seed)}" if iter_seed else "")),
+            (fn_model, ".pt", f"_{model}" + (f"_{str(iter_seed)}" if iter_seed else "")),
         ]
     )
     fn_synthetic, fn_model = potential_suffixes([fn_synthetic, fn_model], fn_dataset)
     warn_if_path_supplied([fn_synthetic, fn_model], dir_experiment)
     return fn_synthetic, fn_model
+
+
+def output_iter(
+    model: Model,
+    synthetic: pd.DataFrame,
+    fn_dataset: str,
+    synthetic_name: str,
+    model_name: str,
+    dir_experiment: Path,
+    architecture: str,
+    iter_seed: Optional[int] = None,
+) -> None:
+    dir_iter = dir_experiment / (f"out_{architecture}_{iter_seed}" if iter_seed else f"out_{architecture}")
+    dir_iter.mkdir(parents=True, exist_ok=True)
+    fn_output, fn_model = check_output_paths(
+        fn_dataset, synthetic_name, model_name, dir_experiment, architecture, iter_seed
+    )
+    synthetic.to_csv(dir_iter / fn_output, index=False)
+    synthetic.to_pickle(dir_iter / (fn_output[:-3] + "pkl"))
+    model.save(dir_iter / fn_model)
+
+
+def output_full(
+    experiment_bundle: list[tuple[int, str, pd.DataFrame]],
+    fn_dataset: str,
+    experiment_bundle_name: str,
+    dir_experiment: Path,
+) -> None:
+    fn_experiment_bundle = consistent_ending(experiment_bundle_name)
+    fn_experiment_bundle = potential_suffix(fn_experiment_bundle, fn_dataset)
+    warn_if_path_supplied(fn_experiment_bundle, dir_experiment)
+    # pickle the full experiment bundle
+    with open(dir_experiment / fn_experiment_bundle, "wb") as f:
+        pickle.dump(experiment_bundle, f)
 
 
 def load_required_data(

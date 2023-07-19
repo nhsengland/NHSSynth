@@ -5,3 +5,5 @@
 !.gitignore
 !support.csv
 !support_metadata.yaml
+!support_pycox.csv
+!support_pycox_metadata.yaml

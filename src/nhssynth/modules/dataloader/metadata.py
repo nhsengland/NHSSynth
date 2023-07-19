@@ -81,9 +81,11 @@ class ColumnMetaData:
             )
             return self._infer_categorical(data)
         else:
+            self.boolean = data.nunique() <= 2
             return categorical
 
     def _infer_categorical(self, data: pd.Series) -> bool:
+        self.boolean = data.nunique() <= 2
         return data.nunique() <= 10 or self.dtype.kind == "O"
 
     def _validate_missingness_strategy(self, missingness_strategy: Optional[Union[dict, str]]) -> tuple[str, dict]:
@@ -256,3 +258,23 @@ class MetaData:
                 column_types.pop(cix)
 
         return {"column_types": {i + 1: x for i, x in enumerate(column_types.values())}, **metadata}
+
+    def get_sdmetadata(self) -> dict[str, dict[str, dict[str, str]]]:
+        sdmetadata = {
+            "columns": {
+                cn: {
+                    "sdtype": "boolean"
+                    if cmd.boolean
+                    else "categorical"
+                    if cmd.categorical
+                    else "datetime"
+                    if cmd.dtype.kind == "M"
+                    else "numerical",
+                }
+                for cn, cmd in self._metadata.items()
+            }
+        }
+        for cn, cmd in self._metadata.items():
+            if cmd.dtype.kind == "M":
+                sdmetadata["columns"][cn]["format"] = cmd.datetime_config["format"]
+        return sdmetadata
