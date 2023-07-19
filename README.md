@@ -73,7 +73,7 @@ If you intend on contributing or working with the codebase directly, or if you w
 1. Clone the repo
 2. Ensure one of the required versions of Python is installed
 3. Install [`poetry`](https://python-poetry.org/docs/#installation) and either:
-    - Skip to step four
+    - Skip to step four (and have `poetry` control the installation's virtual environment in their [proprietary way](https://python-poetry.org/docs/managing-environments/))
     - Change `poetry`'s configuration to manage your own virtual environments:
       
       ```bash
