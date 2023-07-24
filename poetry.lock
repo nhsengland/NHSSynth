@@ -4096,7 +4096,7 @@ test = ["asv", "gmpy2", "mpmath", "pooch", "pytest", "pytest-cov", "pytest-timeo
 [[package]]
 name = "sdmetrics"
 version = "0.10.2.dev0"
-description = "Metrics for Synthetic Data Generation Projects"
+description = ""
 optional = false
 python-versions = ">=3.8,<3.12"
 files = []
@@ -4125,14 +4125,11 @@ scipy = [
 tqdm = ">=4.15,<5"
 
 [package.extras]
-dev = ["autoflake (>=1.1,<2)", "autopep8 (>=1.4.3,<1.6)", "bumpversion (>=0.5.3,<0.6)", "coverage (>=4.5.1,<6)", "dlint (>=0.11.0,<0.12)", "flake8 (>=3.7.7,<4)", "flake8-absolute-import (>=1.0,<2)", "flake8-builtins (>=1.5.3,<1.6)", "flake8-comprehensions (>=3.6.1,<3.7)", "flake8-debugger (>=4.0.0,<4.1)", "flake8-docstrings (>=1.5.0,<2)", "flake8-eradicate (>=1.1.0,<1.2)", "flake8-expression-complexity (>=0.0.9,<0.1)", "flake8-fixme (>=1.1.1,<1.2)", "flake8-mock (>=0.3,<0.4)", "flake8-multiline-containers (>=0.0.18,<0.1)", "flake8-mutable (>=1.2.0,<1.3)", "flake8-print (>=4.0.0,<4.1)", "flake8-pytest-style (>=1.5.0,<2)", "flake8-quotes (>=3.3.0,<4)", "flake8-sfs (>=0.0.3,<0.1)", "flake8-variables-names (>=0.0.4,<0.1)", "invoke", "isort (>=4.3.4,<5)", "jupyter (>=1.0.0,<2)", "packaging (>=20,<21)", "pandas-vet (>=0.2.2,<0.3)", "pep8-naming (>=0.12.1,<0.13)", "pip (>=9.0.1)", "pydocstyle (>=6.1.1,<6.2)", "pytest (>=6.2.5,<7)", "pytest-cov (>=2.6.0,<3)", "pytest-rerunfailures (>=10)", "rundoc (>=0.4.3,<0.5)", "torch (>=1.11.0)", "torch (>=1.8.0)", "torch (>=2.0.0)", "tox (>=2.9.1,<4)", "twine (>=1.10.0,<4)", "watchdog (>=0.8.3,<0.11)", "wheel (>=0.30.0)"]
 pomegranate = ["pomegranate (>=0.14.1,<0.14.7)"]
-test = ["invoke", "jupyter (>=1.0.0,<2)", "pytest (>=6.2.5,<7)", "pytest-cov (>=2.6.0,<3)", "pytest-rerunfailures (>=10)", "rundoc (>=0.4.3,<0.5)", "torch (>=1.11.0)", "torch (>=1.8.0)", "torch (>=2.0.0)"]
-torch = ["torch (>=1.11.0)", "torch (>=1.8.0)", "torch (>=2.0.0)"]
 
 [package.source]
 type = "git"
-url = "ssh://git@github.com/sdv-dev/SDMetrics.git"
+url = "https://git@github.com/sdv-dev/SDMetrics.git"
 reference = "master"
 resolved_reference = "ddec4f76e3cb866d13b8aded0e319b3e4e96ca3d"
 
@@ -4728,4 +4725,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "caa393470056419aaea5eb8d94b37c5e99868f2f4a80c4457ed2f24dc984d940"
+content-hash = "6ea66fd8b0ed8fd2fe8139559682b12195ce60db37477b20c7495d1dc9851881"
