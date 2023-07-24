@@ -1,16 +1,30 @@
 from typing import Optional
 
 import pandas as pd
-from nhssynth.modules.dataloader.transformers.generic import *
+from nhssynth.modules.dataloader.transformers.base import *
 
 
 class DatetimeTransformer(TransformerWrapper):
-    def __init__(self, transformer: GenericTransformer, format: Optional[str] = None) -> None:
+    """
+    A transformer to convert datetime features to numeric features. Before applying an underlying (wrapped) transformer.
+    The datetime features are converted to nanoseconds since the epoch, and missing values are assigned to 0.0 under the `AugmentMissingnessStrategy`.
+
+    Args:
+        transformer: The [`ColumnTransformer`][nhssynth.modules.dataloader.transformers.base.ColumnTransformer] to wrap.
+        format: The string format of the datetime feature, CURRENTLY UNUSED.
+
+    After applying the transformer, the following attributes will be populated:
+
+    Attributes:
+        original_column_name: The name of the original column.
+    """
+
+    def __init__(self, transformer: ColumnTransformer, format: Optional[str] = None) -> None:
         super().__init__(transformer)
         self._format = format
 
     def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None, **kwargs) -> pd.DataFrame:
-        self.column_name = data.name
+        self.original_column_name = data.name
         numeric_data = pd.Series(data.dt.floor("ns").to_numpy().astype(float), name=data.name)
         if missingness_column is not None:
             numeric_data[missingness_column == 1] = 0.0
@@ -18,5 +32,7 @@ class DatetimeTransformer(TransformerWrapper):
 
     def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         reverted_data = super().revert(data, **kwargs)
-        data[self.column_name] = pd.to_datetime(reverted_data[self.column_name].astype("Int64"), unit="ns")
+        data[self.original_column_name] = pd.to_datetime(
+            reverted_data[self.original_column_name].astype("Int64"), unit="ns"
+        )
         return data
