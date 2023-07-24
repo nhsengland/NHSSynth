@@ -17,7 +17,7 @@ classifiers = [
 "Docs" = "https://nhsx.github.io/NHSSynth"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.9,<3.12"
 pandas = "^2.0.1"
 scikit-learn = "^1.2.2"
 tqdm = "^4.65.0"
@@ -27,8 +27,8 @@ torch = ">=2.0.0, !=2.0.1"
 opacus = "^1.4.0"
 requests = "^2.31.0"
 tornado = "^6.3.2"
-sdmetrics = "^0.10.1"
 setuptools = "^68.0.0"
+sdmetrics = {git = "https://git@github.com/sdv-dev/SDMetrics.git", rev = "master"}
 
 [tool.poetry.scripts]
 nhssynth = "nhssynth.cli.__main__:__main__"
