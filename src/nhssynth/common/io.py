@@ -87,7 +87,8 @@ def warn_if_path_supplied(fns: list[str], dir: Path) -> None:
         dir: The directory the files should exist in.
 
     Warnings:
-        Raises a UserWarning when the path to any of the files in `fns` includes directory separators, as this may not work as intended.
+        Raises a UserWarning when the path to any of the files in `fns` includes directory separators, as this
+        may lead to unintended consequences if the user doesn't realise default directories are pre-specified.
     """
     for fn in fns:
         if "/" in fn:

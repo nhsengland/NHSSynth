@@ -11,7 +11,7 @@ from nhssynth.modules.dataloader.missingness import (
     GenericMissingnessStrategy,
 )
 from nhssynth.modules.dataloader.transformers import *
-from nhssynth.modules.dataloader.transformers.generic import GenericTransformer
+from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
 from pandas.core.tools.datetimes import _guess_datetime_format_for_array
 
 
@@ -23,7 +23,7 @@ class ColumnMetaData:
         self.missingness_strategy: GenericMissingnessStrategy = self._validate_missingness_strategy(
             raw.get("missingness")
         )
-        self.transformer: GenericTransformer = self._validate_transformer(raw.get("transformer"))
+        self.transformer: ColumnTransformer = self._validate_transformer(raw.get("transformer"))
         # self.constraints = self._validate_constraints(raw.get("constraints"), data)
 
     def _validate_dtype(self, data: pd.Series, dtype_raw: Optional[Union[dict, str]] = None) -> np.dtype:
@@ -136,11 +136,11 @@ class ColumnMetaData:
                 )
                 return self._infer_transformer()
 
-    def _infer_transformer(self) -> GenericTransformer:
+    def _infer_transformer(self) -> ColumnTransformer:
         if self.categorical:
-            transformer = OHETransformer(**self.transformer_config)
+            transformer = OHECategoricalTransformer(**self.transformer_config)
         else:
-            transformer = ClusterTransformer(**self.transformer_config)
+            transformer = ClusterContinuousTransformer(**self.transformer_config)
         if self.dtype.kind == "M":
             transformer = DatetimeTransformer(transformer, **self.datetime_config)
         return transformer
