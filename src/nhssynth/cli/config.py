@@ -1,4 +1,4 @@
-"""Read, write and process config files, including handling of module-specific config overrides."""
+"""Read, write and process config files, including handling of module-specific / common config overrides."""
 import argparse
 import warnings
 from typing import Any, Callable
@@ -16,13 +16,13 @@ def get_default_and_required_args(
     Get the default and required arguments for the top-level parser and the current run's corresponding list of module parsers.
 
     Args:
-        top_parser: The top-level parser.
+        top_parser: The top-level parser (contains common arguments).
         module_parsers: The dict of module-level parsers mapped to their names.
 
     Returns:
         A tuple containing two elements:
             - A dictionary containing all arguments and their default values.
-            - A list of kvps of the required arguments and their associated module.
+            - A list of key-value-pairs of the required arguments and their associated module.
     """
     all_actions = {"top-level": top_parser._actions} | {m: p._actions for m, p in module_parsers.items()}
     defaults = {}
@@ -42,25 +42,25 @@ def read_config(
     all_subparsers: dict[str, argparse.ArgumentParser],
 ) -> argparse.Namespace:
     """
-    Hierarchically assembles a config Namespace object for the inferred modules to run and executes.
+    Hierarchically assembles a config `argparse.Namespace` object for the inferred modules to run and execute, given a file.
 
     1. Load the YAML file containing the config to read from
     2. Check a valid `run_type` is specified or infer it and determine the list of `modules_to_run`
-    3. Establish the appropriate default config from the parser and `all_subparsers` for the `modules_to_run`
-    4. Overwrite this config with the specified subset (or full set) of config in the YAML file
+    3. Establish the appropriate default config from the `parser` and `all_subparsers` for the determined `modules_to_run`
+    4. Overwrite this config with the specified (sub)set of config in the YAML file
     5. Overwrite again with passed command-line `args` (these are considered 'overrides')
-    6. Run the appropriate module(s) or pipeline with the resulting config
+    6. Run the appropriate module(s) or pipeline with the resulting configuration namespace object
 
     Args:
         args: Namespace object containing arguments from the command line
-        parser: top-level ArgumentParser object
-        all_subparsers: dictionary of ArgumentParser objects, one for each module
+        parser: top-level `ArgumentParser` object containing common arguments
+        all_subparsers: dictionary of `ArgumentParser` objects, one for each module
 
     Returns:
-        Namespace object containing the assembled configuration settings
+        A Namespace object containing the assembled configuration settings
 
     Raises:
-        AssertionError: if any required arguments are missing from the configuration file
+        AssertionError: if any required arguments are missing from the configuration file / overrides
     """
     # Open the passed yaml file and load into a dictionary
     with open(f"config/{args.input_config}.yaml") as stream:

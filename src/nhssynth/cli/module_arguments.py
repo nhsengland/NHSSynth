@@ -9,7 +9,7 @@ from nhssynth.modules.model import MODELS
 
 class AllChoicesDefault(argparse.Action):
     """
-    Customized argparse action for defaulting to the full list of choices if only the flag is supplied.
+    Customised argparse action for defaulting to the full list of choices if only the flag is supplied.
 
     Notes:
         1) If no `option_string` is supplied: set to default value (`self.default`)
