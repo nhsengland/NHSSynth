@@ -1,4 +1,4 @@
-"""Define arguments for each of the models."""
+"""Define arguments for each of the model classes."""
 import argparse
 
 from nhssynth.common.constants import *

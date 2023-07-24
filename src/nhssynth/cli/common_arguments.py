@@ -1,7 +1,7 @@
 """
 Functions to define the CLI's "common" arguments, i.e. those that can be applied to either:
  - All module argument lists, e.g. --dataset, --seed, etc.
- - A subset of module argument lists, e.g. --synthetic, --typed, etc.
+ - A subset of module(s) argument lists, e.g. --synthetic, --typed, etc.
 """
 import argparse
 from typing import Final
@@ -9,24 +9,17 @@ from typing import Final
 from nhssynth.common.constants import *
 
 
-def get_dataset_parser(overrides=False) -> argparse.ArgumentParser:
-    """Create a common parser for specifying the dataset"""
-    dataset = argparse.ArgumentParser(add_help=False)
-    dataset_grp = dataset.add_argument_group(title="options")
-    dataset_grp.add_argument(
+def get_core_parser(overrides=False) -> argparse.ArgumentParser:
+    """Create the core common parser group applied to all modules (and the `pipeline` and `config` options)."""
+    core = argparse.ArgumentParser(add_help=False)
+    core_grp = core.add_argument_group(title="options")
+    core_grp.add_argument(
         "-d",
         "--dataset",
         required=(not overrides),
         type=str,
         help="the name of the dataset to experiment with, should be present in `<DATA_DIR>`",
     )
-    return dataset
-
-
-def get_core_parser(overrides=False) -> argparse.ArgumentParser:
-    """Create a common parser for specifying the core args (except for dataset which is separate)"""
-    core = argparse.ArgumentParser(add_help=False)
-    core_grp = core.add_argument_group(title="options")
     core_grp.add_argument(
         "-e",
         "--experiment-name",
@@ -52,12 +45,13 @@ COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a
 
 
 def suffix_parser_generator(name: str, help: str, required: bool = False) -> argparse.ArgumentParser:
-    """Generator function for creating common parsers for specifying a potential suffix filename
+    """Generator function for creating parsers following a common template.
+    These parsers are all suffixes to the --dataset / -d / DATASET argument, see `COMMON_TITLE`.
 
     Args:
-        name: the name of the argument
-        help: the help message for the argument
-        required: whether the argument is required
+        name: the name / label of the argument to add to the CLI options.
+        help: the help message when the CLI is run with --help / -h.
+        required: whether the argument must be provided or not.
     """
 
     def get_parser(overrides: bool = False) -> argparse.ArgumentParser:
@@ -76,7 +70,6 @@ def suffix_parser_generator(name: str, help: str, required: bool = False) -> arg
 
 
 COMMON_PARSERS: Final = {
-    "dataset": get_dataset_parser,
     "core": get_core_parser,
     "metadata": suffix_parser_generator(
         "metadata",

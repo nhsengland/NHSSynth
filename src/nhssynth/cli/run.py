@@ -32,7 +32,6 @@ def run(sysargv) -> None:
     else:
         return parser.print_help()
 
-    # Whenever either are specified, we want to dump the configuration to allow for this run to be replicated
     if args.save_config:
         write_config(args, all_subparsers)
 

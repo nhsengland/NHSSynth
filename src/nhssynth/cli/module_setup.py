@@ -1,4 +1,4 @@
-"""Specify all CLI-accessible modules and their configurations, the pipeline to run by default, and define special functions for the `config` and `pipeline` CLI options."""
+"""Specify all CLI-accessible modules and their configurations, the pipeline to run by default, and define special functions for the `config` and `pipeline` CLI option trees."""
 import argparse
 from typing import Callable, Final, Optional
 
@@ -31,17 +31,14 @@ class ModuleConfig:
         self.add_args = add_args
         self.description = description
         self.help = help
+        self.common_parsers = ["core"]
         if common_parsers:
             assert set(common_parsers) <= COMMON_PARSERS.keys(), "Invalid common parser(s) specified."
-            assert (
-                "dataset" not in common_parsers
-            ), "The 'dataset' parser is automatically added to all modules, remove it from the ModuleConfig."
+            # merge the below two assert statements
             assert (
                 "core" not in common_parsers
-            ), "The 'core' parser is automatically added to all modules, remove it from the ModuleConfig."
-            self.common_parsers = ["dataset", "core"] + common_parsers
-        else:
-            self.common_parsers = ["dataset", "core"]
+            ), "The and 'core' parser group is automatically added to all modules, remove it from the ModuleConfig."
+            self.common_parsers += common_parsers
 
     def __call__(self, args: argparse.Namespace) -> argparse.Namespace:
         return self.func(args)
@@ -56,13 +53,13 @@ def run_pipeline(args: argparse.Namespace) -> None:
 
 
 def add_pipeline_args(parser: argparse.ArgumentParser) -> None:
-    """Adds arguments to a `parser` for each module in the pipeline."""
+    """Adds arguments to `parser` for each module in the pipeline."""
     for module_name in PIPELINE:
         MODULE_MAP[module_name].add_args(parser, f"{module_name} options")
 
 
 def add_config_args(parser: argparse.ArgumentParser) -> None:
-    """Adds arguments to a `parser` relating to configuration file handling and module-specific config overrides."""
+    """Adds arguments to `parser` relating to configuration file handling and module-specific config overrides."""
     parser.add_argument(
         "-c",
         "--input-config",
