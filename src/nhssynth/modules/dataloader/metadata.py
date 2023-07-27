@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from nhssynth.common.dicts import filter_dict, get_key_by_value
+from nhssynth.modules.dataloader.constraints import Constraint
 from nhssynth.modules.dataloader.missingness import (
     MISSINGNESS_STRATEGIES,
     GenericMissingnessStrategy,
@@ -24,7 +25,6 @@ class ColumnMetaData:
             raw.get("missingness")
         )
         self.transformer: ColumnTransformer = self._validate_transformer(raw.get("transformer"))
-        # self.constraints = self._validate_constraints(raw.get("constraints"), data)
 
     def _validate_dtype(self, data: pd.Series, dtype_raw: Optional[Union[dict, str]] = None) -> np.dtype:
         if isinstance(dtype_raw, dict):
@@ -150,9 +150,99 @@ class MetaData:
     def __init__(self, data: pd.DataFrame, metadata: Optional[dict] = {}):
         self.columns: pd.Index = data.columns
         self.raw_metadata: dict = metadata
-        if set(self.raw_metadata.keys()) - set(self.columns):
+        if set(self.raw_metadata["columns"].keys()) - set(self.columns):
             raise ValueError("Metadata contains keys that do not appear amongst the columns.")
-        self._metadata = {cn: ColumnMetaData(cn, data[cn], self.raw_metadata.get(cn, {})) for cn in self.columns}
+        self._metadata = {
+            cn: ColumnMetaData(cn, data[cn], self.raw_metadata["columns"].get(cn, {})) for cn in self.columns
+        }
+        self.constraints = self._validate_constraints(self.raw_metadata.get("constraints", []), data)
+
+    def _validate_constraints(self, constraints: Optional[list[str]], data: pd.DataFrame) -> dict:
+        valid_constraints = []
+        for constraint in constraints:
+            elements = constraint.split(" ")
+            if len(elements) == 2:
+                valid_constraints.append(self._validate_simple_constraint(*elements))
+            elif len(elements) == 3:
+                result = self._validate_reference_constraint(*elements)
+                valid_constraints + [*result] if isinstance(result, tuple) else valid_constraints.append(result)
+            else:
+                raise ValueError(
+                    f"Constraint '{constraint}' is invalid, it must follow one of either the 'simple' or 'reference' constraint templates."
+                )
+
+    def _validate_constraint_column(self, column: str) -> None:
+        if column not in self.columns:
+            raise ValueError(f"Constraint refers to a column that does not exist ('{column}').")
+        if self._metadata[column].categorical:
+            raise ValueError(f"Constraint refers to a categorical column ('{column}'), which is not allowed.")
+
+    def _validate_constraint_matching_dtypes(self, base: str, reference: str) -> None:
+        if self._metadata[base].dtype != self._metadata[reference].dtype:
+            raise ValueError(
+                f"Constraint's base column ('{base}') has a different dtype ({self._metadata[base].dtype.name}) to the reference column's ('{reference}'. {self._metadata[reference].dtype.name}), which is not allowed."
+            )
+
+    def _validate_constraint_reference(self, base: str, reference: str) -> None:
+        if reference in self.columns:
+            self._validate_constraint_matching_dtypes(base, reference)
+            if self._metadata[reference].categorical:
+                raise ValueError(
+                    f"Constraint's reference ('{reference}') is a categorical column, which is not allowed."
+                )
+            return reference
+        else:
+            try:
+                return float(reference)
+            except ValueError:
+                raise ValueError(
+                    f"Constraint's reference ('{reference}') is not a valid column name or float, which is not allowed."
+                )
+
+    def _validate_simple_constraint(self, base: str, polarity: str) -> None:
+        operator_map = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+        self._validate_constraint_column(base)
+        if polarity not in operator_map:
+            raise ValueError(f"Constraint has an invalid polarity specification ('{polarity}').")
+        return Constraint(base, operator_map[polarity], 0)
+
+    def _validate_reference_constraint(self, base: str, operator: str, reference: str) -> None:
+        if base not in self.columns:
+            raise ValueError(f"Constraint's base refers to a column that does not exist ('{base}').")
+        if operator not in [">", ">=", "<", "<=", "in", "fixcombo"]:
+            raise ValueError(f"Constraint has an invalid operator ('{operator}').")
+        reference = self._type_reference(base, reference)
+        if reference in self.columns:
+            self._validate_constraint_matching_dtypes(base, reference)
+        elif operator == "in":
+            bracket_map = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
+            if reference[0] not in ["[", "("] or reference[-1] not in ["]", ")"]:
+                raise ValueError(
+                    f"Constraint's reference is not a valid range specification ('{reference}'), it must be of the form '[' or '(' + 'a,b' + ']' or ')'."
+                )
+            low, high = reference[1:-1].split(",")
+            low_is_column, high_is_column = low in self.columns, high in self.columns
+            low = self._validate_constraint_reference(base, low)
+            high = self._validate_constraint_reference(base, high)
+            if not low_is_column and not high_is_column and low >= high:
+                raise ValueError(
+                    f"Constraint's reference is not a valid range specification ('{reference}'), the lower bound must be strictly less than the upper bound."
+                )
+
+            low_bracket, high_bracket = bracket_map[reference[0]], bracket_map[reference[-1]]
+            high_bracket = high_bracket.replace("<", ">") if high_is_column else high_bracket
+            return (
+                Constraint(base, bracket_map[reference[0]], low_bracket, reference, low_is_column),
+                Constraint(
+                    high if high_is_column else base,
+                    high_bracket,
+                    base if high_is_column else high,
+                    reference,
+                    high_is_column,
+                    high_is_column,
+                ),
+            )
+        return Constraint(base, operator, reference, reference in self.columns)
 
     def __getitem__(self, key: str) -> dict[str, Any]:
         return self._metadata[key]
@@ -170,7 +260,7 @@ class MetaData:
             metadata = filter_dict(metadata, {"column_types"})
         else:
             warnings.warn(f"No metadata found at {path}...")
-            metadata = {}
+            metadata = {"columns": {}}
         return cls(data, metadata)
 
     def save(self, path: pathlib.Path, collapse_yaml: bool) -> None:
@@ -192,24 +282,26 @@ class MetaData:
 
     def assemble(self, collapse_yaml: bool) -> dict[str, dict[str, Any]]:
         assembled_metadata = {
-            cn: {
-                "dtype": cmd.dtype.name
-                if not hasattr(cmd, "datetime_config")
-                else {"name": cmd.dtype.name, **cmd.datetime_config},
-                "categorical": cmd.categorical,
+            "columns": {
+                cn: {
+                    "dtype": cmd.dtype.name
+                    if not hasattr(cmd, "datetime_config")
+                    else {"name": cmd.dtype.name, **cmd.datetime_config},
+                    "categorical": cmd.categorical,
+                }
+                for cn, cmd in self._metadata.items()
             }
-            for cn, cmd in self._metadata.items()
         }
         # Only add "missingness" to assembled_data if it is not None
         for cn, cmd in self._metadata.items():
             if cmd.missingness_strategy:
-                assembled_metadata[cn]["missingness"] = (
+                assembled_metadata["columns"][cn]["missingness"] = (
                     cmd.missingness_strategy.name
                     if cmd.missingness_strategy.name != "impute"
                     else {"name": cmd.missingness_strategy.name, "impute": cmd.missingness_strategy.impute}
                 )
             if cmd.transformer_config:
-                assembled_metadata[cn]["transformer"] = {
+                assembled_metadata["columns"][cn]["transformer"] = {
                     **cmd.transformer_config,
                     "name": cmd.transformer.__class__.__name__,
                 }
@@ -232,16 +324,15 @@ class MetaData:
                 The returned dictionary has the following structure:
                 {
                     "column_types": dict,
-                    **metadata  # one entry for each column that now reference the dicts above
+                    **metadata  # one entry for each column in "columns" that now reference the dicts above
                 }
                 - "column_types" is a dictionary mapping column type indices to column type configurations.
-                - "**metadata" contains the original metadata dictionary, with column types and transformers
-                rewritten to use the indices in "transformers" and "column_types".
+                - "**metadata" contains the original metadata dictionary, with column types rewritten to use the indices and "column_types".
         """
         c_index = 1
         column_types = {}
         column_type_counts = {}
-        for cn, cd in metadata.items():
+        for cn, cd in metadata["columns"].items():
             if cd not in column_types.values():
                 column_types[c_index] = cd.copy()
                 column_type_counts[c_index] = 1
@@ -250,10 +341,10 @@ class MetaData:
                 cix = get_key_by_value(column_types, cd)
                 column_type_counts[cix] += 1
 
-        for cn, cd in metadata.items():
+        for cn, cd in metadata["columns"].items():
             cix = get_key_by_value(column_types, cd)
             if column_type_counts[cix] > 1:
-                metadata[cn] = column_types[cix]
+                metadata["columns"][cn] = column_types[cix]
             else:
                 column_types.pop(cix)
 

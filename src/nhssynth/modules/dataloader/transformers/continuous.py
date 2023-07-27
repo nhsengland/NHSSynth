@@ -65,7 +65,8 @@ class ClusterContinuousTransformer(ColumnTransformer):
             missingness_column: The column of data representing missingness, this is only used as part of the `AugmentMissingnessStrategy`.
 
         Returns:
-            The transformed data (will be multiple columns if `n_components` > 1 at initialisation)."""
+            The transformed data (will be multiple columns if `n_components` > 1 at initialisation).
+        """
         self.original_column_name = data.name
         if missingness_column is not None:
             self._missingness_column_name = missingness_column.name

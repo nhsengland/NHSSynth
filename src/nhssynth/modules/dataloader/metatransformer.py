@@ -1,6 +1,6 @@
 import pathlib
 import sys
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import pandas as pd
 from nhssynth.modules.dataloader.metadata import MetaData
@@ -119,6 +119,28 @@ class MetaTransformer:
                 raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{cn}'")
         return working_data
 
+    def numericise_datetimes(self) -> pd.DataFrame:
+        """
+        Numericises datetime columns in the dataset.
+
+        Args:
+            dataset: The dataset to numericise.
+
+        Returns:
+            The dataset with numericised datetime columns.
+        """
+        working_data = self.typed_dataset.copy()
+        for column_metadata in self.metadata:
+            if column_metadata.dtype.kind == "M":
+                working_data[column_metadata.name] = pd.Series(
+                    working_data[column_metadata.name].dt.floor("ns").to_numpy().astype(float),
+                    name=column_metadata.name,
+                )
+                working_data[column_metadata.name] = working_data[column_metadata.name].replace(
+                    pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan
+                )
+        return working_data
+
     def apply_missingness_strategy(self) -> pd.DataFrame:
         """
         Applies the missingness strategy to the dataset.
@@ -129,7 +151,7 @@ class MetaTransformer:
         Returns:
             The dataset with the missingness strategy applied.
         """
-        working_data = self.typed_dataset.copy()
+        working_data = self.numericised_dataset.copy()
         for column_metadata in self.metadata:
             if not column_metadata.missingness_strategy:
                 column_metadata.missingness_strategy = (
@@ -147,6 +169,12 @@ class MetaTransformer:
                     column_metadata.dtype.name.lower()
                 )
         return working_data
+
+    def _get_missingness_carrier(self, column_metadata: ColumnMetaData) -> Union[pd.Series, Any]:
+        missingness_carrier = getattr(column_metadata.missingness_strategy, "missingness_carrier", None)
+        if missingness_carrier in self.prepared_dataset.columns:
+            missingness_carrier = self.prepared_dataset[missingness_carrier]
+        return missingness_carrier
 
     def transform(self) -> pd.DataFrame:
         """
@@ -172,13 +200,9 @@ class MetaTransformer:
         for column_metadata in tqdm(
             self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
         ):
-            # TODO is there a nicer way of doing this, the transformer and augment strategy create a chicken and egg problem
-            missingness_carrier = getattr(column_metadata.missingness_strategy, "missingness_carrier", None)
-            if missingness_carrier in working_data.columns:
-                missingness_carrier = working_data[missingness_carrier]
-            transformed_data = column_metadata.transformer.apply(
-                working_data[column_metadata.name], missingness_carrier
-            )
+            missingness_carrier = self._get_missingness_carrier(column_metadata)
+            transformed_data = column_metadata.transformer.apply(working_data, missingness_carrier)
+            # HAVE CHANGED THE ABOVE LINE TO USE FULL WORKING DATA INSTEAD OF JUST THE COLUMN
             if column_metadata.dtype.kind in ["f", "i", "u"]:
                 if isinstance(transformed_data, pd.DataFrame):
                     transformed_data = transformed_data.apply(lambda x: x.astype(column_metadata.dtype.name.lower()))
@@ -212,6 +236,7 @@ class MetaTransformer:
             The transformed dataset.
         """
         self.typed_dataset = self.apply_dtypes()
+        self.numericised_dataset = self.numericise_datetimes()
         self.prepared_dataset = self.apply_missingness_strategy()
         self.transformed_dataset = self.transform()
         return self.transformed_dataset
