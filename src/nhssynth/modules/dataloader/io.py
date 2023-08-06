@@ -39,6 +39,7 @@ def check_output_paths(
     fn_typed: str,
     fn_transformed: str,
     fn_transformer: str,
+    fn_constraint_graph: str,
     dir_experiment: Path,
 ) -> tuple[str, str, str]:
     """
@@ -48,7 +49,8 @@ def check_output_paths(
         fn_input: The input data filename.
         fn_typed: The typed input data filename/suffix to append to `fn_input`.
         fn_transformed: The output data filename/suffix to append to `fn_input`.
-        fn_transformer: The transformer filename/suffix to append to `fn_input`.
+        fn_transformer: The metatransformer filename/suffix to append to `fn_input`.
+        fn_constraint_graph: The constraint graph filename/suffix to append to `fn_input`.
         dir_experiment: The experiment directory to write the outputs to.
 
     Returns:
@@ -58,10 +60,14 @@ def check_output_paths(
         Raises a UserWarning when the path to `fn_transformed` includes directory separators, as this is not supported and may not work as intended.
         Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.
     """
-    fn_typed, fn_transformed, fn_transformer = consistent_endings([fn_typed, fn_transformed, fn_transformer])
-    fn_typed, fn_transformed, fn_transformer = potential_suffixes([fn_typed, fn_transformed, fn_transformer], fn_input)
-    warn_if_path_supplied([fn_typed, fn_transformed, fn_transformer], dir_experiment)
-    return fn_typed, fn_transformed, fn_transformer
+    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph = consistent_endings(
+        [fn_typed, fn_transformed, fn_transformer, (fn_constraint_graph, ".html")]
+    )
+    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph = potential_suffixes(
+        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph], fn_input
+    )
+    warn_if_path_supplied([fn_typed, fn_transformed, fn_transformer, fn_constraint_graph], dir_experiment)
+    return fn_typed, fn_transformed, fn_transformer, fn_constraint_graph
 
 
 def write_data_outputs(
@@ -81,10 +87,11 @@ def write_data_outputs(
         dir_experiment: The experiment directory to write the outputs to.
         args: The parsed command line arguments.
     """
-    fn_typed, fn_transformed, fn_transformer = check_output_paths(
-        fn_dataset, args.typed, args.transformed, args.metatransformer, dir_experiment
+    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph = check_output_paths(
+        fn_dataset, args.typed, args.transformed, args.metatransformer, args.constraint_graph, dir_experiment
     )
     metatransformer.save_metadata(dir_experiment / fn_metadata, args.collapse_yaml)
+    metatransformer.save_constraint_graphs(dir_experiment / fn_constraint_graph)
     metatransformer.get_typed_dataset().to_pickle(dir_experiment / fn_typed)
     metatransformer.get_transformed_dataset().to_pickle(dir_experiment / fn_transformed)
     metatransformer.get_transformed_dataset().to_csv(dir_experiment / (fn_transformed[:-3] + "csv"), index=False)
