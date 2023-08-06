@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from nhssynth.common.constants import TRACKED_METRICS
 from nhssynth.common.strings import add_spaces_before_caps
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 from torch.utils.data import DataLoader, TensorDataset
@@ -102,12 +103,28 @@ class Model(nn.Module, ABC):
         )
 
     def _start_training(self, num_epochs: int, patience: int, tracked_metrics: list[str]) -> None:
-        """Initialises the training process."""
+        """
+        Initialises the training process.
+
+        Args:
+            num_epochs: The number of epochs to train for
+            patience: The number of epochs to wait before stopping training early if the loss does not improve
+            tracked_metrics: The metrics to track during training, this should be set to an empty list if running `train` in a notebook or the output may be messy
+
+        Attributes:
+            metrics: A dictionary of lists of tracked metrics, where each list contains the values for each batch
+            stats_bars: A dictionary of tqdm status bars for each tracked metric
+            max_length: The maximum length of the tracked metric names, used for formatting the tqdm status bars
+            start_time: The time at which training started
+            update_time: The time at which the tqdm status bars were last updated
+        """
         self.num_epochs = num_epochs
         self.patience = patience
-        if not hasattr(self, "target_epsilon") and "Privacy" in tracked_metrics:
-            tracked_metrics.remove("Privacy")
-        self.metrics = {metric: np.empty(0, dtype=float) for metric in tracked_metrics}
+        self.metrics = {metric: np.empty(0, dtype=float) for metric in TRACKED_METRICS}
+        if not hasattr(self, "target_epsilon"):
+            self.metrics.pop("Privacy")
+            if "Privacy" in tracked_metrics:
+                self.tracked_metrics.remove("Privacy")
         self.stats_bars = {
             metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
             for i, metric in enumerate(tracked_metrics)
