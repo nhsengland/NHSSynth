@@ -43,6 +43,12 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
         help="indicate whether the csv file's 0th column is an index column, such that pandas can ignore it",
     )
     group.add_argument(
+        "--constraint-graph",
+        type=str,
+        default="_constraint_graph",
+        help="the name of the html file to write the constraint graph to, defaults to `<DATASET>_constraint_graph`",
+    )
+    group.add_argument(
         "--collapse-yaml",
         action="store_true",
         help="use aliases and anchors in the output metadata yaml, this will make it much more compact",
