@@ -1,5 +1,6 @@
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from nhssynth.modules.dataloader.transformers.base import *
 
@@ -11,7 +12,6 @@ class DatetimeTransformer(TransformerWrapper):
 
     Args:
         transformer: The [`ColumnTransformer`][nhssynth.modules.dataloader.transformers.base.ColumnTransformer] to wrap.
-        format: The string format of the datetime feature, CURRENTLY UNUSED.
 
     After applying the transformer, the following attributes will be populated:
 
@@ -19,13 +19,14 @@ class DatetimeTransformer(TransformerWrapper):
         original_column_name: The name of the original column.
     """
 
-    def __init__(self, transformer: ColumnTransformer, format: Optional[str] = None) -> None:
+    def __init__(self, transformer: ColumnTransformer) -> None:
         super().__init__(transformer)
-        self._format = format
 
     def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None, **kwargs) -> pd.DataFrame:
         self.original_column_name = data.name
-        return super().apply(data, missingness_column, **kwargs)
+        floored_data = pd.Series(data.dt.floor("ns").to_numpy().astype(float), name=data.name)
+        nan_corrected_data = floored_data.replace(pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan)
+        return super().apply(nan_corrected_data, missingness_column, **kwargs)
 
     def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         reverted_data = super().revert(data, **kwargs)
