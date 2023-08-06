@@ -1,6 +1,8 @@
 columns:
   dob:
-    dtype: datetime64
+    dtype:
+      name: datetime64
+      floor: S
   x1:
     categorical: true
     dtype: int64
@@ -28,7 +30,9 @@ columns:
   x9:
     dtype: int64
   x10:
-    dtype: float64
+    dtype:
+      name: float64
+      rounding_scheme: 0.1
   x11:
     dtype: int64
   x12:
@@ -40,3 +44,15 @@ columns:
   event:
     categorical: true
     dtype: int64
+constraints:
+  - "x10 in (0,100)"
+  - "x12 in (0,100)"
+  - "x13 in (0,100)"
+  - "x10 < x12"
+  - "x12 < x13"
+  - "x10 < x13"
+  - "x8 > x10"
+  - "x8 > x12"
+  - "x8 > x13"
+  - "x11 > 100"
+  - "x12 > 10"
