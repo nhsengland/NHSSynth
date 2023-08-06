@@ -1,41 +1,58 @@
-dob:
-  dtype: datetime64
-x1:
-  categorical: true
-  dtype: int64
-x2:
-  categorical: true
-  dtype: int64
-  missingness: drop
-x3:
-  categorical: true
-x4:
-  categorical: true
-  dtype: int64
-x5:
-  categorical: true
-  dtype: int64
-x6:
-  categorical: true
-  dtype: int64
-x7:
-  dtype: int64
-x8:
-  dtype: float64
-  missingness:
-    impute: mean
-x9:
-  dtype: int64
-x10:
-  dtype: float64
-x11:
-  dtype: int64
-x12:
-  dtype: float64
-x13:
-  dtype: float64
-duration:
-  dtype: int64
-event:
-  categorical: true
-  dtype: int64
+columns:
+  dob:
+    dtype:
+      name: datetime64
+      floor: S
+  x1:
+    categorical: true
+    dtype: int64
+  x2:
+    categorical: true
+    dtype: int64
+    missingness: drop
+  x3:
+    categorical: true
+  x4:
+    categorical: true
+    dtype: int64
+  x5:
+    categorical: true
+    dtype: int64
+  x6:
+    categorical: true
+    dtype: int64
+  x7:
+    dtype: int64
+  x8:
+    dtype: float64
+    missingness:
+      impute: mean
+  x9:
+    dtype: int64
+  x10:
+    dtype:
+      name: float64
+      rounding_scheme: 0.1
+  x11:
+    dtype: int64
+  x12:
+    dtype: float64
+  x13:
+    dtype: float64
+  duration:
+    dtype: int64
+  event:
+    categorical: true
+    dtype: int64
+constraints:
+  - "x10 in (0,100)"
+  - "x12 in (0,100)"
+  - "x13 in (0,100)"
+  - "x10 < x12"
+  - "x12 < x13"
+  - "x10 < x13"
+  - "x8 > x10"
+  - "x8 > x12"
+  - "x8 > x13"
+  - "x11 > 100"
+  - "x12 > 10"
