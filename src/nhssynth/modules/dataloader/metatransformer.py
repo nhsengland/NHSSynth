@@ -8,7 +8,6 @@ from nhssynth.modules.dataloader.missingness import *
 from tqdm import tqdm
 
 
-# TODO Can we come up with a way to instantiate this from the `model` module without needing to pickle and pass? Not high priority but would be nice to have
 class MetaTransformer:
     """
     A metatransformer object that can wrap a [`BaseSingleTableSynthesizer`](https://docs.sdv.dev/sdv/single-table-dataset/modeling/synthesizers)
@@ -62,8 +61,13 @@ class MetaTransformer:
             assert (
                 impute_value is not None
             ), "`impute_value` must be specified when using the imputation missingness strategy"
-            self.impute_value: Any = impute_value
-        self.missingness_strategy: GenericMissingnessStrategy = MISSINGNESS_STRATEGIES[missingness_strategy]
+            self.impute_value = impute_value
+            self.missingness_strategy = self._impute_missingness_strategy
+        else:
+            self.missingness_strategy = MISSINGNESS_STRATEGIES[missingness_strategy]
+
+    def _impute_missingness_strategy(self) -> GenericMissingnessStrategy:
+        return ImputeMissingnessStrategy(self.impute_value)
 
     @classmethod
     def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs):
@@ -77,7 +81,7 @@ class MetaTransformer:
         Returns:
             A MetaTransformer object.
         """
-        return cls(dataset, MetaData.load(metadata_path, dataset), **kwargs)
+        return cls(dataset, MetaData.from_path(dataset, metadata_path), **kwargs)
 
     @classmethod
     def from_dict(cls, dataset: pd.DataFrame, metadata: dict, **kwargs):
@@ -93,52 +97,44 @@ class MetaTransformer:
         """
         return cls(dataset, MetaData(dataset, metadata), **kwargs)
 
-    def apply_dtypes(self) -> pd.DataFrame:
-        """
-        Applies dtypes from the metadata to `dataset` and infers missing dtypes by reading pandas defaults.
+    def _apply_dtype(
+        self,
+        working_column: pd.Series,
+        column_metadata: MetaData.ColumnMetaData,
+    ) -> pd.Series:
+        dtype = column_metadata.dtype
+        try:
+            if dtype.kind == "M":
+                working_column = pd.to_datetime(working_column, format=column_metadata.datetime_config.get("format"))
+                if column_metadata.datetime_config.get("floor"):
+                    working_column = working_column.dt.floor(column_metadata.datetime_config.get("floor"))
+                return working_column
+            else:
+                if hasattr(column_metadata, "rounding_scheme"):
+                    working_column = (
+                        np.round(working_column / column_metadata.rounding_scheme) * column_metadata.rounding_scheme
+                    )
+                    working_column = working_column.round(
+                        max(0, int(np.log10(1 / column_metadata.rounding_scheme)) + 1)
+                    )
+                # If there are missing values in the column, we need to use the pandas equivalent of the dtype
+                if working_column.isnull().any() and dtype.kind in ["i", "u", "f"]:
+                    return working_column.astype(dtype.name.capitalize())
+                else:
+                    return working_column.astype(dtype)
+        except:
+            raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{working_column.name}'")
 
-        Args:
-            dataset: The raw input DataFrame.
+    def apply_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Applies dtypes from the metadata to `dataset`.
 
         Returns:
             The dataset with the dtypes applied.
         """
-        working_data = self.raw_dataset.copy()
+        working_data = data.copy()
         for column_metadata in self.metadata:
-            dtype = column_metadata.dtype
-            cn = column_metadata.name
-            try:
-                if dtype.kind == "M":
-                    working_data[cn] = pd.to_datetime(working_data[cn], **column_metadata.datetime_config)
-                elif working_data[cn].isnull().any() and dtype.kind in ["i", "u", "f"]:
-                    working_data[cn] = working_data[cn].astype(dtype.name.capitalize())
-                else:
-                    working_data[cn] = working_data[cn].astype(dtype)
-            except:
-                # Print the error message along with the column name to make it easier to debug
-                raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{cn}'")
-        return working_data
-
-    def numericise_datetimes(self) -> pd.DataFrame:
-        """
-        Numericises datetime columns in the dataset.
-
-        Args:
-            dataset: The dataset to numericise.
-
-        Returns:
-            The dataset with numericised datetime columns.
-        """
-        working_data = self.typed_dataset.copy()
-        for column_metadata in self.metadata:
-            if column_metadata.dtype.kind == "M":
-                working_data[column_metadata.name] = pd.Series(
-                    working_data[column_metadata.name].dt.floor("ns").to_numpy().astype(float),
-                    name=column_metadata.name,
-                )
-                working_data[column_metadata.name] = working_data[column_metadata.name].replace(
-                    pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan
-                )
+            working_data[column_metadata.name] = self._apply_dtype(working_data[column_metadata.name], column_metadata)
         return working_data
 
     def apply_missingness_strategy(self) -> pd.DataFrame:
@@ -151,30 +147,54 @@ class MetaTransformer:
         Returns:
             The dataset with the missingness strategy applied.
         """
-        working_data = self.numericised_dataset.copy()
+        working_data = self.typed_dataset.copy()
         for column_metadata in self.metadata:
             if not column_metadata.missingness_strategy:
-                column_metadata.missingness_strategy = (
-                    self.missingness_strategy(self.impute_value)
-                    if isinstance(self.missingness_strategy, ImputeMissingnessStrategy)
-                    else self.missingness_strategy()
-                )
+                column_metadata.missingness_strategy = self.missingness_strategy()
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
-            if column_metadata.dtype.kind in ["i", "u", "f"] and not isinstance(
-                column_metadata.missingness_strategy, AugmentMissingnessStrategy
-            ):
-                working_data[column_metadata.name] = working_data[column_metadata.name].astype(
-                    column_metadata.dtype.name.lower()
-                )
+            # TODO remove once we are sure we don't need to do this
+            # if column_metadata.dtype.kind in ["i", "u", "f"] and not isinstance(
+            #     column_metadata.missingness_strategy, AugmentMissingnessStrategy
+            # ):
+            #     working_data[column_metadata.name] = working_data[column_metadata.name].astype(
+            #         column_metadata.dtype.name.lower()
+            #     )
         return working_data
 
-    def _get_missingness_carrier(self, column_metadata: ColumnMetaData) -> Union[pd.Series, Any]:
+    # def apply_constraints(self) -> pd.DataFrame:
+    #     working_data = self.post_missingness_strategy_dataset.copy()
+    #     for constraint in self.metadata.constraints:
+    #         working_data = constraint.apply(working_data)
+    #     return working_data
+
+    # def numericise_datetimes(self) -> pd.DataFrame:
+    #     """
+    #     Numericises datetime columns in the dataset.
+
+    #     Returns:
+    #         The dataset with numericised datetime columns.
+    #     """
+    #     working_data = self.post_missingness_strategy_dataset.copy()
+    #     # working_data = self.constrained_dataset.copy()
+    #     for column_metadata in self.metadata:
+    #         if column_metadata.dtype.kind == "M":
+    #             working_data[column_metadata.name] = pd.Series(
+    #                 working_data[column_metadata.name].dt.floor("ns").to_numpy().astype(float),
+    #                 name=column_metadata.name,
+    #             )
+    #             working_data[column_metadata.name] = working_data[column_metadata.name].replace(
+    #                 pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan
+    #             )
+    #     return working_data
+
+    def _get_missingness_carrier(self, column_metadata: MetaData.ColumnMetaData) -> Union[pd.Series, Any]:
         missingness_carrier = getattr(column_metadata.missingness_strategy, "missingness_carrier", None)
-        if missingness_carrier in self.prepared_dataset.columns:
-            missingness_carrier = self.prepared_dataset[missingness_carrier]
-        return missingness_carrier
+        if missingness_carrier in self.post_missingness_strategy_dataset.columns:
+            return self.post_missingness_strategy_dataset[missingness_carrier]
+        else:
+            return missingness_carrier
 
     def transform(self) -> pd.DataFrame:
         """
@@ -193,7 +213,7 @@ class MetaTransformer:
         self.single_column_indices = []
         self.multi_column_indices = []
         col_counter = 0
-        working_data = self.prepared_dataset.copy()
+        working_data = self.post_missingness_strategy_dataset.copy()
 
         print("")
 
@@ -201,14 +221,17 @@ class MetaTransformer:
             self.metadata, desc="Transforming data", unit="column", total=len(self.metadata.columns)
         ):
             missingness_carrier = self._get_missingness_carrier(column_metadata)
-            transformed_data = column_metadata.transformer.apply(working_data, missingness_carrier)
-            # HAVE CHANGED THE ABOVE LINE TO USE FULL WORKING DATA INSTEAD OF JUST THE COLUMN
-            if column_metadata.dtype.kind in ["f", "i", "u"]:
-                if isinstance(transformed_data, pd.DataFrame):
-                    transformed_data = transformed_data.apply(lambda x: x.astype(column_metadata.dtype.name.lower()))
-                else:
-                    transformed_data = transformed_data.astype(column_metadata.dtype.name.lower())
+            transformed_data = column_metadata.transformer.apply(
+                working_data[column_metadata.name], missingness_carrier
+            )
+            # TODO remove once we are sure we don't need to do this
+            # if column_metadata.dtype.kind in ["f", "i", "u"]:
+            #     if isinstance(transformed_data, pd.DataFrame):
+            #         transformed_data = transformed_data.apply(lambda x: x.astype(column_metadata.dtype.name.lower()))
+            #     else:
+            #         transformed_data = transformed_data.astype(column_metadata.dtype.name.lower())
             transformed_columns.append(transformed_data)
+
             if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
                 num_to_add = transformed_data.shape[1]
                 if not column_metadata.categorical:
@@ -235,9 +258,10 @@ class MetaTransformer:
         Returns:
             The transformed dataset.
         """
-        self.typed_dataset = self.apply_dtypes()
-        self.numericised_dataset = self.numericise_datetimes()
-        self.prepared_dataset = self.apply_missingness_strategy()
+        self.typed_dataset = self.apply_dtypes(self.raw_dataset)
+        self.post_missingness_strategy_dataset = self.apply_missingness_strategy()
+        # self.constrained_dataset = self.apply_constraints()
+        # self.numericised_dataset = self.numericise_datetimes()
         self.transformed_dataset = self.transform()
         return self.transformed_dataset
 
@@ -265,6 +289,9 @@ class MetaTransformer:
     def save_metadata(self, path: pathlib.Path, collapse_yaml: bool = False) -> None:
         return self.metadata.save(path, collapse_yaml)
 
+    def save_constraint_graphs(self, path: pathlib.Path) -> None:
+        return self.metadata.constraints._output_graphs_html(path)
+
     def get_multi_and_single_column_indices(self) -> tuple[list[int], list[int]]:
         """
         Returns the indices of the columns that were transformed into one or multiple column(s).
@@ -290,4 +317,5 @@ class MetaTransformer:
         """
         for column_metadata in self.metadata:
             dataset = column_metadata.transformer.revert(dataset)
-        return dataset
+        typed_dataset = self.apply_dtypes(dataset)
+        return typed_dataset
