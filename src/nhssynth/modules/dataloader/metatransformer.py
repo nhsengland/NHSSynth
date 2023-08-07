@@ -115,7 +115,7 @@ class MetaTransformer:
                         np.round(working_column / column_metadata.rounding_scheme) * column_metadata.rounding_scheme
                     )
                     working_column = working_column.round(
-                        max(0, int(np.log10(1 / column_metadata.rounding_scheme)) + 1)
+                        max(0, int(np.ceil(np.log10(1 / column_metadata.rounding_scheme))))
                     )
                 # If there are missing values in the column, we need to use the pandas equivalent of the dtype
                 if working_column.isnull().any() and dtype.kind in ["i", "u", "f"]:
