@@ -1,6 +1,6 @@
 import pathlib
 import sys
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import pandas as pd
 from nhssynth.modules.dataloader.metadata import MetaData
@@ -61,13 +61,15 @@ class MetaTransformer:
             assert (
                 impute_value is not None
             ), "`impute_value` must be specified when using the imputation missingness strategy"
-            self.impute_value = impute_value
-            self.missingness_strategy = self._impute_missingness_strategy
+            self.missingness_strategy = self._impute_missingness_strategy_generator(impute_value)
         else:
             self.missingness_strategy = MISSINGNESS_STRATEGIES[missingness_strategy]
 
-    def _impute_missingness_strategy(self) -> GenericMissingnessStrategy:
-        return ImputeMissingnessStrategy(self.impute_value)
+    def _impute_missingness_strategy_generator(self, impute_value: Any) -> Callable[[], ImputeMissingnessStrategy]:
+        def _impute_missingness_strategy() -> ImputeMissingnessStrategy:
+            return ImputeMissingnessStrategy(impute_value)
+
+        return _impute_missingness_strategy
 
     @classmethod
     def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs):
@@ -97,6 +99,10 @@ class MetaTransformer:
         """
         return cls(dataset, MetaData(dataset, metadata), **kwargs)
 
+    def _apply_rounding_scheme(self, working_column: pd.Series, rounding_scheme: float) -> pd.Series:
+        working_column = np.round(working_column / rounding_scheme) * rounding_scheme
+        return working_column.round(max(0, int(np.ceil(np.log10(1 / rounding_scheme)))))
+
     def _apply_dtype(
         self,
         working_column: pd.Series,
@@ -111,13 +117,8 @@ class MetaTransformer:
                 return working_column
             else:
                 if hasattr(column_metadata, "rounding_scheme"):
-                    working_column = (
-                        np.round(working_column / column_metadata.rounding_scheme) * column_metadata.rounding_scheme
-                    )
-                    working_column = working_column.round(
-                        max(0, int(np.ceil(np.log10(1 / column_metadata.rounding_scheme))))
-                    )
-                # If there are missing values in the column, we need to use the pandas equivalent of the dtype
+                    self._apply_rounding_scheme(working_column, column_metadata.rounding_scheme)
+                # If there are missing values in the column, we need to use the pandas equivalent of the dtype to allow for NA values
                 if working_column.isnull().any() and dtype.kind in ["i", "u", "f"]:
                     return working_column.astype(dtype.name.capitalize())
                 else:
@@ -139,13 +140,12 @@ class MetaTransformer:
 
     def apply_missingness_strategy(self) -> pd.DataFrame:
         """
-        Applies the missingness strategy to the dataset.
-
-        Args:
-            dataset: The dataset to apply the missingness strategy to.
+        Resolves missingness in the dataset via the `MetaTransformer`'s or column-wise missingness strategies.
+        In the case of the `AugmentMissingnessStrategy`, the missingness is not resolved, instead a new
+        column / value is added for later transformation.
 
         Returns:
-            The dataset with the missingness strategy applied.
+            The dataset with the missingness strategies applied.
         """
         working_data = self.typed_dataset.copy()
         for column_metadata in self.metadata:
@@ -232,6 +232,7 @@ class MetaTransformer:
             #         transformed_data = transformed_data.astype(column_metadata.dtype.name.lower())
             transformed_columns.append(transformed_data)
 
+            # track single and multi column indices to supply to the model
             if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
                 num_to_add = transformed_data.shape[1]
                 if not column_metadata.categorical:
