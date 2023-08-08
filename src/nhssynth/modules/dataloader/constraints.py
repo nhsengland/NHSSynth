@@ -8,7 +8,7 @@ from pyvis.network import Network
 
 class ConstraintGraph:
     _VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-    _POLARITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+    _POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
     _BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
     _OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
 
@@ -75,10 +75,12 @@ class ConstraintGraph:
         self._columns = columns
         self._metadata = metadata
         self.raw_constraint_strings = constraint_strings
-        self.validated_constraint_strings = self._validate_constraint_strings()
-        self.graph = self._build_graph(self.validated_constraint_strings)
-        self.minimal_constraints = self._determine_minimal_constraints()
-        self.minimal_graph = self._build_graph(
+        print(self.raw_constraint_strings)
+        self.validated_constraint_strings = self.validate_constraint_strings()
+        print(self.validated_constraint_strings)
+        self.graph = self.build_graph(self.validated_constraint_strings)
+        self.minimal_constraints = self.determine_minimal_constraints()
+        self.minimal_graph = self.build_graph(
             [str(c).split(" ") for c in self.minimal_constraints if isinstance(c, self.Constraint)]
             + [
                 ("fixcombo", str(c).split(" ")[1:])
@@ -98,14 +100,14 @@ class ConstraintGraph:
         if not column in self._columns:
             raise ValueError(f"Constraint refers to a column that does not exist ('{column}').")
 
-    def _validate_polarity(self, polarity: str) -> None:
-        if polarity not in self._POLARITY_TO_OPERATOR:
-            raise ValueError(f"Constraint has an invalid polarity specification ('{polarity}').")
+    def _validate_positivity(self, positivity: str) -> None:
+        if positivity not in self._POSITIVITY_TO_OPERATOR:
+            raise ValueError(f"Constraint has an invalid positivity specification ('{positivity}').")
 
-    def _validate_simple_constraint(self, base: str, polarity: str) -> tuple[str, str, str]:
+    def _validate_simple_constraint(self, base: str, positivity: str) -> tuple[str, str, str]:
         self._column_exists(base)
-        self._validate_polarity(polarity)
-        return (base, self._POLARITY_TO_OPERATOR[polarity], "0")
+        self._validate_positivity(positivity)
+        return (base, self._POSITIVITY_TO_OPERATOR[positivity], "0")
 
     def _validate_operator(self, base: str, operator: str) -> None:
         if operator not in self._VALID_OPERATORS:
@@ -179,7 +181,7 @@ class ConstraintGraph:
             self._validate_constant_dtype(base, reference)
         return [(base, operator, reference)]
 
-    def _validate_constraint_strings(self) -> list[tuple[str, str, str]]:
+    def validate_constraint_strings(self) -> list[tuple[str, str, str]]:
         valid_constraints = []
         for constraint_string in self.raw_constraint_strings:
             elements = constraint_string.split(" ")
@@ -193,7 +195,7 @@ class ConstraintGraph:
                 raise ValueError(f"Constraint '{constraint_string}' is invalid.")
         return valid_constraints
 
-    def _build_graph(self, constraint_string_tuples) -> nx.DiGraph:
+    def build_graph(self, constraint_string_tuples) -> nx.DiGraph:
         graph = nx.DiGraph()
         for col in self._columns:
             graph.add_node(col, color="purple" if self._metadata[col].categorical else "blue")
@@ -272,7 +274,7 @@ class ConstraintGraph:
                     constraints = self._traverse_longest_path(longest_path, subgraph, constraints)
         return constraints
 
-    def _determine_minimal_constraints(self) -> list[Constraint]:
+    def determine_minimal_constraints(self) -> list[Constraint]:
         combo_constraints = []
         constraints = []
         all_subgraphs = [self.graph.subgraph(g) for g in nx.weakly_connected_components(self.graph) if len(g) > 1]
