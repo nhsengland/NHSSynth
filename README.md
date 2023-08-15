@@ -77,8 +77,8 @@ If you intend on contributing or working with the codebase directly, or if you w
     - Change `poetry`'s configuration to manage your own virtual environments:
       
       ```bash
-      > poetry config virtualenvs.create false
-      > poetry config virtualenvs.in-project false
+      poetry config virtualenvs.create false
+      poetry config virtualenvs.in-project false
       ```
 
       You can now instantiate a virtual environment in the usual way (e.g. via `python -m venv nhssynth`) and activate it via `source nhssynth/bin/activate` before moving to the next step
