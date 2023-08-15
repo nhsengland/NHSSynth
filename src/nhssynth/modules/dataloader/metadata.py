@@ -155,6 +155,8 @@ class MetaData:
         self.raw_metadata: dict = metadata
         if set(self.raw_metadata["columns"].keys()) - set(self.columns):
             raise ValueError("Metadata contains keys that do not appear amongst the columns.")
+        self.dropped_columns = [cn for cn in self.columns if self.raw_metadata["columns"].get(cn, None) == "drop"]
+        self.columns = self.columns.drop(self.dropped_columns)
         self._metadata = {
             cn: self.ColumnMetaData(cn, data[cn], self.raw_metadata["columns"].get(cn, {})) for cn in self.columns
         }
@@ -244,6 +246,8 @@ class MetaData:
                     **cmd.transformer_config,
                     "name": cmd.transformer.__class__.__name__,
                 }
+        if self.dropped_columns:
+            assembled_metadata["columns"] = {cn: "drop" for cn in self.dropped_columns}
         if collapse_yaml:
             assembled_metadata = self._collapse(assembled_metadata)
         if self.constraints:

@@ -52,11 +52,7 @@ class MetaTransformer:
         impute_value: Optional[Any] = None,
     ):
         self.raw_dataset: pd.DataFrame = dataset
-        if metadata:
-            assert metadata.columns.equals(dataset.columns), "`dataset`'s columns must match those in `metadata`"
-            self.metadata: MetaData = metadata
-        else:
-            self.metadata: MetaData = MetaData(dataset)
+        self.metadata: MetaData = metadata or MetaData(dataset)
         if missingness_strategy == "impute":
             assert (
                 impute_value is not None
@@ -99,6 +95,12 @@ class MetaTransformer:
         """
         return cls(dataset, MetaData(dataset, metadata), **kwargs)
 
+    def drop_columns(self) -> None:
+        """
+        Drops columns from the dataset that are not in the metadata.
+        """
+        self.raw_dataset = self.raw_dataset[self.metadata.columns]
+
     def _apply_rounding_scheme(self, working_column: pd.Series, rounding_scheme: float) -> pd.Series:
         working_column = np.round(working_column / rounding_scheme) * rounding_scheme
         return working_column.round(max(0, int(np.ceil(np.log10(1 / rounding_scheme)))))
@@ -114,10 +116,11 @@ class MetaTransformer:
                 working_column = pd.to_datetime(working_column, format=column_metadata.datetime_config.get("format"))
                 if column_metadata.datetime_config.get("floor"):
                     working_column = working_column.dt.floor(column_metadata.datetime_config.get("floor"))
+                    column_metadata.datetime_config["format"] = column_metadata._infer_datetime_format(working_column)
                 return working_column
             else:
                 if hasattr(column_metadata, "rounding_scheme"):
-                    self._apply_rounding_scheme(working_column, column_metadata.rounding_scheme)
+                    working_column = self._apply_rounding_scheme(working_column, column_metadata.rounding_scheme)
                 # If there are missing values in the column, we need to use the pandas equivalent of the dtype to allow for NA values
                 if working_column.isnull().any() and dtype.kind in ["i", "u", "f"]:
                     return working_column.astype(dtype.name.capitalize())
@@ -167,26 +170,6 @@ class MetaTransformer:
     #     working_data = self.post_missingness_strategy_dataset.copy()
     #     for constraint in self.metadata.constraints:
     #         working_data = constraint.apply(working_data)
-    #     return working_data
-
-    # def numericise_datetimes(self) -> pd.DataFrame:
-    #     """
-    #     Numericises datetime columns in the dataset.
-
-    #     Returns:
-    #         The dataset with numericised datetime columns.
-    #     """
-    #     working_data = self.post_missingness_strategy_dataset.copy()
-    #     # working_data = self.constrained_dataset.copy()
-    #     for column_metadata in self.metadata:
-    #         if column_metadata.dtype.kind == "M":
-    #             working_data[column_metadata.name] = pd.Series(
-    #                 working_data[column_metadata.name].dt.floor("ns").to_numpy().astype(float),
-    #                 name=column_metadata.name,
-    #             )
-    #             working_data[column_metadata.name] = working_data[column_metadata.name].replace(
-    #                 pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan
-    #             )
     #     return working_data
 
     def _get_missingness_carrier(self, column_metadata: MetaData.ColumnMetaData) -> Union[pd.Series, Any]:
@@ -245,8 +228,6 @@ class MetaTransformer:
                 self.single_column_indices.append(col_counter)
                 col_counter += 1
 
-        print("")
-
         return pd.concat(transformed_columns, axis=1)
 
     def apply(self) -> pd.DataFrame:
@@ -259,12 +240,27 @@ class MetaTransformer:
         Returns:
             The transformed dataset.
         """
+        self.drop_columns()
         self.typed_dataset = self.apply_dtypes(self.raw_dataset)
         self.post_missingness_strategy_dataset = self.apply_missingness_strategy()
         # self.constrained_dataset = self.apply_constraints()
-        # self.numericised_dataset = self.numericise_datetimes()
         self.transformed_dataset = self.transform()
         return self.transformed_dataset
+
+    def inverse_apply(self, dataset: pd.DataFrame) -> pd.DataFrame:
+        """
+        Reverses the transformation applied by the MetaTransformer.
+
+        Args:
+            dataset: The transformed dataset.
+
+        Returns:
+            The original dataset.
+        """
+        for column_metadata in self.metadata:
+            dataset = column_metadata.transformer.revert(dataset)
+        typed_dataset = self.apply_dtypes(dataset)
+        return typed_dataset
 
     def get_typed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "typed_dataset"):
@@ -287,12 +283,6 @@ class MetaTransformer:
             )
         return self.transformed_dataset
 
-    def save_metadata(self, path: pathlib.Path, collapse_yaml: bool = False) -> None:
-        return self.metadata.save(path, collapse_yaml)
-
-    def save_constraint_graphs(self, path: pathlib.Path) -> None:
-        return self.metadata.constraints._output_graphs_html(path)
-
     def get_multi_and_single_column_indices(self) -> tuple[list[int], list[int]]:
         """
         Returns the indices of the columns that were transformed into one or multiple column(s).
@@ -306,17 +296,14 @@ class MetaTransformer:
             )
         return self.multi_column_indices, self.single_column_indices
 
-    def inverse_apply(self, dataset: pd.DataFrame) -> pd.DataFrame:
+    def get_sdv_metadata(self) -> dict[str, dict[str, Any]]:
         """
-        Reverses the transformation applied by the MetaTransformer.
-
-        Args:
-            dataset: The transformed dataset.
-
-        Returns:
-            The original dataset.
+        Returns the metadata in the correct format for SDMetrics.
         """
-        for column_metadata in self.metadata:
-            dataset = column_metadata.transformer.revert(dataset)
-        typed_dataset = self.apply_dtypes(dataset)
-        return typed_dataset
+        return self.metadata.get_sdv_metadata()
+
+    def save_metadata(self, path: pathlib.Path, collapse_yaml: bool = False) -> None:
+        return self.metadata.save(path, collapse_yaml)
+
+    def save_constraint_graphs(self, path: pathlib.Path) -> None:
+        return self.metadata.constraints._output_graphs_html(path)
