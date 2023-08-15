@@ -94,6 +94,6 @@ class DPMixin(ABC):
     def _get_args() -> list[str]:
         return ["target_epsilon", "target_delta", "max_grad_norm", "secure_mode"]
 
-    def _start_training(self, num_epochs, patience, tracked_metrics):
+    def _start_training(self, num_epochs, patience, displayed_metrics):
         self.make_private(num_epochs)
-        super()._start_training(num_epochs, patience, tracked_metrics)
+        super()._start_training(num_epochs, patience, displayed_metrics)

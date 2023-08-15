@@ -2,7 +2,6 @@ import argparse
 import time
 import warnings
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -102,14 +101,14 @@ class Model(nn.Module, ABC):
             **{k: getattr(args, k) for k in ["batch_size", "use_gpu"] + cls._get_args() if getattr(args, k)},
         )
 
-    def _start_training(self, num_epochs: int, patience: int, tracked_metrics: list[str]) -> None:
+    def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str]) -> None:
         """
         Initialises the training process.
 
         Args:
             num_epochs: The number of epochs to train for
             patience: The number of epochs to wait before stopping training early if the loss does not improve
-            tracked_metrics: The metrics to track during training, this should be set to an empty list if running `train` in a notebook or the output may be messy
+            displayed_metrics: The metrics to display during training, this should be set to an empty list if running `train` in a notebook or the output may be messy
 
         Attributes:
             metrics: A dictionary of lists of tracked metrics, where each list contains the values for each batch
@@ -122,14 +121,14 @@ class Model(nn.Module, ABC):
         self.patience = patience
         self.metrics = {metric: np.empty(0, dtype=float) for metric in TRACKED_METRICS}
         if not hasattr(self, "target_epsilon"):
-            self.metrics.pop("Privacy")
-            if "Privacy" in tracked_metrics:
-                self.tracked_metrics.remove("Privacy")
+            self.metrics.pop("Privacy", None)
+            if "Privacy" in displayed_metrics:
+                displayed_metrics.remove("Privacy")
         self.stats_bars = {
             metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
-            for i, metric in enumerate(tracked_metrics)
+            for i, metric in enumerate(displayed_metrics)
         }
-        self.max_length = max([len(add_spaces_before_caps(s)) + 5 for s in tracked_metrics] + [20])
+        self.max_length = max([len(add_spaces_before_caps(s)) + 5 for s in displayed_metrics] + [20])
         self.start_time = self.update_time = time.time()
 
     def _generate_metric_str(self, key) -> str:
