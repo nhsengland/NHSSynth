@@ -9,7 +9,8 @@ from nhssynth.modules.model import MODELS
 
 class AllChoicesDefault(argparse.Action):
     """
-    Customised argparse action for defaulting to the full list of choices if only the flag is supplied.
+    Customised argparse action for defaulting to the full list of choices if only the argument's flag is supplied:
+    (i.e. user passes `--metrics` with no follow up list of metric groups => all metric groups will be executed).
 
     Notes:
         1) If no `option_string` is supplied: set to default value (`self.default`)
@@ -66,6 +67,11 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
         default=None,
         help="the imputation strategy to use, ONLY USED if <MISSINGNESS> is set to 'impute', choose from: 'mean', 'median', 'mode', or any specific value (e.g. '0')",
     )
+    group.add_argument(
+        "--write-csv",
+        action="store_true",
+        help="write the transformed real data to a csv file",
+    )
 
 
 def add_structure_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
@@ -114,11 +120,11 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         help="how many epochs the model is allowed to train for without improvement",
     )
     group.add_argument(
-        "--tracked-metrics",
+        "--displayed-metrics",
         type=str,
         nargs="+",
         default=TRACKED_METRICS,
-        help="metrics to track during training of the model",
+        help="metrics to display during training of the model",
         choices=TRACKED_METRICS,
     )
     group.add_argument(
@@ -172,8 +178,8 @@ def generate_evaluation_arg(group, name):
         default=None,
         nargs="*",
         action=AllChoicesDefault,
-        const=SDV_METRICS[name],
-        choices=SDV_METRICS[name],
+        const=METRIC_CHOICES[name],
+        choices=METRIC_CHOICES[name],
         help=f"run the {name.lower()} evaluation",
     )
 
@@ -182,16 +188,58 @@ def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overr
     """Adds arguments to an existing evaluation module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
-        "--diagnostic",
+        "--downstream-tasks",
+        "--tasks",
         action="store_true",
-        help="run the diagnostic evaluation",
+        help="run the downstream tasks evaluation",
     )
     group.add_argument(
-        "--quality",
-        action="store_true",
-        help="run the quality evaluation",
+        "--tasks-dir",
+        type=str,
+        default="./tasks",
+        help="the directory containing the downstream tasks to run, this directory must contain a folder called <DATASET> containing the tasks to run",
     )
-    for name in SDV_METRICS:
+    group.add_argument(
+        "--aequitas",
+        action="store_true",
+        help="run the aequitas fairness evaluation (note this runs for each of the downstream tasks)",
+    )
+    group.add_argument(
+        "--aequitas-attributes",
+        type=str,
+        nargs="+",
+        default=None,
+        help="the attributes to use for the aequitas fairness evaluation, defaults to all attributes",
+    )
+    group.add_argument(
+        "--key-numerical-fields",
+        type=str,
+        nargs="+",
+        default=None,
+        help="the numerical key field attributes to use for SDV privacy evaluations",
+    )
+    group.add_argument(
+        "--sensitive-numerical-fields",
+        type=str,
+        nargs="+",
+        default=None,
+        help="the numerical sensitive field attributes to use for SDV privacy evaluations",
+    )
+    group.add_argument(
+        "--key-categorical-fields",
+        type=str,
+        nargs="+",
+        default=None,
+        help="the categorical key field attributes to use for SDV privacy evaluations",
+    )
+    group.add_argument(
+        "--sensitive-categorical-fields",
+        type=str,
+        nargs="+",
+        default=None,
+        help="the categorical sensitive field attributes to use for SDV privacy evaluations",
+    )
+    for name in METRIC_CHOICES:
         generate_evaluation_arg(group, name)
 
 

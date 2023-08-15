@@ -28,6 +28,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
                 "dataset": fn_dataset,
                 "transformed": mt.get_transformed_dataset(),
                 "metatransformer": mt,
+                "sdv_metadata": mt.get_sdv_metadata(),
             }
         )
     if "evaluation" in args.modules_to_run:

@@ -50,6 +50,9 @@ class MetaData:
         def _infer_dtype(self, data: pd.Series) -> np.dtype:
             return data.dtype.name
 
+        def _infer_datetime_format(self, data: pd.Series) -> str:
+            return _guess_datetime_format_for_array(data[data.notna()].astype(str).to_numpy())
+
         def _setup_datetime_config(self, data: pd.Series, datetime_config: dict) -> dict:
             """
             Add keys to `datetime_config` corresponding to args from the `pd.to_datetime` function
@@ -60,7 +63,7 @@ class MetaData:
             else:
                 datetime_config = filter_dict(datetime_config, {"format", "floor"}, include=True)
             if "format" not in datetime_config:
-                datetime_config["format"] = _guess_datetime_format_for_array(data[data.notna()].astype(str).to_numpy())
+                datetime_config["format"] = self._infer_datetime_format(data)
             self.datetime_config = datetime_config
 
         def _validate_rounding_scheme(self, data: pd.Series, dtype_dict: dict) -> int:
@@ -152,6 +155,8 @@ class MetaData:
         self.raw_metadata: dict = metadata
         if set(self.raw_metadata["columns"].keys()) - set(self.columns):
             raise ValueError("Metadata contains keys that do not appear amongst the columns.")
+        self.dropped_columns = [cn for cn in self.columns if self.raw_metadata["columns"].get(cn, None) == "drop"]
+        self.columns = self.columns.drop(self.dropped_columns)
         self._metadata = {
             cn: self.ColumnMetaData(cn, data[cn], self.raw_metadata["columns"].get(cn, {})) for cn in self.columns
         }
@@ -241,6 +246,8 @@ class MetaData:
                     **cmd.transformer_config,
                     "name": cmd.transformer.__class__.__name__,
                 }
+        if self.dropped_columns:
+            assembled_metadata["columns"] = {cn: "drop" for cn in self.dropped_columns}
         if collapse_yaml:
             assembled_metadata = self._collapse(assembled_metadata)
         if self.constraints:
@@ -266,8 +273,8 @@ class MetaData:
                 sort_keys=False,
             )
 
-    def get_sdmetadata(self) -> dict[str, dict[str, dict[str, str]]]:
-        sdmetadata = {
+    def get_sdv_metadata(self) -> dict[str, dict[str, dict[str, str]]]:
+        sdv_metadata = {
             "columns": {
                 cn: {
                     "sdtype": "boolean"
@@ -283,8 +290,8 @@ class MetaData:
         }
         for cn, cmd in self._metadata.items():
             if cmd.dtype.kind == "M":
-                sdmetadata["columns"][cn]["format"] = cmd.datetime_config["format"]
-        return sdmetadata
+                sdv_metadata["columns"][cn]["format"] = cmd.datetime_config["format"]
+        return sdv_metadata
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         self.constraints._output_graphs_html(path)

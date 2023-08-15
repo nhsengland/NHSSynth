@@ -18,10 +18,10 @@ def run_iter(
     iter_id: Optional[str] = None,
 ) -> pd.DataFrame:
     model = MODELS[architecture].from_args(args, transformed_dataset, metatransformer)
-    num_epochs, results = model.train(
+    _, _ = model.train(
         num_epochs=args.num_epochs,
         patience=args.patience,
-        tracked_metrics=args.tracked_metrics,
+        displayed_metrics=args.displayed_metrics.copy(),
     )
     synthetic = model.generate(args.num_samples)
     output_iter(
@@ -61,8 +61,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     if "evaluation" in args.modules_to_run or "plotting" in args.modules_to_run:
         args.module_handover.update({"fn_dataset": req[0], "experiment_bundle": experiment_bundle})
-    # if "plotting" in args.modules_to_run:
-    #     args.module_handover.update({"results": results_list[-1], "num_epochs": num_epochs_list[-1]})
 
     print("")
 

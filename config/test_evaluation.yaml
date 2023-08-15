@@ -7,8 +7,6 @@ evaluation:
   column_similarity_metrics:
   - CorrelationSimilarity
   - ContingencySimilarity
-  detection_metrics:
-  - SVCDetection
   boundary_metrics:
   - BoundaryAdherence
   coverage_metrics:

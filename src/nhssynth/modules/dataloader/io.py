@@ -2,8 +2,10 @@ import argparse
 import pickle
 from pathlib import Path
 
+import numpy as np
 from nhssynth.common.io import *
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
+from tqdm import tqdm
 
 
 def check_input_paths(
@@ -40,6 +42,7 @@ def check_output_paths(
     fn_transformed: str,
     fn_transformer: str,
     fn_constraint_graph: str,
+    fn_sdv_metadata: str,
     dir_experiment: Path,
 ) -> tuple[str, str, str]:
     """
@@ -51,23 +54,25 @@ def check_output_paths(
         fn_transformed: The output data filename/suffix to append to `fn_input`.
         fn_transformer: The metatransformer filename/suffix to append to `fn_input`.
         fn_constraint_graph: The constraint graph filename/suffix to append to `fn_input`.
+        fn_sdv_metadata: The SDV metadata filename/suffix to append to `fn_input`.
         dir_experiment: The experiment directory to write the outputs to.
 
     Returns:
         A tuple containing the formatted output filenames.
 
     Warnings:
-        Raises a UserWarning when the path to `fn_transformed` includes directory separators, as this is not supported and may not work as intended.
-        Raises a UserWarning when the path to `fn_transformer` includes directory separators, as this is not supported and may not work as intended.
+        Raises a UserWarning when any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
-    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph = consistent_endings(
-        [fn_typed, fn_transformed, fn_transformer, (fn_constraint_graph, ".html")]
+    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = consistent_endings(
+        [fn_typed, fn_transformed, fn_transformer, (fn_constraint_graph, ".html"), fn_sdv_metadata]
     )
-    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph = potential_suffixes(
-        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph], fn_input
+    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = potential_suffixes(
+        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], fn_input
     )
-    warn_if_path_supplied([fn_typed, fn_transformed, fn_transformer, fn_constraint_graph], dir_experiment)
-    return fn_typed, fn_transformed, fn_transformer, fn_constraint_graph
+    warn_if_path_supplied(
+        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], dir_experiment
+    )
+    return fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata
 
 
 def write_data_outputs(
@@ -87,13 +92,34 @@ def write_data_outputs(
         dir_experiment: The experiment directory to write the outputs to.
         args: The parsed command line arguments.
     """
-    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph = check_output_paths(
-        fn_dataset, args.typed, args.transformed, args.metatransformer, args.constraint_graph, dir_experiment
+    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = check_output_paths(
+        fn_dataset,
+        args.typed,
+        args.transformed,
+        args.metatransformer,
+        args.constraint_graph,
+        args.sdv_metadata,
+        dir_experiment,
     )
     metatransformer.save_metadata(dir_experiment / fn_metadata, args.collapse_yaml)
     metatransformer.save_constraint_graphs(dir_experiment / fn_constraint_graph)
     metatransformer.get_typed_dataset().to_pickle(dir_experiment / fn_typed)
-    metatransformer.get_transformed_dataset().to_pickle(dir_experiment / fn_transformed)
-    metatransformer.get_transformed_dataset().to_csv(dir_experiment / (fn_transformed[:-3] + "csv"), index=False)
+    transformed_dataset = metatransformer.get_transformed_dataset()
+    transformed_dataset.to_pickle(dir_experiment / fn_transformed)
+    if args.write_csv:
+        chunks = np.array_split(transformed_dataset.index, 100)
+        for chunk, subset in enumerate(tqdm(chunks, desc="Writing transformed dataset to CSV", unit="chunk")):
+            if chunk == 0:
+                transformed_dataset.loc[subset].to_csv(
+                    dir_experiment / (fn_transformed[:-3] + "csv"), mode="w", index=False
+                )
+            else:
+                transformed_dataset.loc[subset].to_csv(
+                    dir_experiment / (fn_transformed[:-3] + "csv"), mode="a", index=False, header=False
+                )
     with open(dir_experiment / fn_transformer, "wb") as f:
         pickle.dump(metatransformer, f)
+    with open(dir_experiment / fn_sdv_metadata, "wb") as f:
+        pickle.dump(metatransformer.get_sdv_metadata(), f)
+
+    print("")

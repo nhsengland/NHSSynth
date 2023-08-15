@@ -241,7 +241,7 @@ class VAE(Model):
         self,
         num_epochs: int = 100,
         patience: int = 5,
-        tracked_metrics: list[str] = ["ELBO"],
+        displayed_metrics: list[str] = ["ELBO"],
     ) -> tuple[int, dict[str, list[float]]]:
         """
         Train the model.
@@ -249,13 +249,13 @@ class VAE(Model):
         Args:
             num_epochs: Number of epochs to train for.
             patience: Number of epochs to wait for improvement before early stopping.
-            tracked_metrics: List of metrics to track during training.
+            displayed_metrics: List of metrics to display during training.
 
         Returns:
             The number of epochs trained for and a dictionary of the tracked metrics.
         """
         print("")
-        self._start_training(num_epochs, patience, tracked_metrics)
+        self._start_training(num_epochs, patience, displayed_metrics)
 
         self.encoder.train()
         self.decoder.train()

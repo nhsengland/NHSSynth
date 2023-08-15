@@ -93,7 +93,7 @@ MODULE_MAP: Final = {
         add_args=add_dataloader_args,
         description="run the data loader module, to prepare the chosen dataset for use in other modules",
         help="prepare the dataset",
-        common_parsers=["metadata", "typed", "transformed", "metatransformer"],
+        common_parsers=["metadata", "typed", "transformed", "metatransformer", "sdv_metadata"],
     ),
     "structure": ModuleConfig(
         func=structure.run,
@@ -113,14 +113,14 @@ MODULE_MAP: Final = {
         add_args=add_evaluation_args,
         description="run the evaluation module, to evaluate an experiment",
         help="evaluate an experiment",
-        common_parsers=["metadata", "typed", "experiment_bundle", "eval_bundle"],
+        common_parsers=["sdv_metadata", "typed", "experiment_bundle", "evaluation_bundle"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,
         add_args=add_plotting_args,
         description="run the plotting module, to generate plots for a given model and / or evaluation",
         help="generate plots",
-        common_parsers=["typed", "eval_bundle"],
+        common_parsers=["typed", "evaluation_bundle"],
     ),
     "pipeline": ModuleConfig(
         func=run_pipeline,
