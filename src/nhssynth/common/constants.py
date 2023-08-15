@@ -25,66 +25,43 @@ ACTIVATION_FUNCTIONS: Final = {
     "sigmoid": nn.Sigmoid,
 }
 
-SDV_DETECTION_METRIC_CHOICES: Final = {
-    "LogisticDetection": LogisticDetection,
-    "SVCDetection": SVCDetection,
-}
-
-SDV_BINARY_METRIC_CHOICES: Final = {
-    "BinaryAdaBoostClassifier": BinaryAdaBoostClassifier,
-    "BinaryDecisionTreeClassifier": BinaryDecisionTreeClassifier,
-    "BinaryLogisticRegression": BinaryLogisticRegression,
-    "BinaryMLPClassifier": BinaryMLPClassifier,
-}
-
-SDV_MULTICLASS_METRIC_CHOICES: Final = {
-    "MulticlassDecisionTreeClassifier": MulticlassDecisionTreeClassifier,
-    "MulticlassMLPClassifier": MulticlassMLPClassifier,
-}
-
-SDV_REGRESSION_METRIC_CHOICES: Final = {
-    "LinearRegression": LinearRegression,
-    "MLPRegressor": MLPRegressor,
-}
-
-SDV_COLUMN_SHAPE_METRIC_CHOICES: Final = {
+SDV_COLUMN_SHAPE_METRICS: Final = {
     "KSComplement": KSComplement,
     "TVComplement": TVComplement,
-    "CSTest": CSTest,
 }
 
-SDV_COLUMN_SIMILARITY_METRIC_CHOICES: Final = {
+SDV_COLUMN_SIMILARITY_METRICS: Final = {
     "MissingValueSimilarity": MissingValueSimilarity,
     "StatisticSimilarity": StatisticSimilarity,
     "CorrelationSimilarity": CorrelationSimilarity,
     "ContingencySimilarity": ContingencySimilarity,
 }
 
-SDV_COVERAGE_METRIC_CHOICES: Final = {
+SDV_COVERAGE_METRICS: Final = {
     "RangeCoverage": RangeCoverage,
     "CategoryCoverage": CategoryCoverage,
 }
 
-SDV_SYNTHESIS_METRIC_CHOICES: Final = {
+SDV_SYNTHESIS_METRICS: Final = {
     "NewRowSynthesis": NewRowSynthesis,
 }
 
-SDV_BOUNDARY_METRIC_CHOICES: Final = {
+SDV_BOUNDARY_METRICS: Final = {
     "BoundaryAdherence": BoundaryAdherence,
 }
 
-SDV_DIVERGENCE_METRIC_CHOICES: Final = {
+SDV_DIVERGENCE_METRICS: Final = {
     "ContinuousKLDivergence": ContinuousKLDivergence,
     "DiscreteKLDivergence": DiscreteKLDivergence,
 }
 
-SDV_CAP_PRIVACY_METRIC_CHOICES: Final = {
+SDV_CAP_PRIVACY_METRICS: Final = {
     "CategoricalCAP": CategoricalCAP,
     "CategoricalGeneralizedCAP": CategoricalGeneralizedCAP,
     "CategoricalZeroCAP": CategoricalZeroCAP,
 }
 
-SDV_CATEGORICAL_PRIVACY_METRIC_CHOICES: Final = {
+SDV_CATEGORICAL_PRIVACY_METRICS: Final = {
     "CategoricalKNN": CategoricalKNN,
     "CategoricalNB": CategoricalNB,
     "CategoricalRF": CategoricalRF,
@@ -92,25 +69,39 @@ SDV_CATEGORICAL_PRIVACY_METRIC_CHOICES: Final = {
     "CategoricalEnsemble": CategoricalEnsemble,
 }
 
-SDV_NUMERICAL_PRIVACY_METRIC_CHOICES: Final = {
+SDV_NUMERICAL_PRIVACY_METRICS: Final = {
     "NumericalLR": NumericalLR,
     "NumericalMLP": NumericalMLP,
     "NumericalSVR": NumericalSVR,
     "NumericalRadiusNearestNeighbor": NumericalRadiusNearestNeighbor,
 }
 
-SDV_METRICS: Final = {
-    "Detection": SDV_DETECTION_METRIC_CHOICES,
-    "Binary": SDV_BINARY_METRIC_CHOICES,
-    "Multiclass": SDV_MULTICLASS_METRIC_CHOICES,
-    "Regression": SDV_REGRESSION_METRIC_CHOICES,
-    "Column Shape": SDV_COLUMN_SHAPE_METRIC_CHOICES,
-    "Column Similarity": SDV_COLUMN_SIMILARITY_METRIC_CHOICES,
-    "Coverage": SDV_COVERAGE_METRIC_CHOICES,
-    "Synthesis": SDV_SYNTHESIS_METRIC_CHOICES,
-    "Boundary": SDV_BOUNDARY_METRIC_CHOICES,
-    "Divergence": SDV_DIVERGENCE_METRIC_CHOICES,
-    "CAP Privacy": SDV_CAP_PRIVACY_METRIC_CHOICES,
-    "Categorical Privacy": SDV_CATEGORICAL_PRIVACY_METRIC_CHOICES,
-    "Numerical Privacy": SDV_NUMERICAL_PRIVACY_METRIC_CHOICES,
+TABLE_METRICS: Final = {
+    **SDV_COLUMN_SHAPE_METRICS,
+    **SDV_COLUMN_SIMILARITY_METRICS,
+    **SDV_COVERAGE_METRICS,
+    **SDV_SYNTHESIS_METRICS,
+    **SDV_BOUNDARY_METRICS,
+    **SDV_DIVERGENCE_METRICS,
+}
+
+CATEGORICAL_PRIVACY_METRICS: Final = {
+    **SDV_CAP_PRIVACY_METRICS,
+    **SDV_CATEGORICAL_PRIVACY_METRICS,
+}
+
+NUMERICAL_PRIVACY_METRICS: Final = {
+    **SDV_NUMERICAL_PRIVACY_METRICS,
+}
+
+METRIC_CHOICES: Final = {
+    "Column Shape": SDV_COLUMN_SHAPE_METRICS,
+    "Column Similarity": SDV_COLUMN_SIMILARITY_METRICS,
+    "Coverage": SDV_COVERAGE_METRICS,
+    "Synthesis": SDV_SYNTHESIS_METRICS,
+    "Boundary": SDV_BOUNDARY_METRICS,
+    "Divergence": SDV_DIVERGENCE_METRICS,
+    "CAP Privacy": SDV_CAP_PRIVACY_METRICS,
+    "Categorical Privacy": SDV_CATEGORICAL_PRIVACY_METRICS,
+    "Numerical Privacy": SDV_NUMERICAL_PRIVACY_METRICS,
 }
