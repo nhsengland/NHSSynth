@@ -1,15 +1,17 @@
 import argparse
+import importlib.util
+import os
 import pickle
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from nhssynth.common.io import *
-from nhssynth.modules.dataloader.metadata import MetaData
+from nhssynth.modules.evaluation.tasks import Task
 
 
 def check_input_paths(
-    fn_dataset: str, fn_typed: str, fn_experiment_bundle: str, fn_metadata: str, dir_experiment: Path
+    fn_dataset: str, fn_typed: str, fn_experiment_bundle: str, fn_sdv_metadata: str, dir_experiment: Path
 ) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
@@ -18,27 +20,49 @@ def check_input_paths(
         fn_dataset: The base name of the dataset.
         fn_typed: The name of the typed data file.
         fn_experiment_bundle: The name of the metatransformer file.
-        fn_metadata: The name of the metadata file.
+        fn_sdv_metadata: The name of the SDV metadata file.
         dir_experiment: The path to the experiment directory.
 
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_dataset, fn_typed, fn_experiment_bundle, fn_metadata = consistent_endings(
-        [fn_dataset, fn_typed, fn_experiment_bundle, (fn_metadata, ".yaml")]
+    fn_typed, fn_experiment_bundle, fn_sdv_metadata = consistent_endings(
+        [fn_typed, fn_experiment_bundle, fn_sdv_metadata]
     )
-    fn_typed, fn_experiment_bundle, fn_metadata = potential_suffixes(
-        [fn_typed, fn_experiment_bundle, fn_metadata], fn_dataset
+    fn_typed, fn_experiment_bundle, fn_sdv_metadata = potential_suffixes(
+        [fn_typed, fn_experiment_bundle, fn_sdv_metadata], fn_dataset
     )
-    warn_if_path_supplied([fn_dataset, fn_typed, fn_experiment_bundle, fn_metadata], dir_experiment)
-    check_exists([fn_typed, fn_experiment_bundle, fn_metadata], dir_experiment)
-    return fn_dataset, fn_typed, fn_experiment_bundle, fn_metadata
+    warn_if_path_supplied([fn_typed, fn_experiment_bundle, fn_sdv_metadata], dir_experiment)
+    check_exists([fn_typed, fn_experiment_bundle, fn_sdv_metadata], dir_experiment)
+    return fn_dataset, fn_typed, fn_experiment_bundle, fn_sdv_metadata
+
+
+def get_tasks(
+    fn_dataset: str,
+    tasks_root: str,
+) -> list[Task]:
+    tasks_dir = Path(tasks_root) / fn_dataset
+    assert (
+        tasks_dir.exists()
+    ), f"Downstream tasks directory does not exist ({tasks_dir}), NB there should be a directory in TASKS_DIR with the same name as the dataset."
+    tasks = []
+    for task_path in tasks_dir.iterdir():
+        if task_path.name.startswith((".", "__")):
+            continue
+        assert task_path.suffix == ".py", f"Downstream task file must be a python file ({task_path.name})"
+        spec = importlib.util.spec_from_file_location(
+            "nhssynth_task_" + task_path.name, os.getcwd() + "/" + str(task_path)
+        )
+        task_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(task_module)
+        tasks.append(task_module.task)
+    return tasks
 
 
 def output_eval(
-    eval_bundle: dict,
+    collected_evals: dict[str, pd.DataFrame],
     fn_dataset: Path,
-    fn_eval_bundle: str,
+    fn_evaluation_bundle: str,
     dir_experiment: Path,
 ):
     """
@@ -46,17 +70,17 @@ def output_eval(
 
     Args:
         fn_dataset: The base name of the dataset.
-        fn_eval_bundle: The name of the evaluation bundle file.
+        fn_evaluation_bundle: The name of the evaluation bundle file.
         dir_experiment: The path to the experiment output directory.
 
     Returns:
         The path to output the model.
     """
-    fn_eval_bundle = consistent_ending(fn_eval_bundle)
-    fn_eval_bundle = potential_suffix(fn_eval_bundle, fn_dataset)
-    warn_if_path_supplied([fn_eval_bundle], dir_experiment)
-    with open(dir_experiment / fn_eval_bundle, "wb") as f:
-        pickle.dump(eval_bundle, f)
+    fn_evaluation_bundle = consistent_ending(fn_evaluation_bundle)
+    fn_evaluation_bundle = potential_suffix(fn_evaluation_bundle, fn_dataset)
+    warn_if_path_supplied([fn_evaluation_bundle], dir_experiment)
+    with open(dir_experiment / fn_evaluation_bundle, "wb") as f:
+        pickle.dump(collected_evals, f)
 
 
 def load_required_data(
@@ -70,23 +94,24 @@ def load_required_data(
         dir_experiment: The path to the experiment directory.
 
     Returns:
-        The data, metadata and metatransformer.
+        The dataset name, the real data, the bundle of synthetic data from the modelling stage, and the SDV metadata.
     """
-    if all(x in args.module_handover for x in ["dataset", "typed", "experiment_bundle", "metadata"]):
+    if all(x in args.module_handover for x in ["dataset", "typed", "experiment_bundle", "sdv_metadata"]):
         return (
             args.module_handover["dataset"],
             args.module_handover["typed"],
             args.module_handover["experiment_bundle"],
-            args.module_handover["metadata"],
+            args.module_handover["sdv_metadata"],
         )
     else:
-        fn_dataset, fn_typed, fn_experiment_bundle, fn_metadata = check_input_paths(
-            args.dataset, args.typed, args.experiment_bundle, args.metadata, dir_experiment
+        fn_dataset, fn_typed, fn_experiment_bundle, fn_sdv_metadata = check_input_paths(
+            args.dataset, args.typed, args.experiment_bundle, args.sdv_metadata, dir_experiment
         )
         with open(dir_experiment / fn_typed, "rb") as f:
             real_data = pickle.load(f)
-        sdmetadata = MetaData.load(dir_experiment / fn_metadata, real_data).get_sdmetadata()
+        with open(dir_experiment / fn_sdv_metadata, "rb") as f:
+            sdv_metadata = pickle.load(f)
         with open(dir_experiment / fn_experiment_bundle, "rb") as f:
             experiment_bundle = pickle.load(f)
 
-        return fn_dataset, real_data, experiment_bundle, sdmetadata
+        return fn_dataset, real_data, experiment_bundle, sdv_metadata
