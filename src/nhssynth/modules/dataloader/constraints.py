@@ -75,9 +75,9 @@ class ConstraintGraph:
         self._columns = columns
         self._metadata = metadata
         self.raw_constraint_strings = constraint_strings
-        print(self.raw_constraint_strings)
+        # print(self.raw_constraint_strings)
         self.validated_constraint_strings = self.validate_constraint_strings()
-        print(self.validated_constraint_strings)
+        # print(self.validated_constraint_strings)
         self.graph = self.build_graph(self.validated_constraint_strings)
         self.minimal_constraints = self.determine_minimal_constraints()
         self.minimal_graph = self.build_graph(
