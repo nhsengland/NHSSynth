@@ -58,7 +58,7 @@ def suffix_parser_generator(name: str, help: str, required: bool = False) -> arg
         parser = argparse.ArgumentParser(add_help=False)
         parser_grp = parser.add_argument_group(title=COMMON_TITLE)
         parser_grp.add_argument(
-            f"--{name}",
+            f"--{name.replace('_', '-')}",
             required=required and not overrides,
             type=str,
             default=f"_{name}",
@@ -87,6 +87,10 @@ COMMON_PARSERS: Final = {
         "metatransformer",
         "filename of the `MetaTransformer` used to prepare the data",
     ),
+    "sdv_metadata": suffix_parser_generator(
+        "sdv_metadata",
+        "filename of the metadata formatted for use with SDV",
+    ),
     "synthetic": suffix_parser_generator(
         "synthetic",
         "filename of the synthetic data",
@@ -95,8 +99,8 @@ COMMON_PARSERS: Final = {
         "experiment_bundle",
         "filename of the experiment bundle, i.e. the collection of all seeds, models, and synthetic datasets",
     ),
-    "eval_bundle": suffix_parser_generator(
-        "eval_bundle",
-        "filename of the (collection of) report(s) and evaluation(s) for a given `experiment_bundle`",
+    "evaluation_bundle": suffix_parser_generator(
+        "evaluation_bundle",
+        "filename of the (collection of) evaluation(s) for a given `experiment_bundle`",
     ),
 }
