@@ -29,6 +29,3 @@ evaluation:
   divergence_metrics:
   - ContinuousKLDivergence
   - DiscreteKLDivergence
-plotting:
-  plot_tsne: true
-  plot_sdv_report: true

@@ -1,5 +1,0 @@
-seed: 1
-experiment_name: test
-plotting:
-  plot_tsne: true
-  plot_sdv_report: true
