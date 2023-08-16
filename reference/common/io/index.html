@@ -1789,7 +1789,7 @@
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="sd">        The filename with the correct ending and potentially an inserted suffix.</span>
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a>    <span class="n">path_fn</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="n">ending</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_fn</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path_fn</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="n">ending</span>
 </span></code></pre></div></td></tr></table></div>
           </details>
   </div>
@@ -2151,7 +2151,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 15, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 16, 2023</span>
       
     
   </small>
