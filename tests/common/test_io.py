@@ -36,7 +36,7 @@ def test_experiment_io_creates_nested_dir_and_returns_path(experiments_dir) -> N
 
 
 def test_consistent_endings_all_combinations() -> None:
-    args = ["file1.pkl", "file2", ("file3", ".yaml"), ("file4", ".csv", "_processed"), ("/dir/file5", ".pkl")]
+    args = ["file1.pkl", "file2", ("file3", ".yaml"), ("file4", ".csv", "processed"), ("/dir/file5", ".pkl")]
     expected_endings = ["file1.pkl", "file2.pkl", "file3.yaml", "file4_processed.csv", "/dir/file5.pkl"]
 
     actual_endings = consistent_endings(args)
