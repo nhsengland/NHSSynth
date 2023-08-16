@@ -24,13 +24,12 @@ def check_input_paths(
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_dataset, fn_transformed, fn_metatransformer = consistent_endings(
-        [fn_dataset, fn_transformed, fn_metatransformer]
-    )
+    fn_dataset = Path(fn_dataset).stem
+    fn_transformed, fn_metatransformer = consistent_endings([fn_transformed, fn_metatransformer])
     fn_transformed, fn_metatransformer = potential_suffixes([fn_transformed, fn_metatransformer], fn_dataset)
-    warn_if_path_supplied([fn_dataset, fn_transformed, fn_metatransformer], dir_experiment)
+    warn_if_path_supplied([fn_transformed, fn_metatransformer], dir_experiment)
     check_exists([fn_transformed, fn_metatransformer], dir_experiment)
-    return fn_dataset, fn_transformed, fn_metatransformer
+    return fn_transformed, fn_metatransformer
 
 
 def check_output_paths(
@@ -85,7 +84,6 @@ def output_full(
     fn_experiment_bundle = consistent_ending(experiment_bundle_name)
     fn_experiment_bundle = potential_suffix(fn_experiment_bundle, fn_dataset)
     warn_if_path_supplied(fn_experiment_bundle, dir_experiment)
-    # pickle the full experiment bundle
     with open(dir_experiment / fn_experiment_bundle, "wb") as f:
         pickle.dump(experiment_bundle, f)
 

@@ -178,8 +178,8 @@ def generate_evaluation_arg(group, name):
         default=None,
         nargs="*",
         action=AllChoicesDefault,
-        const=METRIC_CHOICES[name],
-        choices=METRIC_CHOICES[name],
+        const=list(METRIC_CHOICES[name].keys()),
+        choices=list(METRIC_CHOICES[name].keys()),
         help=f"run the {name.lower()} evaluation",
     )
 

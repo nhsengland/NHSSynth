@@ -7,12 +7,13 @@ model:
   architecture:
     - VAE
     - DPVAE
-  num_epochs: 20
+  num_epochs: 30
   target_epsilon: 1.0
   max_grad_norm: 5.0
   secure_mode: false
   repeats: 3
 evaluation:
+  downstream_tasks: true
   column_shape_metrics:
   - KSComplement
   - TVComplement

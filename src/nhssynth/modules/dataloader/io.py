@@ -37,7 +37,7 @@ def check_input_paths(
 
 
 def check_output_paths(
-    fn_input: str,
+    fn_dataset: str,
     fn_typed: str,
     fn_transformed: str,
     fn_transformer: str,
@@ -49,12 +49,12 @@ def check_output_paths(
     Formats the output filenames for an experiment.
 
     Args:
-        fn_input: The input data filename.
-        fn_typed: The typed input data filename/suffix to append to `fn_input`.
-        fn_transformed: The output data filename/suffix to append to `fn_input`.
-        fn_transformer: The metatransformer filename/suffix to append to `fn_input`.
-        fn_constraint_graph: The constraint graph filename/suffix to append to `fn_input`.
-        fn_sdv_metadata: The SDV metadata filename/suffix to append to `fn_input`.
+        fn_dataset: The input data filename.
+        fn_typed: The typed input data filename/suffix to append to `fn_dataset`.
+        fn_transformed: The output data filename/suffix to append to `fn_dataset`.
+        fn_transformer: The metatransformer filename/suffix to append to `fn_dataset`.
+        fn_constraint_graph: The constraint graph filename/suffix to append to `fn_dataset`.
+        fn_sdv_metadata: The SDV metadata filename/suffix to append to `fn_dataset`.
         dir_experiment: The experiment directory to write the outputs to.
 
     Returns:
@@ -63,16 +63,17 @@ def check_output_paths(
     Warnings:
         Raises a UserWarning when any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
+    fn_dataset = Path(fn_dataset).stem
     fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = consistent_endings(
         [fn_typed, fn_transformed, fn_transformer, (fn_constraint_graph, ".html"), fn_sdv_metadata]
     )
     fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = potential_suffixes(
-        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], fn_input
+        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], fn_dataset
     )
     warn_if_path_supplied(
         [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], dir_experiment
     )
-    return fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata
+    return fn_dataset, fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata
 
 
 def write_data_outputs(
@@ -91,8 +92,11 @@ def write_data_outputs(
         fn_metadata: The metadata filename.
         dir_experiment: The experiment directory to write the outputs to.
         args: The parsed command line arguments.
+
+    Returns:
+        The filename of the dataset used.
     """
-    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = check_output_paths(
+    fn_dataset, fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = check_output_paths(
         fn_dataset,
         args.typed,
         args.transformed,
@@ -123,3 +127,5 @@ def write_data_outputs(
         pickle.dump(metatransformer.get_sdv_metadata(), f)
 
     print("")
+
+    return fn_dataset

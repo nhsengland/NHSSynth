@@ -33,7 +33,7 @@ def consistent_ending(fn: str, ending: str = ".pkl", suffix: str = "") -> str:
         The filename with the correct ending and potentially an inserted suffix.
     """
     path_fn = Path(fn)
-    return str(path_fn.parent / path_fn.stem) + suffix + ending
+    return str(path_fn.parent / path_fn.stem) + ("_" if suffix else "") + suffix + ending
 
 
 def consistent_endings(args: list[Union[str, tuple[str, str], tuple[str, str, str]]]) -> list[str]:

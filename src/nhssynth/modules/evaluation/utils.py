@@ -11,8 +11,7 @@ from nhssynth.common.constants import (
     TABLE_METRICS,
 )
 from nhssynth.modules.evaluation.aequitas import run_aequitas
-from nhssynth.modules.evaluation.io import get_tasks
-from nhssynth.modules.evaluation.tasks import Task
+from nhssynth.modules.evaluation.tasks import Task, get_tasks
 from sdmetrics.single_table import MultiColumnPairsMetric, MultiSingleColumnMetric
 from tqdm import tqdm
 
@@ -205,6 +204,7 @@ def validate_metric_args(
             [attr in columns for attr in args.aequitas_attributes]
         ), "Invalid attribute(s) specified for Aequitas analysis."
     metrics = {}
-    for metric in METRIC_CHOICES:
-        metrics.update(getattr(args, "_".join(metric.split()).lower() + "_metrics") or {})
+    for metric_group in METRIC_CHOICES:
+        selected_metrics = getattr(args, "_".join(metric_group.split()).lower() + "_metrics") or []
+        metrics.update({metric_name: METRIC_CHOICES[metric_group][metric_name] for metric_name in selected_metrics})
     return args, tasks, metrics

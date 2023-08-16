@@ -1,13 +1,10 @@
 import argparse
-import importlib.util
-import os
 import pickle
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from nhssynth.common.io import *
-from nhssynth.modules.evaluation.tasks import Task
 
 
 def check_input_paths(
@@ -26,6 +23,7 @@ def check_input_paths(
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
+    fn_dataset = Path(fn_dataset).stem
     fn_typed, fn_experiment_bundle, fn_sdv_metadata = consistent_endings(
         [fn_typed, fn_experiment_bundle, fn_sdv_metadata]
     )
@@ -35,28 +33,6 @@ def check_input_paths(
     warn_if_path_supplied([fn_typed, fn_experiment_bundle, fn_sdv_metadata], dir_experiment)
     check_exists([fn_typed, fn_experiment_bundle, fn_sdv_metadata], dir_experiment)
     return fn_dataset, fn_typed, fn_experiment_bundle, fn_sdv_metadata
-
-
-def get_tasks(
-    fn_dataset: str,
-    tasks_root: str,
-) -> list[Task]:
-    tasks_dir = Path(tasks_root) / fn_dataset
-    assert (
-        tasks_dir.exists()
-    ), f"Downstream tasks directory does not exist ({tasks_dir}), NB there should be a directory in TASKS_DIR with the same name as the dataset."
-    tasks = []
-    for task_path in tasks_dir.iterdir():
-        if task_path.name.startswith((".", "__")):
-            continue
-        assert task_path.suffix == ".py", f"Downstream task file must be a python file ({task_path.name})"
-        spec = importlib.util.spec_from_file_location(
-            "nhssynth_task_" + task_path.name, os.getcwd() + "/" + str(task_path)
-        )
-        task_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(task_module)
-        tasks.append(task_module.task)
-    return tasks
 
 
 def output_eval(

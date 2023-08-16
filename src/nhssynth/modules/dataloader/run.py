@@ -20,7 +20,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     mt = MetaTransformer(dataset, metadata, args.missingness, args.impute)
     mt.apply()
 
-    write_data_outputs(mt, fn_dataset, fn_metadata, dir_experiment, args)
+    fn_dataset = write_data_outputs(mt, fn_dataset, fn_metadata, dir_experiment, args)
 
     if "model" in args.modules_to_run:
         args.module_handover.update(
