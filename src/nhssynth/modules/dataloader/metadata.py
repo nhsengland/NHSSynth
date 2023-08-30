@@ -206,7 +206,7 @@ class MetaData:
         column_type_counts = {}
         for cn, cd in metadata["columns"].items():
             if cd not in column_types.values():
-                column_types[c_index] = cd.copy()
+                column_types[c_index] = cd if isinstance(cd, str) else cd.copy()
                 column_type_counts[c_index] = 1
                 c_index += 1
             else:
@@ -247,7 +247,7 @@ class MetaData:
                     "name": cmd.transformer.__class__.__name__,
                 }
         if self.dropped_columns:
-            assembled_metadata["columns"] = {cn: "drop" for cn in self.dropped_columns}
+            assembled_metadata["columns"].update({cn: "drop" for cn in self.dropped_columns})
         if collapse_yaml:
             assembled_metadata = self._collapse(assembled_metadata)
         if self.constraints:
