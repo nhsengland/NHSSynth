@@ -11,7 +11,7 @@ def check_input_paths(
         dir_experiment: The path to the experiment directory.
         fn_dataset: The base name of the dataset.
         fn_experiments: The name of the set of experiments.
-        fn_experiment_bundle: The name of the experiment bundle file.
+        fn_evaluation_bundle: The name of the evaluation bundle file.
 
     Returns:
         The path to output the model.
