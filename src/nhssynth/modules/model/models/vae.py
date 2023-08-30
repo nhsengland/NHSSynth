@@ -153,7 +153,7 @@ class VAE(Model):
             self.step = lambda: (self.encoder.optim.step(), self.decoder.optim.step())
 
     @classmethod
-    def _get_args(cls) -> list[str]:
+    def get_args(cls) -> list[str]:
         return [
             "encoder_latent_dim",
             "encoder_hidden_dim",

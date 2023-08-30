@@ -46,5 +46,5 @@ class DPVAE(DPMixin, VAE):
             self.decoder = super().make_private(num_epochs, self.decoder)
 
     @classmethod
-    def _get_args(cls) -> list[str]:
-        return VAE._get_args() + DPMixin._get_args()
+    def get_args(cls) -> list[str]:
+        return VAE.get_args() + DPMixin.get_args()

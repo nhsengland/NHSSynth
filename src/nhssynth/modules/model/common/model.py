@@ -88,18 +88,9 @@ class Model(nn.Module, ABC):
 
     @classmethod
     @abstractmethod
-    def _get_args() -> list[str]:
+    def get_args() -> list[str]:
         """Returns the list of arguments to look for in an `argparse.Namespace`, these must map to the arguments of the inheritor."""
         raise NotImplementedError
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace, data: pd.DataFrame, metatransformer: MetaTransformer):
-        """Creates an instance from an `argparse.Namespace`."""
-        return cls(
-            data,
-            metatransformer,
-            **{k: getattr(args, k) for k in ["batch_size", "use_gpu"] + cls._get_args() if getattr(args, k)},
-        )
 
     def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str]) -> None:
         """
