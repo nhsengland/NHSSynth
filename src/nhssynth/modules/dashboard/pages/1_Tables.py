@@ -52,6 +52,22 @@ def group_by_display(
         )
 
 
+def id_selector(experiments):
+    architecture = st.sidebar.selectbox(
+        "Select architecture to display", [a for a in experiments["architecture"].unique() if a != "Real"]
+    )
+    id = architecture
+    config_ids = experiments[experiments["architecture"] == architecture]["config_idx"].dropna().unique()
+    repeats = experiments[experiments["architecture"] == architecture]["repeat"].dropna().unique()
+    if len(config_ids) > 1:
+        config = st.sidebar.selectbox("Select configuration to display", config_ids, index=0)
+        id += f"_config_{config}"
+    if len(experiments[experiments["architecture"] == architecture]["repeat"].dropna().unique()) > 1:
+        repeat = st.sidebar.selectbox("Select repeat to display", repeats, index=0)
+        id += f"_repeat_{repeat}"
+    return id
+
+
 def table_metrics(evaluations, experiments, selected_metric_group):
     metrics = [c for c in evaluations.columns if c != "id"]
     metadata = [c for c in experiments.columns if c != "id"]
@@ -64,7 +80,7 @@ def columnwise_metrics(evaluations, experiments):
     metrics = [c for c in evaluation_df.columns if c != "id"]
     metadata = [c for c in experiments.columns if c not in ["id"]]
 
-    display = st.sidebar.selectbox("Display", ["By column", "By metric"], index=0)
+    display = st.sidebar.selectbox("Display", ["By column", "By metric", "By configuration"], index=0)
 
     if display == "By column":
         columns = evaluation_df[metrics[0]][1].keys()
@@ -89,23 +105,40 @@ def columnwise_metrics(evaluations, experiments):
         )
         group_by_display(prepared_evals, metadata, "columnwise", experiments)
 
+    elif display == "By configuration":
+        id = id_selector(experiments)
+        config_evaluations = evaluation_df[evaluation_df["id"] == id]
+        exploded_evaluations = pd.concat(
+            [
+                pd.DataFrame.from_dict(config_evaluations[col].values[0], orient="index", columns=["score"]).rename(
+                    columns={"score": col}
+                )
+                for col in config_evaluations.columns
+                if col != "id"
+            ],
+            axis=1,
+        )
+        print(exploded_evaluations)
+        st.write(f"## `columnwise` metrics")
+        st.dataframe(exploded_evaluations.style.highlight_max(axis=0))
+        st.download_button(
+            "Press to Download", convert_df(exploded_evaluations), "evaluations.csv", "text/csv", key="download-csv"
+        )
+        st.write("### Configurations")
+        st.dataframe(
+            experiments[metadata].drop(["seed", "repeat"], axis=1).groupby(["architecture", "config_idx"]).first()
+        )
+
 
 def pairwise_metrics(evaluations, experiments):
     st.write("## `pairwise` metrics")
     evaluation_df = pd.DataFrame(evaluations)
     metrics = [c for c in evaluation_df.columns if c != "id"]
     metrics_to_show = st.sidebar.multiselect("Select metric(s) to display", metrics, default=metrics)
-    architecture = st.sidebar.selectbox(
-        "Select architecture to display", [a for a in experiments["architecture"].unique() if a != "Real"]
-    )
-    config = st.sidebar.selectbox(
-        "Select configuration to display", experiments["config_idx"].dropna().unique(), index=0
-    )
-    repeat = st.sidebar.selectbox("Select repeat to display", experiments["repeat"].dropna().unique(), index=0)
-
+    id = id_selector(experiments)
     for metric in metrics_to_show:
         st.write(f"## `{metric}`")
-        grid = evaluation_df[evaluation_df["id"] == f"{architecture}_config_{config}_repeat_{repeat}"][metric].values[0]
+        grid = evaluation_df[evaluation_df["id"] == id][metric].values[0]
         st.table(
             pd.DataFrame(
                 [(row, col, value["score"]) for (row, col), value in grid.items()], columns=["row", "col", "value"]
