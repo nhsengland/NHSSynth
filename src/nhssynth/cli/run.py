@@ -4,6 +4,7 @@ import warnings
 
 from nhssynth.cli.config import get_modules_to_run, read_config, write_config
 from nhssynth.cli.module_setup import MODULE_MAP, add_subparser
+from nhssynth.common.strings import format_timedelta
 
 
 def run(sysargv) -> None:
@@ -26,7 +27,7 @@ def run(sysargv) -> None:
 
     executor = vars(args).get("func", None)
     if executor:
-        if not args.seed:
+        if hasattr(args, "seed") and not args.seed:
             warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
         args.modules_to_run = get_modules_to_run(executor)
         args.module_handover = {}
@@ -39,4 +40,4 @@ def run(sysargv) -> None:
     if args.save_config:
         write_config(args, all_subparsers)
 
-    print(f"Finished! 🎉 (Total run time: {time.strftime('%Hhr %Mmin %Ssec', time.gmtime(time.time() - start_time))})\n")
+    print(f"Finished! 🎉 (Total run time: {format_timedelta(start_time, time.time())})")

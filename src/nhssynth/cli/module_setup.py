@@ -4,7 +4,14 @@ from typing import Callable, Final, Optional
 
 from nhssynth.cli.common_arguments import COMMON_PARSERS
 from nhssynth.cli.module_arguments import *
-from nhssynth.modules import dataloader, evaluation, model, plotting, structure
+from nhssynth.modules import (
+    dashboard,
+    dataloader,
+    evaluation,
+    model,
+    plotting,
+    structure,
+)
 
 
 class ModuleConfig:
@@ -26,18 +33,19 @@ class ModuleConfig:
         description: str,
         help: str,
         common_parsers: Optional[list[str]] = None,
+        no_seed: bool = False,
     ) -> None:
         self.func = func
         self.add_args = add_args
         self.description = description
         self.help = help
-        self.common_parsers = ["core"]
+        self.common_parsers = ["core", "seed"] if not no_seed else ["core"]
         if common_parsers:
             assert set(common_parsers) <= COMMON_PARSERS.keys(), "Invalid common parser(s) specified."
             # merge the below two assert statements
             assert (
-                "core" not in common_parsers
-            ), "The and 'core' parser group is automatically added to all modules, remove it from the ModuleConfig."
+                "core" not in common_parsers and "seed" not in common_parsers
+            ), "The 'seed' and 'core' parser groups are automatically added to all modules, remove the from `ModuleConfig`s."
             self.common_parsers += common_parsers
 
     def __call__(self, args: argparse.Namespace) -> argparse.Namespace:
@@ -84,7 +92,7 @@ PIPELINE: Final = [
     "dataloader",
     "model",
     "evaluation",
-    "plotting",
+    "dashboard",
 ]  # NOTE this determines the order of a pipeline run
 
 MODULE_MAP: Final = {
@@ -106,14 +114,14 @@ MODULE_MAP: Final = {
         add_args=add_model_args,
         description="run the model architecture module, to train a synthetic data generator",
         help="train a model",
-        common_parsers=["transformed", "metatransformer", "synthetic", "experiment_bundle"],
+        common_parsers=["transformed", "metatransformer", "synthetic", "experiments"],
     ),
     "evaluation": ModuleConfig(
         func=evaluation.run,
         add_args=add_evaluation_args,
         description="run the evaluation module, to evaluate an experiment",
         help="evaluate an experiment",
-        common_parsers=["sdv_metadata", "typed", "experiment_bundle", "evaluation_bundle"],
+        common_parsers=["sdv_metadata", "typed", "experiments", "evaluation_bundle"],
     ),
     "plotting": ModuleConfig(
         func=plotting.run,
@@ -121,6 +129,14 @@ MODULE_MAP: Final = {
         description="run the plotting module, to generate plots for a given model and / or evaluation",
         help="generate plots",
         common_parsers=["typed", "evaluation_bundle"],
+    ),
+    "dashboard": ModuleConfig(
+        func=dashboard.run,
+        add_args=add_dashboard_args,
+        description="run the dashboard module, to produce a streamlit dashboard",
+        help="start up a streamlit dashboard to view the results of an evaluation",
+        common_parsers=["typed", "experiments", "evaluation_bundle"],
+        no_seed=True,
     ),
     "pipeline": ModuleConfig(
         func=run_pipeline,
@@ -149,6 +165,8 @@ def get_parent_parsers(name: str, module_parsers: list[str]) -> list[argparse.Ar
     """Get a list of parent parsers for a given module, based on the module's `common_parsers` attribute."""
     if name in {"pipeline", "config"}:
         return [p(name == "config") for p in COMMON_PARSERS.values()]
+    elif name == "dashboard":
+        return [COMMON_PARSERS[pn](True) for pn in module_parsers]
     else:
         return [COMMON_PARSERS[pn]() for pn in module_parsers]
 
