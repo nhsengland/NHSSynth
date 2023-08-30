@@ -10,7 +10,7 @@ from opacus import GradSampleModule, PrivacyEngine
 
 class DPMixin(ABC):
     """
-    Mixin class to make a [`Model`][nhssynth.modules.model.common.DPMixin.DPMixin] differentially private
+    Mixin class to make a [`Model`][nhssynth.modules.model.common.model.Model] differentially private
 
     Args:
         target_epsilon: The target epsilon for the model during training

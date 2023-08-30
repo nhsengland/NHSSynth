@@ -88,7 +88,7 @@ class Noiser(nn.Module):
 
 class VAE(Model):
     """
-    A Variational Autoencoder (VAE) model. Accepts [`Model`][nhssynth.modules.model.common.Model.Model] arguments as well as the following:
+    A Variational Autoencoder (VAE) model. Accepts [`Model`][nhssynth.modules.model.common.model.Model] arguments as well as the following:
 
     Args:
         encoder_latent_dim: The dimensionality of the latent space.

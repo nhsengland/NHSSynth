@@ -22,7 +22,7 @@ def add_spaces_before_caps(string: str) -> str:
     return " ".join(re.findall(r"[a-z]?[A-Z][a-z]+|[A-Z]+(?=[A-Z][a-z]|\b)", string))
 
 
-def format_timedelta(start, finish) -> str:
+def format_timedelta(start: float, finish: float) -> str:
     """
     Calculate and format the difference between two calls to `time.time()`.
 

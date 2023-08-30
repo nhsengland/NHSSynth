@@ -6,7 +6,7 @@ from nhssynth.modules.evaluation.utils import EvalFrame, validate_metric_args
 
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
-    print("Running evaluation module...\n")
+    print("mRunning evaluation module...\n\033[32")
 
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
@@ -36,6 +36,6 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     if "plotting" in args.modules_to_run:
         args.module_handover.update({"evaluation_bundle": eval_frame, "experiments": experiments})
 
-    print("")
+    print("\033[0m")
 
     return args

@@ -1,6 +1,6 @@
 import pathlib
 import sys
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Self, Union
 
 import pandas as pd
 from nhssynth.modules.dataloader.metadata import MetaData
@@ -68,7 +68,7 @@ class MetaTransformer:
         return _impute_missingness_strategy
 
     @classmethod
-    def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs):
+    def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs) -> Self:
         """
         Instantiates a MetaTransformer from a metadata file.
 
@@ -82,13 +82,13 @@ class MetaTransformer:
         return cls(dataset, MetaData.from_path(dataset, metadata_path), **kwargs)
 
     @classmethod
-    def from_dict(cls, dataset: pd.DataFrame, metadata: dict, **kwargs):
+    def from_dict(cls, dataset: pd.DataFrame, metadata: dict, **kwargs) -> Self:
         """
         Instantiates a MetaTransformer from a metadata dictionary.
 
         Args:
             dataset: The raw input DataFrame.
-            metadata_dict: The metadata dictionary.
+            metadata: The metadata dictionary.
 
         Returns:
             A MetaTransformer object.
@@ -183,9 +183,6 @@ class MetaTransformer:
         """
         Prepares the dataset by processing it via the metatransformer.
 
-        Args:
-            dataset: The dataset to fit and apply the transformer to.
-
         Returns:
             The transformed dataset.
 
@@ -233,9 +230,6 @@ class MetaTransformer:
     def apply(self) -> pd.DataFrame:
         """
         Applies the various steps of the MetaTransformer to a passed DataFrame.
-
-        Args:
-            dataset: The DataFrame to transform.
 
         Returns:
             The transformed dataset.
