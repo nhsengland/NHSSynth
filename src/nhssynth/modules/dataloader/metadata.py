@@ -252,7 +252,9 @@ class MetaData:
             assembled_metadata = self._collapse(assembled_metadata)
         if self.constraints:
             assembled_metadata["constraints"] = (
-                self.constraints.minimal_constraints if collapse_yaml else self.constraints.raw_constraint_strings
+                [str(c) for c in self.constraints.minimal_constraints]
+                if collapse_yaml
+                else self.constraints.raw_constraint_strings
             )
         return assembled_metadata
 
