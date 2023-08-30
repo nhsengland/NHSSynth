@@ -93,7 +93,7 @@ If you intend on contributing or working with the codebase directly, or if you w
       
       *Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
     
-    - Through building the package with `poetry build` and using it in an existing project (`from nhssynth.modules... import ...`). You can then actively develop the package and test it.
+    - Through directly importing parts of the package to use in an existing project (`from nhssynth.modules... import ...`).
 
 ### Usage
 

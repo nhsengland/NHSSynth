@@ -104,12 +104,14 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
     group.add_argument(
         "--batch-size",
         type=int,
+        nargs="+",
         default=32,
         help="the batch size for the model",
     )
     group.add_argument(
         "--num-epochs",
         type=int,
+        nargs="+",
         default=100,
         help="number of epochs to train for",
     )
@@ -140,24 +142,22 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
     )
     privacy_group = parser.add_argument_group(title="model privacy options")
     privacy_group.add_argument(
-        "--non-private",
-        action="store_true",
-        help="train the model in a non-private way",
-    )
-    privacy_group.add_argument(
         "--target-epsilon",
         type=float,
+        nargs="+",
         default=1.0,
         help="the target epsilon for differential privacy",
     )
     privacy_group.add_argument(
         "--target-delta",
         type=float,
+        nargs="+",
         help="the target delta for differential privacy, defaults to `1 / len(dataset)` if not specified",
     )
     privacy_group.add_argument(
         "--max-grad-norm",
         type=float,
+        nargs="+",
         default=5.0,
         help="the clipping threshold for gradients (only relevant under differential privacy)",
     )
@@ -265,4 +265,19 @@ def add_plotting_args(parser: argparse.ArgumentParser, group_title: str, overrid
         "--plot-tsne",
         action="store_true",
         help="plot the t-SNE embeddings of the real and synthetic data",
+    )
+
+
+def add_dashboard_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False):
+    group = parser.add_argument_group(title=group_title)
+    group.add_argument(
+        "--file-size-limit",
+        type=str,
+        default="1000",
+        help="the maximum file size to upload in MB",
+    )
+    group.add_argument(
+        "--dont-load",
+        action="store_true",
+        help="don't attempt to automatically load data into the dashboard",
     )

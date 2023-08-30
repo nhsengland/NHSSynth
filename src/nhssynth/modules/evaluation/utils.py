@@ -1,7 +1,6 @@
 import argparse
-import itertools
 import warnings
-from typing import Union
+from typing import Any
 
 import pandas as pd
 from nhssynth.common.constants import (
@@ -10,6 +9,7 @@ from nhssynth.common.constants import (
     NUMERICAL_PRIVACY_METRICS,
     TABLE_METRICS,
 )
+from nhssynth.common.dicts import filter_dict
 from nhssynth.modules.evaluation.aequitas import run_aequitas
 from nhssynth.modules.evaluation.tasks import Task, get_tasks
 from sdmetrics.single_table import MultiColumnPairsMetric, MultiSingleColumnMetric
@@ -19,7 +19,6 @@ from tqdm import tqdm
 class EvalFrame:
     def __init__(
         self,
-        experiment_bundle: dict[str, Union[pd.DataFrame, dict[str, pd.DataFrame]]],
         tasks: list[Task],
         metrics: list[str],
         sdv_metadata: dict[str, dict[str, str]],
@@ -30,12 +29,6 @@ class EvalFrame:
         key_categorical_fields: list[str] = [],
         sensitive_categorical_fields: list[str] = [],
     ):
-        self.architectures = list(experiment_bundle.keys())
-        if isinstance(experiment_bundle[self.architectures[0]], dict):
-            self.seeds = list(experiment_bundle[self.architectures[0]].keys())
-        else:
-            self.seeds = None
-
         self.tasks = tasks
         self.aequitas = aequitas
         self.aequitas_attributes = aequitas_attributes
@@ -54,71 +47,82 @@ class EvalFrame:
             self.key_categorical_fields and self.sensitive_categorical_fields
         ), "Categorical key and sensitive fields must be provided when an SDV privacy metric is used."
 
-        self.metric_groups = ["task", "aequitas", "columnwise", "pairwise", "table", "privacy", "efficacy"]
-        self._dict = self._init_dict()
+        self.metric_groups = self._build_metric_groups()
 
-    def _init_dict(self) -> dict[str, dict]:
-        return {
-            **{arch: {seed: {} for seed in self.seeds} if self.seeds else {} for arch in self.architectures},
-            **{"Real": {}},
-        }
+    def _build_metric_groups(self) -> set[str]:
+        metric_groups = set()
+        if self.tasks:
+            metric_groups.add("task")
+        if self.aequitas:
+            metric_groups.add("aequitas")
+        for metric in self.metrics:
+            if metric in TABLE_METRICS:
+                metric_groups.add("table")
+            if metric in NUMERICAL_PRIVACY_METRICS or metric in CATEGORICAL_PRIVACY_METRICS:
+                metric_groups.add("privacy")
+            if metric in TABLE_METRICS and issubclass(TABLE_METRICS[metric], MultiSingleColumnMetric):
+                metric_groups.add("columnwise")
+            if metric in TABLE_METRICS and issubclass(TABLE_METRICS[metric], MultiColumnPairsMetric):
+                metric_groups.add("pairwise")
+        return metric_groups
 
-    def __iter__(self):
-        if self.seeds:
-            return itertools.product(self.architectures, self.seeds)
-        else:
-            return (arch for arch in self.architectures)
+    def evaluate(self, real_dataset: pd.DataFrame, experiments: list[dict[str, Any]]) -> dict[str, pd.DataFrame]:
+        assert "Real" not in [experiment["id"] for experiment in experiments], "Real is a reserved experiment ID."
+        self._experiments = pd.DataFrame(
+            [{"architecture": "Real", "id": "Real"}]
+            + [
+                {
+                    **filter_dict(row, {"model_config", "dataset", "num_configs"}),
+                    **row["model_config"],
+                }
+                for row in experiments
+            ]
+        )
+        assert len(self._experiments["id"]) == len(self._experiments["id"].unique()), "Experiment IDs must be unique."
+        self._dict = {id: {} for id in self._experiments["id"]}
+        self._step(real_dataset, "Real")
+        pbar = tqdm(experiments, desc="Evaluating")
+        for experiment in pbar:
+            pbar.set_description(
+                f"Evaluating {experiment['architecture']}, config {experiment['config_idx']}, repeat {experiment['repeat']}"
+            )
+            self._step(real_dataset, experiment["id"], experiment["dataset"])
 
-    def __len__(self) -> int:
-        return len(self.architectures) * (len(self.seeds) if self.seeds else 1)
-
-    def collect(self) -> dict[str, pd.DataFrame]:
+    def get_evaluations(self) -> dict[str, pd.DataFrame]:
         """
         Return a dict of dataframes each with one column for seed, one for architecture, and one per metric / report
         """
+        assert hasattr(self, "_dict"), "You must first run `evaluate` on a `real_dataset` and set of `experiments`."
         out = {}
         for metric_group in self.metric_groups:
-            if metric_group in ["task", "aequitas"]:
-                out[metric_group] = [{"architecture": "Real", "seed": None, **self._dict["Real"].get(metric_group, {})}]
-            else:
-                out[metric_group] = []
-            for arch in self.architectures:
-                if self.seeds:
-                    for seed in self.seeds:
-                        out[metric_group].append(
-                            {"architecture": arch, "seed": seed, **self._dict[arch][seed][metric_group]}
-                        )
-                else:
-                    out[metric_group].append({"architecture": arch, **self._dict[arch][metric_group]})
+            out[metric_group] = []
+            for id in self._experiments["id"]:
+                if id != "Real" or metric_group in {"task", "aequitas"}:
+                    out[metric_group].append({"id": id, **self._dict[id][metric_group]})
         return {
             metric_group: pd.DataFrame(metric_group_dict)
-            if metric_group not in ["columnwise", "pairwise"]
+            if metric_group not in {"columnwise", "pairwise"}
             else metric_group_dict
             for metric_group, metric_group_dict in out.items()
         }
 
-    def get_arch(self, arch) -> dict[str, pd.DataFrame]:
+    def get_experiments(self) -> pd.DataFrame:
         """
-        Access the contents of self._dict by architecture, flipping the internal dict (which is keyed by seed) to a dict of dataframes keyed by metric group
+        Return a dataframe of experiment configurations
         """
-        out = {}
-        for metric_group in self.metric_groups:
-            out[metric_group] = {}
-            for seed in self.seeds:
-                out[metric_group][seed] = self._dict[arch][seed][metric_group]
-            out[metric_group] = pd.DataFrame(out[metric_group])
-        return out
+        assert hasattr(
+            self, "_experiments"
+        ), "You must first run `evaluate` on a `real_dataset` and set of `experiments`."
+        return self._experiments
 
-    def get_eval(self, arch, seed) -> dict[str, float]:
-        return self._dict[arch][seed]
+    def get_evaluation_bundle(self) -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
+        """
+        Return a tuple of (evaluations, experiments)
+        """
+        return EvalBundle(self.get_evaluations(), self.get_experiments())
 
-    def _update(self, eval_dict, step: Union[str, tuple[str, int]]) -> None:
-        if isinstance(step, tuple):
-            arch, seed = step
-            self._dict[arch][seed].update(eval_dict)
-        else:
-            arch = step
-            self._dict[arch].update(eval_dict)
+    def _update(self, eval_dict, id: str) -> None:
+        self._dict[id].update(eval_dict)
 
     def _task_step(self, data: pd.DataFrame) -> dict[str, dict]:
         metric_dict = {metric_group: {} for metric_group in self.metric_groups}
@@ -138,11 +142,11 @@ class EvalFrame:
                 metric_dict["table"][metric] = TABLE_METRICS[metric].compute(
                     real_data, synthetic_data, self.sdv_metadata
                 )
-                if isinstance(TABLE_METRICS[metric], MultiSingleColumnMetric):
+                if issubclass(TABLE_METRICS[metric], MultiSingleColumnMetric):
                     metric_dict["columnwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
                         real_data, synthetic_data, self.sdv_metadata
                     )
-                elif isinstance(TABLE_METRICS[metric], MultiColumnPairsMetric):
+                elif issubclass(TABLE_METRICS[metric], MultiColumnPairsMetric):
                     metric_dict["pairwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
                         real_data, synthetic_data, self.sdv_metadata
                     )
@@ -164,20 +168,20 @@ class EvalFrame:
                 )
         return metric_dict
 
-    def step(
-        self,
-        real_data: pd.DataFrame,
-        synthetic_data: pd.DataFrame = None,
-        step: Union[str, tuple[str, int]] = None,
-    ) -> None:
+    def _step(self, real_data: pd.DataFrame, id: str, synthetic_data: pd.DataFrame = None) -> None:
         if synthetic_data is None:
             metric_dict = self._task_step(real_data)
-            self._update(metric_dict, step="Real")
         else:
             metric_dict = self._task_step(synthetic_data)
             for metric in tqdm(self.metrics, desc="Running metrics", leave=False):
                 metric_dict = self._compute_metric(metric_dict, metric, real_data, synthetic_data)
-            self._update(metric_dict, step)
+        self._update(metric_dict, id)
+
+
+class EvalBundle:
+    def __init__(self, evaluations: pd.DataFrame, experiments: pd.DataFrame):
+        self.evaluations = evaluations
+        self.experiments = experiments
 
 
 def validate_metric_args(

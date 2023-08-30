@@ -1,14 +1,18 @@
 seed: 1
 experiment_name: test
+run_type: pipeline
 dataloader:
-  collapse_yaml: false
+  collapse_yaml: true
   write_csv: true
 model:
   architecture:
     - VAE
     - DPVAE
   num_epochs: 30
-  target_epsilon: 1.0
+  target_epsilon:
+    - 1.0
+    - 3.0
+    - 6.0
   max_grad_norm: 5.0
   secure_mode: false
   repeats: 3

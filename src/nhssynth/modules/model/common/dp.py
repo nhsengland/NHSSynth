@@ -19,7 +19,6 @@ class DPMixin(ABC):
         secure_mode: Whether to use the 'secure mode' of PyTorch's DP-SGD implementation via the `csprng` package
 
     Attributes:
-        private: Whether the model is private
         target_epsilon: The target epsilon for the model during training
         target_delta: The target delta for the model during training
         max_grad_norm: The maximum norm for the gradients, they are trimmed to this norm if they are larger
@@ -72,9 +71,7 @@ class DPMixin(ABC):
                 max_grad_norm=self.max_grad_norm,
             )
         print(
-            "Using sigma={} and C={} to target (ε, δ) = ({}, {})-differential privacy.".format(
-                module.optim.noise_multiplier, self.max_grad_norm, self.target_epsilon, self.target_delta
-            )
+            f"Using sigma={module.optim.noise_multiplier} and C={self.max_grad_norm} to target (ε, δ) = ({self.target_epsilon}, {self.target_delta})-differential privacy.".format()
         )
         self.get_epsilon = self.privacy_engine.accountant.get_epsilon
         return module
@@ -91,7 +88,7 @@ class DPMixin(ABC):
         else:
             return super()._generate_metric_str(key)
 
-    def _get_args() -> list[str]:
+    def get_args() -> list[str]:
         return ["target_epsilon", "target_delta", "max_grad_norm", "secure_mode"]
 
     def _start_training(self, num_epochs, patience, displayed_metrics):

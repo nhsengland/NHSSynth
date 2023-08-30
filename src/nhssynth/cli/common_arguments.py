@@ -25,13 +25,7 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
         "--experiment-name",
         type=str,
         default=TIME,
-        help=f"name the experiment run to affect logging, config, and default-behaviour io",
-    )
-    core_grp.add_argument(
-        "-s",
-        "--seed",
-        type=int,
-        help="specify a seed for reproducibility, this is a recommended option for reproducibility",
+        help=f"name the experiment run to affect logging, config, and default-behaviour i/o",
     )
     core_grp.add_argument(
         "--save-config",
@@ -39,6 +33,19 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
         help="save the config provided via the cli, this is a recommended option for reproducibility",
     )
     return core
+
+
+def get_seed_parser(overrides=False) -> argparse.ArgumentParser:
+    """Create the common parser for the seed."""
+    parser = argparse.ArgumentParser(add_help=False)
+    parser_grp = parser.add_argument_group(title="options")
+    parser_grp.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        help="specify a seed for reproducibility, this is a recommended option for reproducibility",
+    )
+    return parser
 
 
 COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `<DATASET>_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
@@ -71,6 +78,7 @@ def suffix_parser_generator(name: str, help: str, required: bool = False) -> arg
 
 COMMON_PARSERS: Final = {
     "core": get_core_parser,
+    "seed": get_seed_parser,
     "metadata": suffix_parser_generator(
         "metadata",
         "filename of the metadata, NOTE that `dataloader` attempts to read this from `<DATA_DIR>`",
@@ -95,12 +103,12 @@ COMMON_PARSERS: Final = {
         "synthetic",
         "filename of the synthetic data",
     ),
-    "experiment_bundle": suffix_parser_generator(
-        "experiment_bundle",
+    "experiments": suffix_parser_generator(
+        "experiments",
         "filename of the experiment bundle, i.e. the collection of all seeds, models, and synthetic datasets",
     ),
     "evaluation_bundle": suffix_parser_generator(
         "evaluation_bundle",
-        "filename of the (collection of) evaluation(s) for a given `experiment_bundle`",
+        "filename of the (collection of) evaluation(s) for a given set of `experiments`",
     ),
 }

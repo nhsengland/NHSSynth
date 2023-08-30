@@ -29,7 +29,7 @@ def check_input_paths(
     fn_transformed, fn_metatransformer = potential_suffixes([fn_transformed, fn_metatransformer], fn_dataset)
     warn_if_path_supplied([fn_transformed, fn_metatransformer], dir_experiment)
     check_exists([fn_transformed, fn_metatransformer], dir_experiment)
-    return fn_transformed, fn_metatransformer
+    return fn_dataset, fn_transformed, fn_metatransformer
 
 
 def check_output_paths(
@@ -71,21 +71,20 @@ def output_iter(
     dir_iter.mkdir(parents=True, exist_ok=True)
     fn_output, fn_model = check_output_paths(fn_dataset, synthetic_name, model_name, dir_experiment, suffix)
     synthetic.to_csv(dir_iter / fn_output, index=False)
-    synthetic.to_pickle(dir_iter / (fn_output[:-3] + "pkl"))
     model.save(dir_iter / fn_model)
 
 
 def output_full(
-    experiment_bundle: list[tuple[int, str, pd.DataFrame]],
+    experiments: list[tuple[int, str, pd.DataFrame]],
     fn_dataset: str,
-    experiment_bundle_name: str,
+    experiments_name: str,
     dir_experiment: Path,
 ) -> None:
-    fn_experiment_bundle = consistent_ending(experiment_bundle_name)
-    fn_experiment_bundle = potential_suffix(fn_experiment_bundle, fn_dataset)
-    warn_if_path_supplied(fn_experiment_bundle, dir_experiment)
-    with open(dir_experiment / fn_experiment_bundle, "wb") as f:
-        pickle.dump(experiment_bundle, f)
+    fn_experiments = consistent_ending(experiments_name)
+    fn_experiments = potential_suffix(fn_experiments, fn_dataset)
+    warn_if_path_supplied(fn_experiments, dir_experiment)
+    with open(dir_experiment / fn_experiments, "wb") as f:
+        pickle.dump(experiments, f)
 
 
 def load_required_data(
