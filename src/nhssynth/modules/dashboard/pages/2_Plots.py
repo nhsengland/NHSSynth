@@ -134,7 +134,8 @@ def page():
         st.write("## Not yet implemented.")
 
 
-if "evaluations" not in st.session_state:
-    st.error("Upload an evaluation bundle to get started!")
-else:
-    page()
+if __name__ == "__main__":
+    if "evaluations" not in st.session_state:
+        st.error("Upload an evaluation bundle to get started!")
+    else:
+        page()

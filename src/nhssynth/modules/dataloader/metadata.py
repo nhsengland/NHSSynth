@@ -252,7 +252,9 @@ class MetaData:
             assembled_metadata = self._collapse(assembled_metadata)
         if self.constraints:
             assembled_metadata["constraints"] = (
-                self.constraints.minimal_constraints if collapse_yaml else self.constraints.raw_constraint_strings
+                [str(c) for c in self.constraints.minimal_constraints]
+                if collapse_yaml
+                else self.constraints.raw_constraint_strings
             )
         return assembled_metadata
 
@@ -262,7 +264,6 @@ class MetaData:
 
         Args:
             path: The path at which to write the metadata YAML file.
-            metadata: The metadata dictionary to be written.
             collapse_yaml: A boolean indicating whether to collapse the YAML representation of the metadata, reducing duplication.
         """
         with open(path, "w") as yaml_file:

@@ -8,7 +8,7 @@ from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
-    print("Running dataloader module...")
+    print("Running dataloader module...\033[35m")
 
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
@@ -33,5 +33,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         )
     if "evaluation" in args.modules_to_run:
         args.module_handover.update({"typed": mt.get_typed_dataset().internal})
+
+    print("\033[0m")
 
     return args

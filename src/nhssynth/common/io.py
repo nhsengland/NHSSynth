@@ -68,10 +68,10 @@ def check_exists(fns: list[str], dir: Path) -> None:
 
     Args:
         fns: The list of files to check.
-        dir_experiment: The directory the files should exist in.
+        dir: The directory the files should exist in.
 
     Raises:
-        FileNotFoundError: If any of the files in `fns` do not exist in `dir_experiment`.
+        FileNotFoundError: If any of the files in `fns` do not exist in `dir`.
     """
     for fn in fns:
         if not (dir / fn).exists():
@@ -87,8 +87,7 @@ def warn_if_path_supplied(fns: list[str], dir: Path) -> None:
         dir: The directory the files should exist in.
 
     Warnings:
-        Raises a UserWarning when the path to any of the files in `fns` includes directory separators, as this
-        may lead to unintended consequences if the user doesn't realise default directories are pre-specified.
+        UserWarning: when the path to any of the files in `fns` includes directory separators, as this may lead to unintended consequences if the user doesn't realise default directories are pre-specified.
     """
     for fn in fns:
         if "/" in fn:

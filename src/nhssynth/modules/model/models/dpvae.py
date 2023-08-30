@@ -7,8 +7,8 @@ from opacus import GradSampleModule
 
 class DPVAE(DPMixin, VAE):
     """
-    A differentially private VAE. Accepts [`VAE`][nhssynth.modules.model.models.VAE.VAE] arguments
-    as well as [`DPMixin`][nhssynth.modules.model.common.DPMixin.DPMixin] arguments.
+    A differentially private VAE. Accepts [`VAE`][nhssynth.modules.model.models.vae.VAE] arguments
+    as well as [`DPMixin`][nhssynth.modules.model.common.dp.DPMixin] arguments.
     """
 
     def __init__(
@@ -34,7 +34,7 @@ class DPVAE(DPMixin, VAE):
 
     def make_private(self, num_epochs: int) -> GradSampleModule:
         """
-        Make the [`Decoder`][nhssynth.modules.model.models.VAE.Decoder] differentially private
+        Make the [`Decoder`][nhssynth.modules.model.models.vae.Decoder] differentially private
         unless `shared_optimizer` is True, in which case the whole VAE will be privatised.
 
         Args:

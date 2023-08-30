@@ -39,7 +39,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     for experiment in experiments:
         print(
-            f"\nRunning the {experiment['architecture']} architecture with configuration {experiment['config_idx']} of {experiment['num_configs']}, repeat {experiment['repeat']} of {args.repeats} 🤖"
+            f"\nRunning the {experiment['architecture']} architecture with configuration {experiment['config_idx']} of {experiment['num_configs']}, repeat {experiment['repeat']} of {args.repeats} 🤖\033[31m"
         )
         model, synthetic_dataset = run_iter(
             experiment, real_dataset, metatransformer, args.patience, args.displayed_metrics.copy(), args.num_samples

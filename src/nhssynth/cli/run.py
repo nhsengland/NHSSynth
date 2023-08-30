@@ -8,7 +8,7 @@ from nhssynth.common.strings import format_timedelta
 
 
 def run(sysargv) -> None:
-    print("Starting up the NHSSynth CLI! 🚀\n")
+    print("\nStarting up the NHSSynth CLI! 🚀\n")
     start_time = time.time()
 
     parser = argparse.ArgumentParser(

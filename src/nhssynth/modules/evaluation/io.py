@@ -39,7 +39,7 @@ def output_eval(
     fn_dataset: Path,
     fn_evaluation_bundle: str,
     dir_experiment: Path,
-):
+) -> None:
     """
     Sets up the input and output paths for the model files.
 

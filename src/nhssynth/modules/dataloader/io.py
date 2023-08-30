@@ -25,8 +25,8 @@ def check_input_paths(
         A tuple containing the correct directory path, input data filename and metadata filename (used for both in and out).
 
     Warnings:
-        Raises a UserWarning when the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.
-        Raises a UserWarning when the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.
+        UserWarning: When the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.
+        UserWarning: When the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.
     """
     fn_input, fn_metadata = consistent_endings([(fn_input, ".csv"), (fn_metadata, ".yaml")])
     dir_data = Path(dir_data)
@@ -61,7 +61,7 @@ def check_output_paths(
         A tuple containing the formatted output filenames.
 
     Warnings:
-        Raises a UserWarning when any of the filenames include directory separators, as this is not supported and may not work as intended.
+        UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
     fn_dataset = Path(fn_dataset).stem
     fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = consistent_endings(
@@ -126,7 +126,5 @@ def write_data_outputs(
         pickle.dump(metatransformer, f)
     with open(dir_experiment / fn_sdv_metadata, "wb") as f:
         pickle.dump(metatransformer.get_sdv_metadata(), f)
-
-    print("")
 
     return fn_dataset

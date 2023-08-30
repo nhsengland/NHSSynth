@@ -36,7 +36,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     # wrapper to enable graceful termination of the server
     time.sleep(1)
     while True:
-        command = input("  Shut down the server? (Y/n) ")
+        command = input("  \033[34mShut down the server?\033[0m [Y/n] ")
         if command.lower().startswith("y") or command == "":
             print()
             process.terminate()

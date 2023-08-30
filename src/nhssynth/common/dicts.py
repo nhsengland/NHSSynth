@@ -28,7 +28,7 @@ def filter_dict(d: dict, filter_keys: Union[set, list], include: bool = False) -
     return {k: v for k, v in d.items() if k in filtered_keys}
 
 
-def get_key_by_value(d: dict, value) -> Union[Any, None]:
+def get_key_by_value(d: dict, value: Any) -> Union[Any, None]:
     """
     Find the first key in a dictionary with a given value.
 

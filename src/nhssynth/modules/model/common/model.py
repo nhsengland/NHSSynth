@@ -154,4 +154,4 @@ class Model(nn.Module, ABC):
         """Closes each of the tqdm status bars and prints the time taken to do `num_epochs`."""
         for stats_bar in self.stats_bars.values():
             stats_bar.close()
-        tqdm.write(f"Completed {num_epochs} epochs in {time.time() - self.start_time:.2f} seconds.")
+        tqdm.write(f"Completed {num_epochs} epochs in {time.time() - self.start_time:.2f} seconds.\033[0m")
