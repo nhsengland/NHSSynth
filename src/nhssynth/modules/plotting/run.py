@@ -35,9 +35,9 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    fn_dataset, real_data, evaluation_bundle = load_required_data(args, dir_experiment)
+    fn_dataset, real_data, evaluations = load_required_data(args, dir_experiment)
 
-    for architecture, architecture_bundle in evaluation_bundle.items():
+    for architecture, architecture_bundle in evaluations.items():
         if isinstance(architecture_bundle, dict):
             for seed, seed_bundle in architecture_bundle.items():
                 print(f"\nModel architecture: {architecture}   Seed: {seed}")
