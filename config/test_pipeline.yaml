@@ -8,14 +8,17 @@ model:
   architecture:
     - VAE
     - DPVAE
-  num_epochs: 30
+  num_epochs:
+    - 30
+    - 50
+  patience: 10
   target_epsilon:
     - 1.0
     - 3.0
     - 6.0
   max_grad_norm: 5.0
   secure_mode: false
-  repeats: 3
+  repeats: 4
 evaluation:
   downstream_tasks: true
   column_shape_metrics:

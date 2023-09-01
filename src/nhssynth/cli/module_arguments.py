@@ -96,12 +96,6 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         help="how many times to repeat the training process per model architecture (<SEED> is incremented each time)",
     )
     group.add_argument(
-        "--model-file",
-        type=str,
-        default="_model",
-        help="specify the filename of the model to be saved in `experiments/<EXPERIMENT_NAME>/`, defaults to `<DATASET>_model.pt`",
-    )
-    group.add_argument(
         "--batch-size",
         type=int,
         nargs="+",
@@ -118,6 +112,7 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
     group.add_argument(
         "--patience",
         type=int,
+        nargs="+",
         default=5,
         help="how many epochs the model is allowed to train for without improvement",
     )

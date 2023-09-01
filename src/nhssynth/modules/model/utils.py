@@ -13,30 +13,28 @@ def wrap_arg(arg) -> Union[list, tuple]:
     return arg
 
 
+def configs_from_arg_combinations(args: argparse.Namespace, arg_list: list[str]):
+    wrapped_args = {arg: wrap_arg(getattr(args, arg)) for arg in arg_list}
+    combinations = list(itertools.product(*wrapped_args.values()))
+    return [{k: v for k, v in zip(wrapped_args.keys(), values) if v is not None} for values in combinations]
+
+
 def get_experiments(args: argparse.Namespace) -> list[dict[str, Any]]:
-    experiments = []
+    experiments = pd.DataFrame(
+        columns=["architecture", "repeat", "config", "model_config", "seed", "train_config", "num_configs"]
+    )
+    train_configs = configs_from_arg_combinations(args, ["num_epochs", "patience"])
     for arch_name, repeat in itertools.product(*[wrap_arg(args.architecture), list(range(args.repeats))]):
         arch = MODELS[arch_name]
-        model_args = {
-            arg: wrap_arg(getattr(args, arg)) for arg in arch.get_args() + ["batch_size", "use_gpu", "num_epochs"]
-        }
-        model_configs = list(itertools.product(*model_args.values()))
-        for i, values in enumerate(model_configs):
-            model_config = {k: v for k, v in zip(model_args.keys(), values) if v is not None}
-            num_epochs = model_config.pop("num_epochs")
-            experiment = {
+        model_configs = configs_from_arg_combinations(args, arch.get_args() + ["batch_size", "use_gpu"])
+        for i, (train_config, model_config) in enumerate(itertools.product(train_configs, model_configs)):
+            experiments.loc[len(experiments.index)] = {
                 "architecture": arch_name,
+                "repeat": repeat + 1,
+                "config": i + 1,
                 "model_config": model_config,
-                "config_idx": str(i + 1),
-                "num_configs": len(model_configs),
+                "num_configs": len(model_configs) * len(train_configs),
                 "seed": args.seed + repeat if args.seed else None,
-                "repeat": str(repeat + 1),
-                "num_epochs": num_epochs,
+                "train_config": train_config,
             }
-            experiment["id"] = (
-                arch_name
-                + (f"_config_{experiment['config_idx']}" if len(model_configs) > 1 else "")
-                + (f"_repeat_{experiment['repeat']}" if args.repeats > 1 else "")
-            )
-            experiments.append(experiment)
-    return experiments
+    return experiments.set_index(["architecture", "repeat", "config"], drop=True)

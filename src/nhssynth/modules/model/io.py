@@ -1,12 +1,20 @@
 import argparse
 import pickle
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 from nhssynth.common.io import *
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
-from nhssynth.modules.model.common.model import Model
+
+
+class Experiments:
+    def __init__(self, experiments: pd.DataFrame):
+        self.contents = experiments
+
+
+class SyntheticDatasets:
+    def __init__(self, synthetic_datasets: pd.DataFrame):
+        self.contents = synthetic_datasets
 
 
 def check_input_paths(
@@ -32,59 +40,31 @@ def check_input_paths(
     return fn_dataset, fn_transformed, fn_metatransformer
 
 
-def check_output_paths(
-    fn_dataset: Path,
-    fn_synthetic: str,
-    fn_model: str,
-    dir_experiment: Path,
-    suffix: str,
-) -> tuple[str, str]:
-    """
-    Sets up the input and output paths for the model files.
-
-    Args:
-        fn_dataset: The base name of the dataset.
-        fn_synthetic: The name of the synthetic data file.
-        fn_model: The name of the model file.
-        dir_experiment: The path to the experiment output directory.
-        suffix: The suffix to append to the output files, usually the model architecture (and seed if applicable).
-
-    Returns:
-        The path to output the model.
-    """
-    fn_synthetic, fn_model = consistent_endings([(fn_synthetic, ".csv", suffix), (fn_model, ".pt", suffix)])
-    fn_synthetic, fn_model = potential_suffixes([fn_synthetic, fn_model], fn_dataset)
-    warn_if_path_supplied([fn_synthetic, fn_model], dir_experiment)
-    return fn_synthetic, fn_model
-
-
-def output_iter(
-    model: Model,
-    synthetic: pd.DataFrame,
+def write_data_outputs(
+    experiments: pd.DataFrame,
+    synthetic_datasets: pd.DataFrame,
+    models: pd.DataFrame,
     fn_dataset: str,
-    synthetic_name: str,
-    model_name: str,
     dir_experiment: Path,
-    suffix: str,
+    args: argparse.Namespace,
 ) -> None:
-    dir_iter = dir_experiment / suffix
-    dir_iter.mkdir(parents=True, exist_ok=True)
-    fn_output, fn_model = check_output_paths(fn_dataset, synthetic_name, model_name, dir_experiment, suffix)
-    synthetic.to_csv(dir_iter / fn_output, index=False)
-    model.save(dir_iter / fn_model)
+    train_configs = experiments["train_config"].apply(pd.Series)
+    model_configs = experiments["model_config"].apply(pd.Series)
+    experiments = experiments.drop(columns=["train_config", "model_config"]).join(train_configs).join(model_configs)
 
+    fn_experiments, fn_synthetic_datasets = consistent_endings([args.experiments, args.synthetic_datasets])
+    fn_experiments, fn_synthetic_datasets = potential_suffixes([fn_experiments, fn_synthetic_datasets], fn_dataset)
+    warn_if_path_supplied([fn_experiments, fn_synthetic_datasets], dir_experiment)
 
-def output_full(
-    experiments: list[tuple[int, str, pd.DataFrame]],
-    fn_dataset: str,
-    experiments_name: str,
-    dir_experiment: Path,
-) -> None:
-    fn_experiments = consistent_ending(experiments_name)
-    fn_experiments = potential_suffix(fn_experiments, fn_dataset)
-    warn_if_path_supplied(fn_experiments, dir_experiment)
     with open(dir_experiment / fn_experiments, "wb") as f:
-        pickle.dump(experiments, f)
+        pickle.dump(Experiments(experiments), f)
+    with open(dir_experiment / fn_synthetic_datasets, "wb") as f:
+        pickle.dump(SyntheticDatasets(synthetic_datasets), f)
+    (dir_experiment / "models").mkdir(parents=True, exist_ok=True)
+    for i, model in models.iterrows():
+        fn_model = consistent_ending(args.model, ending=".pt", suffix=f"{i[0]}_repeat_{i[1]}_config_{i[2]}")
+        fn_model = potential_suffix(fn_model, fn_dataset)
+        model["model"].save(dir_experiment / "models" / fn_model)
 
 
 def load_required_data(
