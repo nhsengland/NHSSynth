@@ -4,28 +4,27 @@ from typing import Any
 import pandas as pd
 from nhssynth.common import *
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
-from nhssynth.modules.model.io import load_required_data, output_full, output_iter
+from nhssynth.modules.model.io import load_required_data, write_data_outputs
 from nhssynth.modules.model.models import MODELS
 from nhssynth.modules.model.utils import get_experiments
 
 
 def run_iter(
     experiment: dict[str, Any],
+    architecture: str,
     real_dataset: pd.DataFrame,
     metatransformer: MetaTransformer,
-    patience: int,
     displayed_metrics: list[str],
     num_samples: int,
 ) -> pd.DataFrame:
     set_seed(experiment["seed"])
-    model = MODELS[experiment["architecture"]](real_dataset, metatransformer, **experiment["model_config"])
+    model = MODELS[architecture](real_dataset, metatransformer, **experiment["model_config"])
     _, _ = model.train(
-        num_epochs=experiment["num_epochs"],
-        patience=patience,
+        **experiment["train_config"],
         displayed_metrics=displayed_metrics.copy(),
     )
-    synthetic = model.generate(num_samples)
-    return model, synthetic
+    dataset = model.generate(num_samples)
+    return {"dataset": dataset}, {"model": model}
 
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
@@ -37,30 +36,23 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     fn_dataset, real_dataset, metatransformer = load_required_data(args, dir_experiment)
     experiments = get_experiments(args)
 
-    for experiment in experiments:
-        print(
-            f"\nRunning the {experiment['architecture']} architecture with configuration {experiment['config_idx']} of {experiment['num_configs']}, repeat {experiment['repeat']} of {args.repeats} 🤖\033[31m"
-        )
-        model, synthetic_dataset = run_iter(
-            experiment, real_dataset, metatransformer, args.patience, args.displayed_metrics.copy(), args.num_samples
-        )
-        output_iter(
-            model,
-            synthetic_dataset,
-            fn_dataset,
-            args.synthetic,
-            args.model_file,
-            dir_experiment,
-            experiment["id"],
-        )
-        experiment["dataset"] = synthetic_dataset
+    models = pd.DataFrame(index=experiments.index, columns=["model"])
+    synthetic_datasets = pd.DataFrame(index=experiments.index, columns=["dataset"])
 
-    output_full(experiments, fn_dataset, args.experiments, dir_experiment)
+    for i, experiment in experiments.iterrows():
+        print(
+            f"\nRunning the {i[0]} architecture, repeat {i[1]} of {args.repeats}, with configuration {i[2]} of {experiment['num_configs']} 🤖\033[31m"
+        )
+        synthetic_datasets.loc[i], models.loc[i] = run_iter(
+            experiment, i[0], real_dataset, metatransformer, args.displayed_metrics.copy(), args.num_samples
+        )
+
+    write_data_outputs(experiments, synthetic_datasets, models, fn_dataset, dir_experiment, args)
 
     if "dashboard" in args.modules_to_run or "evaluation" in args.modules_to_run or "plotting" in args.modules_to_run:
         args.module_handover.update({"fn_dataset": fn_dataset})
     if "evaluation" in args.modules_to_run or "plotting" in args.modules_to_run:
-        args.module_handover.update({"experiments": experiments})
+        args.module_handover.update({"synthetic_datasets": synthetic_datasets})
 
     print("")
 

@@ -261,7 +261,7 @@ class MetaTransformer:
             raise ValueError(
                 "The typed dataset has not yet been created. Call `mt.apply()` (or `mt.apply_dtypes()`) first."
             )
-        return TypedDataset(self.typed_dataset)
+        return self.typed_dataset
 
     def get_prepared_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "prepared_dataset"):
@@ -301,8 +301,3 @@ class MetaTransformer:
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self.metadata.constraints._output_graphs_html(path)
-
-
-class TypedDataset:
-    def __init__(self, typed_dataset: pd.DataFrame):
-        self.internal = typed_dataset

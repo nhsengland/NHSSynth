@@ -3,9 +3,15 @@ import pickle
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from nhssynth.common.io import *
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 from tqdm import tqdm
+
+
+class TypedDataset:
+    def __init__(self, typed_dataset: pd.DataFrame):
+        self.contents = typed_dataset
 
 
 def check_input_paths(
@@ -108,7 +114,7 @@ def write_data_outputs(
     metatransformer.save_metadata(dir_experiment / fn_metadata, args.collapse_yaml)
     metatransformer.save_constraint_graphs(dir_experiment / fn_constraint_graph)
     with open(dir_experiment / fn_typed, "wb") as f:
-        pickle.dump(metatransformer.get_typed_dataset(), f)
+        pickle.dump(TypedDataset(metatransformer.get_typed_dataset()), f)
     transformed_dataset = metatransformer.get_transformed_dataset()
     transformed_dataset.to_pickle(dir_experiment / fn_transformed)
     if args.write_csv:

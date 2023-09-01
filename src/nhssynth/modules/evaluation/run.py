@@ -6,12 +6,12 @@ from nhssynth.modules.evaluation.utils import EvalFrame, validate_metric_args
 
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
-    print("mRunning evaluation module...\n\033[32")
+    print("Running evaluation module...\n\033[32m")
 
     set_seed(args.seed)
     dir_experiment = experiment_io(args.experiment_name)
 
-    fn_dataset, real_dataset, experiments, sdv_metadata = load_required_data(args, dir_experiment)
+    fn_dataset, real_dataset, synthetic_datasets, sdv_metadata = load_required_data(args, dir_experiment)
 
     args, tasks, metrics = validate_metric_args(args, fn_dataset, real_dataset.columns)
 
@@ -27,14 +27,14 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         args.sensitive_categorical_fields,
     )
 
-    eval_frame.evaluate(real_dataset, experiments)
+    eval_frame.evaluate(real_dataset, synthetic_datasets)
 
-    output_eval(eval_frame.get_evaluation_bundle(), fn_dataset, args.evaluation_bundle, dir_experiment)
+    output_eval(eval_frame.get_evaluations(), fn_dataset, args.evaluations, dir_experiment)
 
     if "dashboard" in args.modules_to_run or "plotting" in args.modules_to_run:
         args.module_handover.update({"fn_dataset": fn_dataset})
     if "plotting" in args.modules_to_run:
-        args.module_handover.update({"evaluation_bundle": eval_frame, "experiments": experiments})
+        args.module_handover.update({"evaluations": eval_frame, "synthetic_datasets": synthetic_datasets})
 
     print("\033[0m")
 
