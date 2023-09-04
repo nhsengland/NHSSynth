@@ -2,6 +2,16 @@ import pandas as pd
 import streamlit as st
 
 
+def hide_streamlit_content() -> None:
+    hide_streamlit_style = """
+    <style>
+    footer {visibility: hidden;}
+    .stDeployButton {visibility: hidden;}
+    </style>
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
 def id_selector(df: pd.DataFrame) -> pd.Series:
     architecture = st.sidebar.selectbox(
         "Select architecture to display", df.index.get_level_values("architecture").unique()

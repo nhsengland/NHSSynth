@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from nhssynth.modules.dashboard.utils import id_selector
+from nhssynth.modules.dashboard.utils import hide_streamlit_content, id_selector
 
 
 def convert_df(df):
@@ -152,7 +152,6 @@ def pairwise_metrics(evaluations, experiments):
 
 
 def page():
-    st.set_page_config(layout="wide")
     metric_groups = st.session_state["evaluations"].keys()
     selected_metric_group = st.sidebar.selectbox(
         "Select a metric group", [mg.capitalize() for mg in list(metric_groups)]
@@ -171,6 +170,8 @@ def page():
 
 
 if __name__ == "__main__":
+    st.set_page_config(layout="wide")
+    hide_streamlit_content()
     if "evaluations" not in st.session_state:
         st.error("Upload an evaluation bundle to get started!")
     else:

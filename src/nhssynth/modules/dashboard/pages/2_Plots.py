@@ -1,3 +1,4 @@
+import warnings
 from typing import Any
 
 import numpy as np
@@ -6,7 +7,11 @@ import plotly.express as px
 import plotly.graph_objs as go
 import streamlit as st
 import umap
-from nhssynth.modules.dashboard.utils import id_selector, subset_selector
+from nhssynth.modules.dashboard.utils import (
+    hide_streamlit_content,
+    id_selector,
+    subset_selector,
+)
 from sklearn.manifold import TSNE
 
 
@@ -144,7 +149,6 @@ def dimensionality_plots(real_dataset: pd.DataFrame, synthetic_datasets: pd.Data
 
 
 def page():
-    st.set_page_config(layout="wide")
     # metric_groups = st.session_state["evaluations"].keys()
     plot_types = ["Distribution", "Correlation", "Dimensionality"]
     selected_plot_type = st.sidebar.selectbox("Select a plot type", plot_types)
@@ -161,6 +165,8 @@ def page():
 
 
 if __name__ == "__main__":
+    st.set_page_config(layout="wide")
+    hide_streamlit_content()
     if "evaluations" not in st.session_state:
         st.error("Upload an evaluation bundle to get started!")
     else:

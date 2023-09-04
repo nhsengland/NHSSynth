@@ -44,7 +44,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             ]
         )
 
-    process = subprocess.Popen(command)
+    process = subprocess.Popen(command, stderr=subprocess.DEVNULL if not args.debug else None)
 
     # wrapper to enable graceful termination of the server
     time.sleep(1)

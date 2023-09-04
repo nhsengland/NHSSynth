@@ -83,7 +83,9 @@ class EvalFrame:
             self, "_evaluations"
         ), "You must first run `evaluate` on a `real_dataset` and set of `synthetic_datasets`."
         return {
-            metric_group: self._evaluations[metric_group].apply(pd.Series).dropna(how="all")
+            metric_group: pd.DataFrame(
+                self._evaluations[metric_group].values.tolist(), index=self._evaluations.index
+            ).dropna(how="all")
             for metric_group in self.metric_groups
         }
 

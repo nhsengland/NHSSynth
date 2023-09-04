@@ -44,7 +44,7 @@ class MetaData:
             if dtype.kind == "M":
                 self._setup_datetime_config(data, dtype_raw)
             elif dtype.kind in ["f", "i", "u"]:
-                self.rounding_scheme = self._validate_rounding_scheme(data, dtype_raw)
+                self.rounding_scheme = self._validate_rounding_scheme(data, dtype, dtype_raw)
             return dtype
 
         def _infer_dtype(self, data: pd.Series) -> np.dtype:
@@ -66,14 +66,14 @@ class MetaData:
                 datetime_config["format"] = self._infer_datetime_format(data)
             self.datetime_config = datetime_config
 
-        def _validate_rounding_scheme(self, data: pd.Series, dtype_dict: dict) -> int:
+        def _validate_rounding_scheme(self, data: pd.Series, dtype: np.dtype, dtype_dict: dict) -> int:
             if dtype_dict and "rounding_scheme" in dtype_dict:
                 return dtype_dict["rounding_scheme"]
             else:
-                if data.dtype.kind != "f":
+                if dtype.kind != "f":
                     return 1.0
                 roundable_data = data[data.notna()]
-                for i in range(np.finfo(roundable_data.dtype).precision):
+                for i in range(np.finfo(dtype).precision):
                     if (roundable_data.round(i) == roundable_data).all():
                         return 10**-i
             return None
