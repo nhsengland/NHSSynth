@@ -27,9 +27,22 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             args.module_handover.get("fn_dataset") or args.dataset,
             args.typed,
             args.experiments,
-            args.evaluation_bundle,
+            args.synthetic_datasets,
+            args.evaluations,
         )
-        command.extend(["--", "--typed", paths[0], "--experiments", paths[1], "--evaluation-bundle", paths[2]])
+        command.extend(
+            [
+                "--",
+                "--typed",
+                paths[0],
+                "--experiments",
+                paths[1],
+                "--synthetic-datasets",
+                paths[2],
+                "--evaluations",
+                paths[3],
+            ]
+        )
 
     process = subprocess.Popen(command)
 

@@ -1,137 +1,163 @@
+from typing import Any
+
+import numpy as np
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
 import streamlit as st
+import umap
+from nhssynth.modules.dashboard.utils import id_selector, subset_selector
+from sklearn.manifold import TSNE
 
 
-@st.cache_data
-def convert_df(df):
-    return df.to_csv(index=False).encode("utf-8")
+def triangle(matrix):
+    return matrix.where(np.tril(np.ones(matrix.shape), k=-1).astype(bool))
 
 
-def prepare_evals(evaluations: pd.DataFrame, experiments: pd.DataFrame, metrics: list, metadata: list) -> pd.DataFrame:
-    # Replace the ID column with the configuration components
-    evaluations_joined = evaluations.join(experiments.set_index("id"), on="id").drop(columns=["id"])
-    # Ensure that we can only select from metrics that have been computed for this set of evaluations
-    valid_metrics = [m for m in metrics if not evaluations_joined[m].isna().all()]
-    metrics_to_show = st.sidebar.multiselect("Select metric(s) to display", valid_metrics, default=valid_metrics)
-    # Filter to only the columns we want to display
-    return evaluations_joined[metadata + metrics_to_show]
-
-
-def group_by_display(
-    evaluations_filtered: pd.DataFrame,
-    metadata: list,
-    selected_metric_group: str,
-    experiments: pd.DataFrame,
-):
-    group_by_cols = st.sidebar.multiselect(
-        "Select column(s) to group by", metadata, default=["architecture", "config_idx"]
-    )
-    if group_by_cols:
-        evaluations_shown = (
-            evaluations_filtered[[c for c in evaluations_filtered.columns if c not in metadata or c in group_by_cols]]
-            .replace(float("nan"), "N/A")
-            .groupby(group_by_cols)
-            .mean()
-        )
-        st.dataframe(evaluations_shown.style.highlight_max(axis=0))
-        st.download_button(
-            "Press to Download", convert_df(evaluations_shown), "evaluations.csv", "text/csv", key="download-csv"
-        )
-        if "config_idx" in group_by_cols:
-            st.write("### Configurations")
-            st.dataframe(
-                experiments[metadata].drop(["seed", "repeat"], axis=1).groupby(["architecture", "config_idx"]).first()
-            )
-    else:
-        evaluations_shown = evaluations_filtered
-        st.dataframe(evaluations_shown.style.highlight_max(axis=0))
-        st.download_button(
-            "Press to Download", convert_df(evaluations_shown), "evaluations.csv", "text/csv", key="download-csv"
-        )
-
-
-def table_metrics(evaluations, experiments, selected_metric_group):
-    st.write(f"## `{selected_metric_group}` metrics")
-    metrics = [c for c in evaluations.columns if c != "id"]
-    metadata = [c for c in experiments.columns if c != "id"]
-    prepared_evals = prepare_evals(evaluations, experiments, metrics, metadata)
-    group_by_display(prepared_evals, metadata, selected_metric_group, experiments)
-
-
-def columnwise_metrics(evaluations, experiments):
-    evaluation_df = pd.DataFrame(evaluations)
-    metrics = [c for c in evaluation_df.columns if c != "id"]
-    metadata = [c for c in experiments.columns if c not in ["id"]]
-
-    display = st.sidebar.selectbox("Display", ["By column", "By metric"], index=0)
-
-    if display == "By column":
-        columns = evaluation_df[metrics[0]][1].keys()
-        column = st.sidebar.selectbox("Select column to display", columns)
-        column_evaluations = evaluation_df.copy()
-        for metric in metrics:
-            column_evaluations[metric] = column_evaluations[metric].apply(lambda x: x[column]["score"])
-        prepared_evals = prepare_evals(column_evaluations, experiments, metrics, metadata)
-        group_by_display(prepared_evals, metadata, "columnwise", experiments)
-
-    elif display == "By metric":
-        metric = st.sidebar.selectbox("Select metric to display", metrics)
-        metric_evaluations = pd.concat(
+def distribution_plots(real_dataset, synthetic_datasets) -> None:
+    column = st.sidebar.selectbox("Select column to display", real_dataset.columns)
+    st.write(f"## Distribution Plot for `{column}`")
+    synthetic_datasets = subset_selector(synthetic_datasets)
+    fig = px.histogram(
+        pd.concat(
             [
-                evaluation_df["id"],
-                evaluation_df[metric].apply(lambda x: pd.Series({k: v["score"] for k, v in x.items()})),
-            ],
-            axis=1,
-        )
-        prepared_evals = metric_evaluations.join(experiments.set_index("id"), on="id").drop(
-            columns=["id"] + metric_evaluations.columns[metric_evaluations.isnull().all()].tolist()
-        )
-        group_by_display(prepared_evals, metadata, "columnwise", experiments)
-
-
-def pairwise_metrics(evaluations, experiments):
-    st.write("## `pairwise` metrics")
-    evaluation_df = pd.DataFrame(evaluations)
-    metrics = [c for c in evaluation_df.columns if c != "id"]
-    metrics_to_show = st.sidebar.multiselect("Select metric(s) to display", metrics, default=metrics)
-    architecture = st.sidebar.selectbox(
-        "Select architecture to display", [a for a in experiments["architecture"].unique() if a != "Real"]
+                pd.DataFrame({"Data": real_dataset[column], "Type": len(real_dataset) * ["Real"]}),
+                pd.concat(
+                    [
+                        pd.DataFrame(
+                            {
+                                "Data": sd.iloc[0][column],
+                                "Type": len(sd.iloc[0]) * [f"Synthetic: {idx[0]} (Repeat {idx[1]}, Config {idx[2]})"],
+                            }
+                        )
+                        for idx, sd in synthetic_datasets.iterrows()
+                    ]
+                ),
+            ]
+        ),
+        x="Data",
+        color="Type",
+        barmode="overlay",
     )
-    config = st.sidebar.selectbox(
-        "Select configuration to display", experiments["config_idx"].dropna().unique(), index=0
-    )
-    repeat = st.sidebar.selectbox("Select repeat to display", experiments["repeat"].dropna().unique(), index=0)
+    log_scale = st.sidebar.checkbox("Log scale", value=False)
+    if log_scale:
+        fig.update_layout(yaxis_type="log")
+    if real_dataset[column].dtype == "object":
+        sort_xaxis = st.sidebar.checkbox("Sort x-axis", value=True)
+        if sort_xaxis:
+            fig.update_layout(xaxis={"categoryorder": "total descending"})
+    st.plotly_chart(fig, use_container_width=True)
 
-    for metric in metrics_to_show:
-        st.write(f"## `{metric}`")
-        grid = evaluation_df[evaluation_df["id"] == f"{architecture}_config_{config}_repeat_{repeat}"][metric].values[0]
-        st.table(
-            pd.DataFrame(
-                [(row, col, value["score"]) for (row, col), value in grid.items()], columns=["row", "col", "value"]
-            )
-            .set_index("row")
-            .pivot(columns="col", values="value")
-            .fillna(" ")
+
+def correlation_plots(real_dataset, synthetic_datasets) -> None:
+    show_continuous = st.sidebar.checkbox("Only show continuous columns", value=True)
+    selection = real_dataset.select_dtypes(exclude=["object"]).columns
+    if not show_continuous:
+        non_continuous_columns = [c for c in real_dataset.columns if c not in selection]
+        selection = st.sidebar.selectbox("Select categorical column to display", non_continuous_columns)
+        if not non_continuous_columns:
+            st.error("No categorical columns found!")
+            return go.Figure()
+
+    synthetic_dataset = id_selector(synthetic_datasets).iloc[0][selection]
+    real_dataset = real_dataset[selection]
+    if not show_continuous:
+        synthetic_dataset = pd.get_dummies(synthetic_dataset)
+        real_dataset = pd.get_dummies(real_dataset)
+
+    correlation_type = st.sidebar.selectbox("Select correlation type", ["Pearson", "Spearman", "Kendall"]).lower()
+    correlation_to_show = st.sidebar.selectbox("Select correlation to display", ["Real", "Synthetic", "Difference"])
+
+    real_corr_matrix = real_dataset.corr(method=correlation_type)
+    synthetic_corr_matrix = synthetic_dataset.corr(method=correlation_type)
+    zmin = min(real_corr_matrix.min().min(), synthetic_corr_matrix.min().min())
+    zmax = max(real_corr_matrix.max().max(), synthetic_corr_matrix.max().max())
+    if correlation_to_show == "Difference":
+        corr_matrix = triangle(abs(synthetic_corr_matrix - real_corr_matrix))
+        zmin = 0
+        zmax = zmax - zmin
+    elif correlation_to_show == "Real":
+        corr_matrix = triangle(real_corr_matrix)
+    else:
+        corr_matrix = triangle(synthetic_corr_matrix)
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=corr_matrix,
+            x=corr_matrix.columns,
+            y=corr_matrix.columns,
+            colorscale=px.colors.diverging.RdYlGn,
+            reversescale=True,
+            zmin=zmin,
+            zmax=zmax,
+        ),
+        layout=go.Layout(xaxis_showgrid=False, yaxis_showgrid=False, yaxis_autorange="reversed"),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def prepare_for_dimensionality(df: pd.DataFrame) -> pd.DataFrame:
+    """Factorize all categorical columns in a dataframe."""
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = pd.factorize(df[col])[0]
+        elif df[col].dtype == "datetime64[ns]":
+            df[col] = pd.to_numeric(df[col])
+        min_val = df[col].min()
+        max_val = df[col].max()
+        df[col] = (df[col] - min_val) / (max_val - min_val)
+    return df
+
+
+def plot_reducer(
+    real_dataset: pd.DataFrame, synthetic_dataset: pd.DataFrame, reducer: Any, reducer_name: str
+) -> go.Figure:
+    with st.spinner(f"Running {reducer_name}..."):
+        fig = go.Figure(layout=go.Layout(xaxis_title="UMAP 1", yaxis_title="UMAP 2"))
+        proj_real = reducer.fit_transform(real_dataset)
+        fig.add_scatter(
+            x=proj_real[:, 0], y=proj_real[:, 1], mode="markers", marker=dict(size=5), opacity=0.75, name="Real data"
         )
+        proj_synth = reducer.fit_transform(synthetic_dataset)
+        fig.add_scatter(
+            x=proj_synth[:, 0],
+            y=proj_synth[:, 1],
+            mode="markers",
+            marker=dict(size=5),
+            opacity=0.75,
+            name="Synthetic data",
+        )
+    return fig
+
+
+def dimensionality_plots(real_dataset: pd.DataFrame, synthetic_datasets: pd.DataFrame) -> None:
+    synthetic_dataset = prepare_for_dimensionality(id_selector(synthetic_datasets).iloc[0].copy())
+    real_dataset = prepare_for_dimensionality(real_dataset.copy())
+    dimensionality_method = st.sidebar.selectbox("Select dimensionality reduction method", ["UMAP", "t-SNE"])
+    run = st.sidebar.button("Run dimensionality reduction")
+    if run:
+        if dimensionality_method == "UMAP":
+            reducer = umap.UMAP()
+        if dimensionality_method == "t-SNE":
+            reducer = TSNE(n_components=2, init="pca")
+        fig = plot_reducer(real_dataset, synthetic_dataset, reducer, dimensionality_method)
+        st.plotly_chart(fig, use_container_width=True)
 
 
 def page():
     st.set_page_config(layout="wide")
-    metric_groups = st.session_state["evaluations"].keys()
-    selected_metric_group = st.sidebar.selectbox(
-        "Select a metric group", [mg.capitalize() for mg in list(metric_groups)]
-    ).lower()
+    # metric_groups = st.session_state["evaluations"].keys()
+    plot_types = ["Distribution", "Correlation", "Dimensionality"]
+    selected_plot_type = st.sidebar.selectbox("Select a plot type", plot_types)
 
-    evaluations = st.session_state["evaluations"][selected_metric_group]
-    experiments = st.session_state["experiments"]
-    if selected_metric_group in ["table", "task", "privacy", "efficacy", "aequitas"]:
-        table_metrics(evaluations, experiments, selected_metric_group)
-    elif selected_metric_group == "columnwise":
-        columnwise_metrics(evaluations, experiments)
-    elif selected_metric_group == "pairwise":
-        pairwise_metrics(evaluations, experiments)
-    else:
-        st.write("## Not yet implemented.")
+    real_data = st.session_state["typed"]
+    synthetic_datasets = st.session_state["synthetic_datasets"]
+
+    if selected_plot_type == "Distribution":
+        distribution_plots(real_data, synthetic_datasets)
+    elif selected_plot_type == "Correlation":
+        correlation_plots(real_data, synthetic_datasets)
+    elif selected_plot_type == "Dimensionality":
+        dimensionality_plots(real_data, synthetic_datasets)
 
 
 if __name__ == "__main__":
