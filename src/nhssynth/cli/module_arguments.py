@@ -276,3 +276,8 @@ def add_dashboard_args(parser: argparse.ArgumentParser, group_title: str, overri
         action="store_true",
         help="don't attempt to automatically load data into the dashboard",
     )
+    group.add_argument(
+        "--debug",
+        action="store_true",
+        help="print all output from the dashboard",
+    )

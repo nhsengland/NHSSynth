@@ -3,8 +3,8 @@ import os
 import pickle
 from typing import Any
 
-import pandas as pd
 import streamlit as st
+from nhssynth.modules.dashboard.utils import hide_streamlit_content
 from nhssynth.modules.dataloader.io import TypedDataset
 from nhssynth.modules.evaluation.io import Evaluations
 from nhssynth.modules.model.io import Experiments, SyntheticDatasets
@@ -36,18 +36,11 @@ if __name__ == "__main__":
     args = parse_args()
 
     st.set_page_config(page_title="NHSSynth Evaluation Dashboard", page_icon="👋")
+    hide_streamlit_content()
     st.title("NHSSynth Evaluation Dashboard")
     st.write(
         "Welcome! Upload an evaluation bundle below to get started (optionally also the typed real dataset and bundle of experiments containing the synthetic datasets).\n\nUse the menu on the left to navigate the dashboard."
     )
-
-    hide_streamlit_style = """
-    <style>
-    footer {visibility: hidden;}
-    .stDeployButton {visibility: hidden;}
-    </style>
-    """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
     get_component("evaluations", Evaluations, "bundle of evaluations")
     get_component("experiments", Experiments, "bundle of experiments")
