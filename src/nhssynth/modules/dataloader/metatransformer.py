@@ -119,7 +119,7 @@ class MetaTransformer:
                     column_metadata.datetime_config["format"] = column_metadata._infer_datetime_format(working_column)
                 return working_column
             else:
-                if hasattr(column_metadata, "rounding_scheme"):
+                if hasattr(column_metadata, "rounding_scheme") and column_metadata.rounding_scheme is not None:
                     working_column = self._apply_rounding_scheme(working_column, column_metadata.rounding_scheme)
                 # If there are missing values in the column, we need to use the pandas equivalent of the dtype to allow for NA values
                 if working_column.isnull().any() and dtype.kind in ["i", "u", "f"]:
@@ -157,13 +157,6 @@ class MetaTransformer:
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
-            # TODO remove once we are sure we don't need to do this
-            # if column_metadata.dtype.kind in ["i", "u", "f"] and not isinstance(
-            #     column_metadata.missingness_strategy, AugmentMissingnessStrategy
-            # ):
-            #     working_data[column_metadata.name] = working_data[column_metadata.name].astype(
-            #         column_metadata.dtype.name.lower()
-            #     )
         return working_data
 
     # def apply_constraints(self) -> pd.DataFrame:
@@ -204,12 +197,6 @@ class MetaTransformer:
             transformed_data = column_metadata.transformer.apply(
                 working_data[column_metadata.name], missingness_carrier
             )
-            # TODO remove once we are sure we don't need to do this
-            # if column_metadata.dtype.kind in ["f", "i", "u"]:
-            #     if isinstance(transformed_data, pd.DataFrame):
-            #         transformed_data = transformed_data.apply(lambda x: x.astype(column_metadata.dtype.name.lower()))
-            #     else:
-            #         transformed_data = transformed_data.astype(column_metadata.dtype.name.lower())
             transformed_columns.append(transformed_data)
 
             # track single and multi column indices to supply to the model
@@ -253,8 +240,7 @@ class MetaTransformer:
         """
         for column_metadata in self.metadata:
             dataset = column_metadata.transformer.revert(dataset)
-        typed_dataset = self.apply_dtypes(dataset)
-        return typed_dataset
+        return self.apply_dtypes(dataset)
 
     def get_typed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "typed_dataset"):

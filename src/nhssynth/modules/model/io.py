@@ -48,9 +48,12 @@ def write_data_outputs(
     dir_experiment: Path,
     args: argparse.Namespace,
 ) -> None:
-    train_configs = experiments["train_config"].apply(pd.Series)
-    model_configs = experiments["model_config"].apply(pd.Series)
-    experiments = experiments.drop(columns=["train_config", "model_config"]).join(train_configs).join(model_configs)
+    experiments = experiments.join(
+        pd.DataFrame(experiments.pop("train_config").values.tolist(), index=experiments.index)
+    )
+    experiments = experiments.join(
+        pd.DataFrame(experiments.pop("model_config").values.tolist(), index=experiments.index)
+    )
 
     fn_experiments, fn_synthetic_datasets = consistent_endings([args.experiments, args.synthetic_datasets])
     fn_experiments, fn_synthetic_datasets = potential_suffixes([fn_experiments, fn_synthetic_datasets], fn_dataset)
