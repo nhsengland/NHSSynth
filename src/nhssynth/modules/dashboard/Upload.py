@@ -1,19 +1,35 @@
 import argparse
 import os
 import pickle
+from typing import Any
 
 import pandas as pd
 import streamlit as st
-from nhssynth.modules.dataloader.metatransformer import TypedDataset
-from nhssynth.modules.evaluation.utils import EvalBundle
+from nhssynth.modules.dataloader.io import TypedDataset
+from nhssynth.modules.evaluation.io import Evaluations
+from nhssynth.modules.model.io import Experiments, SyntheticDatasets
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="NHSSynth Evaluation Dashboard")
-    parser.add_argument("--evaluation-bundle", type=str, help="Path to an evaluation bundle pickle file.")
+    parser.add_argument("--evaluations", type=str, help="Path to a set of evaluations.")
     parser.add_argument("--experiments", type=str, help="Path to a set of experiments.")
+    parser.add_argument("--synthetic-datasets", type=str, help="Path to a set of synthetic datasets.")
     parser.add_argument("--typed", type=str, help="Path to a typed real dataset.")
     return parser.parse_args()
+
+
+def get_component(name: str, component_type: Any, text: str):
+    uploaded = st.file_uploader(f"Upload a pickle file containing a {text}", type="pkl")
+    if getattr(args, name):
+        with open(os.getcwd() + "/" + getattr(args, name), "rb") as f:
+            loaded = pickle.load(f)
+    if uploaded is not None:
+        loaded = pickle.load(uploaded)
+    if loaded is not None:
+        assert isinstance(loaded, component_type), f"Uploaded file does not contain a {text}!"
+        st.session_state[name] = loaded.contents
+        st.success(f"Loaded {text}!")
 
 
 if __name__ == "__main__":
@@ -25,43 +41,15 @@ if __name__ == "__main__":
         "Welcome! Upload an evaluation bundle below to get started (optionally also the typed real dataset and bundle of experiments containing the synthetic datasets).\n\nUse the menu on the left to navigate the dashboard."
     )
 
-    uploaded_eval_bundle = st.file_uploader("Upload a pickle file containing an evaluation bundle", type="pkl")
-    if args.evaluation_bundle:
-        with open(os.getcwd() + "/" + args.evaluation_bundle, "rb") as f:
-            eval_bundle = pickle.load(f)
-    if uploaded_eval_bundle is not None:
-        eval_bundle = pickle.load(uploaded_eval_bundle)
-    if eval_bundle is not None:
-        assert isinstance(eval_bundle, EvalBundle), "Uploaded file does not contain an evaluation bundle!"
-        st.session_state["evaluations"], st.session_state["experiments"] = (
-            eval_bundle.evaluations,
-            eval_bundle.experiments,
-        )
-        st.success(f"Loaded evaluation bundle!")
+    hide_streamlit_style = """
+    <style>
+    footer {visibility: hidden;}
+    .stDeployButton {visibility: hidden;}
+    </style>
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-    uploaded_experiments = st.file_uploader("Upload a pickle file containing a set of experiments", type="pkl")
-    if args.experiments:
-        with open(os.getcwd() + "/" + args.experiments, "rb") as f:
-            experiments = pickle.load(f)
-    if uploaded_experiments is not None:
-        experiments = pickle.load(uploaded_experiments)
-    if experiments is not None:
-        experiments = pd.DataFrame(experiments)
-        assert (
-            "dataset" in experiments.columns and "id" in experiments.columns
-        ), "Uploaded file does not contain a set of experiments!"
-        st.session_state["synthetic_data"] = experiments[["id", "dataset"]]
-        st.success(f"Loaded synthetic datasets from experiments!")
-
-    uploaded_typed = st.file_uploader(
-        "Upload a pickle file containing the typed (by the dataloader module) real dataset", type="pkl"
-    )
-    if args.typed:
-        with open(os.getcwd() + "/" + args.typed, "rb") as f:
-            typed = pickle.load(f)
-    if uploaded_typed is not None:
-        typed = pickle.load(uploaded_typed)
-    if typed is not None:
-        assert isinstance(typed, TypedDataset), "Uploaded file does not contain a typed real dataset!"
-        st.session_state["real_data"] = typed
-        st.success(f"Loaded real dataset!")
+    get_component("evaluations", Evaluations, "bundle of evaluations")
+    get_component("experiments", Experiments, "bundle of experiments")
+    get_component("synthetic_datasets", SyntheticDatasets, "bundle of synthetic datasets")
+    get_component("typed", TypedDataset, "typed real dataset")
