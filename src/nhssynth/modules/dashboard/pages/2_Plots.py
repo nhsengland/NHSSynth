@@ -7,7 +7,6 @@ import plotly.express as px
 import plotly.graph_objs as go
 import streamlit as st
 import umap
-from nhssynth.common.debugging import *
 from nhssynth.modules.dashboard.utils import (
     hide_streamlit_content,
     id_selector,
