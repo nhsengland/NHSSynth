@@ -1557,26 +1557,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../evaluation/full_report/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    full_report
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../evaluation/io/" class="md-nav__link">
         
   
@@ -2418,8 +2398,8 @@ Essentially wraps the <code>fit_transformer</code> and <code>inverse_transform</
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a>
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">missing_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">        Apply the transformer to the data via sklearn&#39;s `OneHotEncoder`&#39;s `fit_transform` method. Name the new columns via the original column name.</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">        If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is made.</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">        Apply the transformer to the data via sklearn&#39;s `OneHotEncoder`&#39;s `fit_transform` method. Name the new columns via manipulation of the original column name.</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">        If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is added.</span>
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a>
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">        Args:</span>
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">            data: The column of data to transform.</span>
@@ -2485,8 +2465,8 @@ Essentially wraps the <code>fit_transformer</code> and <code>inverse_transform</
 
   <div class="doc doc-contents ">
   
-      <p>Apply the transformer to the data via sklearn's <code>OneHotEncoder</code>'s <code>fit_transform</code> method. Name the new columns via the original column name.
-If <code>missing_value</code> is provided, fill missing values with this value before applying the transformer to ensure a new category is made.</p>
+      <p>Apply the transformer to the data via sklearn's <code>OneHotEncoder</code>'s <code>fit_transform</code> method. Name the new columns via manipulation of the original column name.
+If <code>missing_value</code> is provided, fill missing values with this value before applying the transformer to ensure a new category is added.</p>
 
 
 
@@ -2554,8 +2534,8 @@ If <code>missing_value</code> is provided, fill missing values with this value b
 <span class="normal"><a href="#__codelineno-0-50">50</a></span>
 <span class="normal"><a href="#__codelineno-0-51">51</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a><span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">missing_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    Apply the transformer to the data via sklearn&#39;s `OneHotEncoder`&#39;s `fit_transform` method. Name the new columns via the original column name.</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is made.</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">    Apply the transformer to the data via sklearn&#39;s `OneHotEncoder`&#39;s `fit_transform` method. Name the new columns via manipulation of the original column name.</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">    If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is added.</span>
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a>
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="sd">        data: The column of data to transform.</span>

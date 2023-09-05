@@ -1549,26 +1549,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/full_report/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    full_report
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../evaluation/io/" class="md-nav__link">
         
   
@@ -2406,7 +2386,7 @@
 
 
 <h2 id="nhssynth.modules.dataloader.io.check_output_paths" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">check_output_paths</span><span class="p">(</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">,</span> <span class="n">dir_experiment</span><span class="p">)</span></code>
 
 </h2>
 
@@ -2463,7 +2443,7 @@
           </td>
           <td>
             <div class="doc-md-description">
-              <p>The output data filename/suffix to append to <code>fn_dataset</code>.</p>
+              <p>The transformed output data filename/suffix to append to <code>fn_dataset</code>.</p>
             </div>
           </td>
           <td>
@@ -2471,7 +2451,7 @@
           </td>
         </tr>
         <tr>
-          <td><code>fn_transformer</code></td>
+          <td><code>fn_metatransformer</code></td>
           <td>
                 <code>str</code>
           </td>
@@ -2620,7 +2600,7 @@
 </span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>    <span class="n">fn_dataset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a>    <span class="n">fn_typed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>    <span class="n">fn_transformed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>    <span class="n">fn_transformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>    <span class="n">fn_metatransformer</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a>    <span class="n">fn_constraint_graph</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>    <span class="n">fn_sdv_metadata</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 </span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a>    <span class="n">dir_experiment</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
@@ -2631,8 +2611,8 @@
 </span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">    Args:</span>
 </span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">        fn_dataset: The input data filename.</span>
 </span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="sd">        fn_typed: The typed input data filename/suffix to append to `fn_dataset`.</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">        fn_transformed: The output data filename/suffix to append to `fn_dataset`.</span>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">        fn_transformer: The metatransformer filename/suffix to append to `fn_dataset`.</span>
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">        fn_transformed: The transformed output data filename/suffix to append to `fn_dataset`.</span>
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">        fn_metatransformer: The metatransformer filename/suffix to append to `fn_dataset`.</span>
 </span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">        fn_constraint_graph: The constraint graph filename/suffix to append to `fn_dataset`.</span>
 </span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">        fn_sdv_metadata: The SDV metadata filename/suffix to append to `fn_dataset`.</span>
 </span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
@@ -2644,16 +2624,16 @@
 </span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a><span class="sd">        UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.</span>
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="n">fn_dataset</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_dataset</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">(</span>
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="p">(</span><span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="s2">&quot;.html&quot;</span><span class="p">),</span> <span class="n">fn_sdv_metadata</span><span class="p">]</span>
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">(</span>
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="p">(</span><span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="s2">&quot;.html&quot;</span><span class="p">),</span> <span class="n">fn_sdv_metadata</span><span class="p">]</span>
 </span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="p">)</span>
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">(</span>
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">],</span> <span class="n">fn_dataset</span>
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">(</span>
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">],</span> <span class="n">fn_dataset</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="p">)</span>
 </span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="n">warn_if_path_supplied</span><span class="p">(</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">],</span> <span class="n">dir_experiment</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">],</span> <span class="n">dir_experiment</span>
 </span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="p">)</span>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="k">return</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="k">return</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span>
 </span></code></pre></div></td></tr></table></div>
           </details>
   </div>
@@ -2696,7 +2676,7 @@
           </td>
           <td>
             <div class="doc-md-description">
-              <p>The metatransformer used to transform the data into its transformed state.</p>
+              <p>The metatransformer used to transform the data into its model-ready state.</p>
             </div>
           </td>
           <td>
@@ -2752,7 +2732,7 @@
           </td>
           <td>
             <div class="doc-md-description">
-              <p>The parsed command line arguments.</p>
+              <p>The full set of parsed command line arguments.</p>
             </div>
           </td>
           <td>
@@ -2850,16 +2830,16 @@
 </span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a><span class="sd">    Writes the transformed data and metatransformer to disk.</span>
 </span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>
 </span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">        metatransformer: The metatransformer used to transform the data into its transformed state.</span>
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a><span class="sd">        metatransformer: The metatransformer used to transform the data into its model-ready state.</span>
 </span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="sd">        fn_dataset: The base dataset filename.</span>
 </span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a><span class="sd">        fn_metadata: The metadata filename.</span>
 </span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="sd">        dir_experiment: The experiment directory to write the outputs to.</span>
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">        args: The parsed command line arguments.</span>
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a><span class="sd">        args: The full set of parsed command line arguments.</span>
 </span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>
 </span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a><span class="sd">    Returns:</span>
 </span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a><span class="sd">        The filename of the dataset used.</span>
 </span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>    <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">check_output_paths</span><span class="p">(</span>
+</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>    <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">check_output_paths</span><span class="p">(</span>
 </span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>        <span class="n">fn_dataset</span><span class="p">,</span>
 </span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>        <span class="n">args</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span>
 </span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a>        <span class="n">args</span><span class="o">.</span><span class="n">transformed</span><span class="p">,</span>
@@ -2885,7 +2865,7 @@
 </span><span id="__span-0-128"><a id="__codelineno-0-128" name="__codelineno-0-128"></a>                <span class="n">transformed_dataset</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
 </span><span id="__span-0-129"><a id="__codelineno-0-129" name="__codelineno-0-129"></a>                    <span class="n">dir_experiment</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn_transformed</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;csv&quot;</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span>
 </span><span id="__span-0-130"><a id="__codelineno-0-130" name="__codelineno-0-130"></a>                <span class="p">)</span>
-</span><span id="__span-0-131"><a id="__codelineno-0-131" name="__codelineno-0-131"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_transformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-0-131"><a id="__codelineno-0-131" name="__codelineno-0-131"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 </span><span id="__span-0-132"><a id="__codelineno-0-132" name="__codelineno-0-132"></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 </span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dir_experiment</span> <span class="o">/</span> <span class="n">fn_sdv_metadata</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 </span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metatransformer</span><span class="o">.</span><span class="n">get_sdv_metadata</span><span class="p">(),</span> <span class="n">f</span><span class="p">)</span>
