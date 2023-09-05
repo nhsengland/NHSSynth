@@ -46,7 +46,7 @@ def check_output_paths(
     fn_dataset: str,
     fn_typed: str,
     fn_transformed: str,
-    fn_transformer: str,
+    fn_metatransformer: str,
     fn_constraint_graph: str,
     fn_sdv_metadata: str,
     dir_experiment: Path,
@@ -57,8 +57,8 @@ def check_output_paths(
     Args:
         fn_dataset: The input data filename.
         fn_typed: The typed input data filename/suffix to append to `fn_dataset`.
-        fn_transformed: The output data filename/suffix to append to `fn_dataset`.
-        fn_transformer: The metatransformer filename/suffix to append to `fn_dataset`.
+        fn_transformed: The transformed output data filename/suffix to append to `fn_dataset`.
+        fn_metatransformer: The metatransformer filename/suffix to append to `fn_dataset`.
         fn_constraint_graph: The constraint graph filename/suffix to append to `fn_dataset`.
         fn_sdv_metadata: The SDV metadata filename/suffix to append to `fn_dataset`.
         dir_experiment: The experiment directory to write the outputs to.
@@ -70,16 +70,16 @@ def check_output_paths(
         UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = consistent_endings(
-        [fn_typed, fn_transformed, fn_transformer, (fn_constraint_graph, ".html"), fn_sdv_metadata]
+    fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = consistent_endings(
+        [fn_typed, fn_transformed, fn_metatransformer, (fn_constraint_graph, ".html"), fn_sdv_metadata]
     )
-    fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = potential_suffixes(
-        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], fn_dataset
+    fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = potential_suffixes(
+        [fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata], fn_dataset
     )
     warn_if_path_supplied(
-        [fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata], dir_experiment
+        [fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata], dir_experiment
     )
-    return fn_dataset, fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata
+    return fn_dataset, fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata
 
 
 def write_data_outputs(
@@ -93,16 +93,16 @@ def write_data_outputs(
     Writes the transformed data and metatransformer to disk.
 
     Args:
-        metatransformer: The metatransformer used to transform the data into its transformed state.
+        metatransformer: The metatransformer used to transform the data into its model-ready state.
         fn_dataset: The base dataset filename.
         fn_metadata: The metadata filename.
         dir_experiment: The experiment directory to write the outputs to.
-        args: The parsed command line arguments.
+        args: The full set of parsed command line arguments.
 
     Returns:
         The filename of the dataset used.
     """
-    fn_dataset, fn_typed, fn_transformed, fn_transformer, fn_constraint_graph, fn_sdv_metadata = check_output_paths(
+    fn_dataset, fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = check_output_paths(
         fn_dataset,
         args.typed,
         args.transformed,
@@ -128,7 +128,7 @@ def write_data_outputs(
                 transformed_dataset.loc[subset].to_csv(
                     dir_experiment / (fn_transformed[:-3] + "csv"), mode="a", index=False, header=False
                 )
-    with open(dir_experiment / fn_transformer, "wb") as f:
+    with open(dir_experiment / fn_metatransformer, "wb") as f:
         pickle.dump(metatransformer, f)
     with open(dir_experiment / fn_sdv_metadata, "wb") as f:
         pickle.dump(metatransformer.get_sdv_metadata(), f)

@@ -5,11 +5,21 @@ from typing import Callable
 
 
 class Task:
+    """
+    A task offers a light-touch way for users to specify any arbitrary downstream task that they want to run on a dataset.
+
+    Args:
+        name: The name of the task.
+        run: The function to run.
+        supports_aequitas: Whether the task supports Aequitas evaluation.
+        description: The description of the task.
+    """
+
     def __init__(self, name: str, run: Callable, supports_aequitas=False, description: str = ""):
-        self.name = name
-        self.run = run
-        self.supports_aequitas = supports_aequitas
-        self.description = description
+        self._name: str = name
+        self._run: Callable = run
+        self._supports_aequitas: supports_aequitas = supports_aequitas
+        self._description: description = description
 
     def __str__(self) -> str:
         return f"{self.name}: {self.description}" if self.description else self.name
@@ -18,13 +28,24 @@ class Task:
         return str([self.name, self.run, self.supports_aequitas, self.description])
 
     def run(self, *args, **kwargs):
-        return self.run(*args, **kwargs)
+        return self._run(*args, **kwargs)
 
 
 def get_tasks(
     fn_dataset: str,
     tasks_root: str,
 ) -> list[Task]:
+    """
+    Searches for and imports all tasks in the tasks directory for a given dataset.
+    Uses `importlib` to extract the task from the file.
+
+    Args:
+        fn_dataset: The name of the dataset.
+        tasks_root: The root directory for downstream tasks.
+
+    Returns:
+        A list of tasks.
+    """
     tasks_dir = Path(tasks_root) / fn_dataset
     assert (
         tasks_dir.exists()

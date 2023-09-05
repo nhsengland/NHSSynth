@@ -21,6 +21,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         args.file_size_limit,
     ]
 
+    # potentially automatically load the required data from desk when the dashboard server is started
     if (args.dataset or args.module_handover.get("fn_dataset")) and args.experiment_name != TIME and not args.dont_load:
         paths = check_input_paths(
             dir_experiment,
@@ -46,7 +47,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     process = subprocess.Popen(command, stderr=subprocess.DEVNULL if not args.debug else None)
 
-    # wrapper to enable graceful termination of the server
+    # wrapping the process to enable graceful termination of the server via user input
     time.sleep(1)
     while True:
         command = input("  \033[34mShut down the server?\033[0m [Y/n] ")

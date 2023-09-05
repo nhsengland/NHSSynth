@@ -173,11 +173,21 @@ class MetaData:
 
     @classmethod
     def from_path(cls, data: pd.DataFrame, path_str: str):
+        """
+        Instantiate a MetaData object from a YAML file via a specified path.
+
+        Args:
+            data: The data to be used to infer / validate the metadata.
+            path_str: The path to the metadata YAML file.
+
+        Returns:
+            The metadata object.
+        """
         path = pathlib.Path(path_str)
         if path.exists():
             with open(path) as stream:
                 metadata = yaml.safe_load(stream)
-            # Filter out expanded alias/anchor groups
+            # Filter out the expanded alias/anchor group as it is not needed
             metadata = filter_dict(metadata, {"column_types"})
         else:
             warnings.warn(f"No metadata found at {path}...")
@@ -192,7 +202,7 @@ class MetaData:
             metadata: The metadata dictionary to be rewritten.
 
         Returns:
-            dict: A rewritten metadata dictionary with collapsed column types and transformers.
+            A rewritten metadata dictionary with collapsed column types and transformers.
                 The returned dictionary has the following structure:
                 {
                     "column_types": dict,
@@ -223,6 +233,15 @@ class MetaData:
         return {"column_types": {i + 1: x for i, x in enumerate(column_types.values())}, **metadata}
 
     def _assemble(self, collapse_yaml: bool) -> dict[str, dict[str, Any]]:
+        """
+        Rearrange the metadata into a dictionary that can be written to a YAML file.
+
+        Args:
+            collapse_yaml: A boolean indicating whether to collapse the YAML representation of the metadata, reducing duplication.
+
+        Returns:
+            A dictionary containing the assembled metadata.
+        """
         assembled_metadata = {
             "columns": {
                 cn: {
@@ -234,6 +253,7 @@ class MetaData:
                 for cn, cmd in self._metadata.items()
             }
         }
+        # We loop through the base dict above to add other parts if they are present in the metadata
         for cn, cmd in self._metadata.items():
             if cmd.missingness_strategy:
                 assembled_metadata["columns"][cn]["missingness"] = (
@@ -246,10 +266,17 @@ class MetaData:
                     **cmd.transformer_config,
                     "name": cmd.transformer.__class__.__name__,
                 }
+
+        # Add back the dropped_columns not present in the metadata
         if self.dropped_columns:
             assembled_metadata["columns"].update({cn: "drop" for cn in self.dropped_columns})
+
         if collapse_yaml:
             assembled_metadata = self._collapse(assembled_metadata)
+
+        # We add the constraints section after all of the formatting and processing above
+        # In general, the constraints are kept the same as the input (provided they passed validation)
+        # If `collapse_yaml` is specified, we output the minimum set of equivalent constraints
         if self.constraints:
             assembled_metadata["constraints"] = (
                 [str(c) for c in self.constraints.minimal_constraints]
@@ -275,6 +302,12 @@ class MetaData:
             )
 
     def get_sdv_metadata(self) -> dict[str, dict[str, dict[str, str]]]:
+        """
+        Map combinations of our metadata implementation to SDV's as required by SDMetrics.
+
+        Returns:
+            A dictionary containing the SDV metadata.
+        """
         sdv_metadata = {
             "columns": {
                 cn: {
@@ -295,4 +328,10 @@ class MetaData:
         return sdv_metadata
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
+        """
+        Output the constraint graphs as HTML files.
+
+        Args:
+            path: The path at which to write the constraint graph HTML files.
+        """
         self.constraints._output_graphs_html(path)

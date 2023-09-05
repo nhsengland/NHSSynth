@@ -15,6 +15,8 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     dir_input, fn_dataset, fn_metadata = check_input_paths(args.dataset, args.metadata, args.data_dir)
 
+    print()
+
     dataset = pd.read_csv(dir_input / fn_dataset, index_col=args.index_col)
     metadata = MetaData.from_path(dataset, dir_input / fn_metadata)
     mt = MetaTransformer(dataset, metadata, args.missingness, args.impute)

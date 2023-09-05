@@ -37,6 +37,15 @@ def consistent_ending(fn: str, ending: str = ".pkl", suffix: str = "") -> str:
 
 
 def consistent_endings(args: list[Union[str, tuple[str, str], tuple[str, str, str]]]) -> list[str]:
+    """
+    Wrapper around `consistent_ending` to apply it to a list of filenames.
+
+    Args:
+        args: The list of filenames to check. Can take the form of a single filename, a pair of a filename and an ending, or a triple of a filename, an ending and a suffix.
+
+    Returns:
+        The list of filenames with the correct endings.
+    """
     return list(consistent_ending(arg) if isinstance(arg, str) else consistent_ending(*arg) for arg in args)
 
 
@@ -59,6 +68,13 @@ def potential_suffix(fn: str, fn_base: str) -> str:
 
 
 def potential_suffixes(fns: list[str], fn_base: str) -> list[str]:
+    """
+    Wrapper around `potential_suffix` to apply it to a list of filenames.
+
+    Args:
+        fns: The list of filenames / potential suffixes to append to `fn_base`.
+        fn_base: The name of the file the suffixes would attach to.
+    """
     return list(potential_suffix(fn, fn_base) for fn in fns)
 
 

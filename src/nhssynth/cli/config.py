@@ -47,10 +47,10 @@ def read_config(
 
     1. Load the YAML file containing the config to read from
     2. Check a valid `run_type` is specified or infer it and determine the list of `modules_to_run`
-    3. Establish the appropriate default config from the `parser` and `all_subparsers` for the determined `modules_to_run`
-    4. Overwrite this config with the specified (sub)set of config in the YAML file
+    3. Establish the appropriate default configuration set of arguments from the `parser` and `all_subparsers` for the determined `modules_to_run`
+    4. Overwrite these with the specified (sub)set of config in the YAML file
     5. Overwrite again with passed command-line `args` (these are considered 'overrides')
-    6. Run the appropriate module(s) or pipeline with the resulting configuration namespace object
+    6. Run the appropriate module(s) or pipeline with the resulting configuration `Namespace` object
 
     Args:
         args: Namespace object containing arguments from the command line
@@ -152,7 +152,7 @@ def assemble_config(
     all_subparsers: dict[str, argparse.ArgumentParser],
 ) -> dict[str, Any]:
     """
-    Assemble and arrange a module-wise nested configuration dictionary from parsed command-line arguments to be output as a YAML record.
+    Assemble and arrange a nested-via-module configuration dictionary from parsed command-line arguments to be output as a YAML record.
 
     Args:
         args: A namespace object containing all parsed command-line arguments.

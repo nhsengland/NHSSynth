@@ -23,7 +23,7 @@ class ColumnTransformer(ABC):
 
 class TransformerWrapper(ABC):
     """
-    A class to facilitate nesting of [`ColumnTransformer`s][nhssynth.modules.dataloader.transformers.base.ColumnTransformer].
+    A class to facilitate nesting of [`ColumnTransformer`][nhssynth.modules.dataloader.transformers.base.ColumnTransformer]s.
 
     Args:
         wrapped_transformer: The [`ColumnTransformer`][nhssynth.modules.dataloader.transformers.base.ColumnTransformer] to wrap.
@@ -31,12 +31,12 @@ class TransformerWrapper(ABC):
 
     def __init__(self, wrapped_transformer: ColumnTransformer) -> None:
         super().__init__()
-        self._wrapped_transformer = wrapped_transformer
+        self._wrapped_transformer: ColumnTransformer = wrapped_transformer
 
     def apply(self, data: pd.Series, missingness_column: Optional[pd.Series], **kwargs) -> pd.DataFrame:
-        """Clean method for applying the wrapped transformer to the data."""
+        """Method for applying the wrapped transformer to the data."""
         return self._wrapped_transformer.apply(data, missingness_column, **kwargs)
 
     def revert(self, data: pd.Series, **kwargs) -> pd.DataFrame:
-        """Clean method for reverting the passed data via the wrapped transformer."""
+        """Method for reverting the passed data via the wrapped transformer."""
         return self._wrapped_transformer.revert(data, **kwargs)

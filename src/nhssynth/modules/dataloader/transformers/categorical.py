@@ -32,8 +32,8 @@ class OHECategoricalTransformer(ColumnTransformer):
 
     def apply(self, data: pd.Series, missing_value: Optional[Any] = None) -> pd.DataFrame:
         """
-        Apply the transformer to the data via sklearn's `OneHotEncoder`'s `fit_transform` method. Name the new columns via the original column name.
-        If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is made.
+        Apply the transformer to the data via sklearn's `OneHotEncoder`'s `fit_transform` method. Name the new columns via manipulation of the original column name.
+        If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is added.
 
         Args:
             data: The column of data to transform.

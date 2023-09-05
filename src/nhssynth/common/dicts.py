@@ -58,7 +58,7 @@ def flatten_dict(d: dict[str, Any]) -> dict[str, Any]:
     Flatten a dictionary by recursively combining nested keys into a single dictionary until no nested keys remain.
 
     Args:
-        d: A dictionary with possibly nested keys.
+        d: A dictionary with potentially nested keys.
 
     Returns:
         A flattened dictionary.

@@ -4,7 +4,6 @@ import typing
 from abc import ABC, abstractmethod
 from typing import Any, Final
 
-import numpy as np
 import pandas as pd
 
 # TODO fix circular import
@@ -43,7 +42,16 @@ class DropMissingnessStrategy(GenericMissingnessStrategy):
         super().__init__("drop")
 
     def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
-        """Drop missingness in `column`"""
+        """
+        Drop rows containing missing values in the appropriate column.
+
+        Args:
+            data: The dataset.
+            column_metadata: The column metadata.
+
+        Returns:
+            The dataset with rows containing missing values in the appropriate column dropped.
+        """
         return data.dropna(subset=[column_metadata.name]).reset_index(drop=True)
 
 
@@ -55,7 +63,16 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
         self.impute = impute.lower() if isinstance(impute, str) else impute
 
     def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
-        """Impute missingness."""
+        """
+        Impute missingness in the data via the `impute` strategy. 'Special' values trigger specific behaviour.
+
+        Args:
+            data: The dataset.
+            column_metadata: The column metadata.
+
+        Returns:
+            The dataset with missing values in the appropriate column replaced with imputed ones.
+        """
         if self.impute == "mean":
             self.imputation_value = data[column_metadata.name].mean()
         elif self.impute == "median":
@@ -73,7 +90,16 @@ class AugmentMissingnessStrategy(GenericMissingnessStrategy):
         super().__init__("augment")
 
     def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
-        """Impute missingness with model."""
+        """
+        Impute missingness with the model. To do this we create a new column for continuous features and a new category for categorical features.
+
+        Args:
+            data: The dataset.
+            column_metadata: The column metadata enabling the correct set up of the missingness strategy.
+
+        Returns:
+            The dataset, potentially with a new column representing the missingness for the column added.
+        """
         if column_metadata.categorical:
             if column_metadata.dtype.kind == "O":
                 self.missingness_carrier = column_metadata.name + "_missing"

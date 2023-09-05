@@ -5,7 +5,7 @@ import re
 
 def add_spaces_before_caps(string: str) -> str:
     """
-    Adds spaces before capital letters in a string if there is a lower-case letter.
+    Adds spaces before capital letters in a string if there is a lower-case letter following it.
 
     Args:
         string: The string to add spaces to.
@@ -24,7 +24,7 @@ def add_spaces_before_caps(string: str) -> str:
 
 def format_timedelta(start: float, finish: float) -> str:
     """
-    Calculate and format the difference between two calls to `time.time()`.
+    Calculate and prettily format the difference between two calls to `time.time()`.
 
     Args:
         start: The start time.

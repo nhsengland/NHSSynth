@@ -63,7 +63,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
         Name the new columns via the original column name.
 
         If `missingness_column` is provided, use this to extract the non-missing data; the missing values are assigned to a new pseudo-cluster with mean 0
-        (i.e. all values in the normalised column are 0.0).
+        (i.e. all values in the normalised column are 0.0). We do this by taking the full index before subsetting to non-missing data, then reindexing.
 
         Args:
             data: The column of data to transform.
@@ -80,15 +80,15 @@ class ClusterContinuousTransformer(ColumnTransformer):
         index = data.index
         data = np.array(data.values.reshape(-1, 1), dtype=data.dtype.name.lower())
 
-        # TODO consider whether we need to store min and max to clip on reversion
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ConvergenceWarning)
             self._transformer.fit(data)
+
         self.means = self._transformer.means_.reshape(-1)
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)
 
-        normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
+        normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
         normalised = normalised_values[np.arange(len(data)), components]
         normalised = np.clip(normalised, -1.0, 1.0)
         components = np.eye(self._n_components, dtype=int)[components]
@@ -100,6 +100,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
             + [f"{self.original_column_name}_c{i + 1}" for i in range(self._n_components)],
         )
 
+        # EXPERIMENTAL feature, removing components from the column matrix that have no data assigned to them
         if self.remove_unused_components:
             nunique = transformed_data.iloc[:, 1:].nunique(dropna=False)
             unused_components = nunique[nunique == 1].index
@@ -126,7 +127,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
             data: The full dataset including the column(s) to be reverted to their pre-transformer state.
 
         Returns:
-            The dataset with a single continuous column that is analogous to the original column, with the same name, and without the generated format columns.
+            The dataset with a single continuous column that is analogous to the original column, with the same name, and without the generated columns from which it is derived.
         """
         working_data = data[self.new_column_names]
         full_index = working_data.index

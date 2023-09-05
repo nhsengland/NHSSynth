@@ -3,6 +3,9 @@ import streamlit as st
 
 
 def hide_streamlit_content() -> None:
+    """
+    Hide the footer message and deploy button in Streamlit.
+    """
     hide_streamlit_style = """
     <style>
     footer {visibility: hidden;}
@@ -13,9 +16,19 @@ def hide_streamlit_content() -> None:
 
 
 def id_selector(df: pd.DataFrame) -> pd.Series:
+    """
+    Select an ID from the dataframe to then operate on.
+
+    Args:
+        df: The dataframe to select an ID from.
+
+    Returns:
+        The dataset subset to only the row corresponding to the ID.
+    """
     architecture = st.sidebar.selectbox(
         "Select architecture to display", df.index.get_level_values("architecture").unique()
     )
+    # Different architectures may have different numbers of repeats and configs
     repeats = df.loc[architecture].index.get_level_values("repeat").astype(int).unique()
     configs = df.loc[architecture].index.get_level_values("config").astype(int).unique()
     if len(repeats) > 1:
@@ -30,6 +43,15 @@ def id_selector(df: pd.DataFrame) -> pd.Series:
 
 
 def subset_selector(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Select a subset of the dataframe to then operate on.
+
+    Args:
+        df: The dataframe to select a subset of.
+
+    Returns:
+        The subset of the dataframe.
+    """
     architectures = df.index.get_level_values("architecture").unique().tolist()
     repeats = df.index.get_level_values("repeat").astype(int).unique().tolist()
     configs = df.index.get_level_values("config").astype(int).unique().tolist()

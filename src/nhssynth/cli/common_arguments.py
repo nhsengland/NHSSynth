@@ -10,7 +10,17 @@ from nhssynth.common.constants import *
 
 
 def get_core_parser(overrides=False) -> argparse.ArgumentParser:
-    """Create the core common parser group applied to all modules (and the `pipeline` and `config` options)."""
+    """
+    Create the core common parser group applied to all modules (and the `pipeline` and `config` options).
+    Note that we leverage common titling of the argument group to ensure arguments appear together even if declared separately.
+
+    Args:
+        overrides: whether the arguments declared within are required or not.
+
+    Returns:
+        The parser with the group containing the core arguments attached.
+    """
+    """"""
     core = argparse.ArgumentParser(add_help=False)
     core_grp = core.add_argument_group(title="options")
     core_grp.add_argument(
@@ -36,7 +46,16 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
 
 
 def get_seed_parser(overrides=False) -> argparse.ArgumentParser:
-    """Create the common parser for the seed."""
+    """
+    Create the common parser group for the seed.
+    NB This is separate to the rest of the core arguments as it does not apply to the dashboard module.
+
+    Args:
+        overrides: whether the arguments declared within are required or not.
+
+    Returns:
+        The parser with the group containing the seed argument attached.
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser_grp = parser.add_argument_group(title="options")
     parser_grp.add_argument(
