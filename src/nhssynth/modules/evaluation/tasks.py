@@ -18,8 +18,8 @@ class Task:
     def __init__(self, name: str, run: Callable, supports_aequitas=False, description: str = ""):
         self._name: str = name
         self._run: Callable = run
-        self._supports_aequitas: supports_aequitas = supports_aequitas
-        self._description: description = description
+        self._supports_aequitas: bool = supports_aequitas
+        self._description: str = description
 
     def __str__(self) -> str:
         return f"{self.name}: {self.description}" if self.description else self.name
