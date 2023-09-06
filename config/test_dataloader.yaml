@@ -1,4 +1,5 @@
 seed: 1
 experiment_name: test
 dataloader:
-  collapse_yaml: false
+  collapse_yaml: true
+  write_csv: true

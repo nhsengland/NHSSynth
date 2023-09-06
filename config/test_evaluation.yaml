@@ -1,6 +1,7 @@
 seed: 1
 experiment_name: test
 evaluation:
+  downstream_tasks: true
   column_shape_metrics:
   - KSComplement
   - TVComplement
