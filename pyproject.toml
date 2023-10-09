@@ -30,7 +30,6 @@ setuptools = "^68.0.0"
 networkx = "^3.1"
 pyvis = "^0.3.2"
 sdmetrics = "^0.11.0"
-tornado = "^6.3.3"
 streamlit = "^1.25.0"
 plotly = "^5.16.1"
 umap-learn = "^0.5.3"
@@ -68,6 +67,10 @@ pytest = "^7.3.1"
 pytest-cov = "^4.0.0"
 tox = "^4.0.0"
 mock = "^5.1.0"
+
+
+[tool.poetry.group.security.dependencies]
+pillow = ">=10.0.1"
 
 [tool.pytest.ini_options]
 testpaths = "tests"
