@@ -1113,13 +1113,13 @@ setuptools = ">=40.0"
 
 [[package]]
 name = "griffe"
-version = "0.36.4"
+version = "0.36.5"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "griffe-0.36.4-py3-none-any.whl", hash = "sha256:4e37a723891fa774fafdd67240571801a1d90d0236562c178707e5c37fb3ebe2"},
-    {file = "griffe-0.36.4.tar.gz", hash = "sha256:7b5968f5cc6446637ed0d3ded9de07d6a928f10ccb24116b1dd843635bf1994a"},
+    {file = "griffe-0.36.5-py3-none-any.whl", hash = "sha256:62af1ca94a5ac73259278b7692d300bf1c6bd8f9beeabaeaa229009bb82d09c6"},
+    {file = "griffe-0.36.5.tar.gz", hash = "sha256:b8a672c54b99e958b985b3cfbf1de09e25d686dd8a667aa5ec2d0b1601a542fc"},
 ]
 
 [package.dependencies]
@@ -2251,13 +2251,13 @@ python-legacy = ["mkdocstrings-python-legacy (>=0.2.1)"]
 
 [[package]]
 name = "mkdocstrings-python"
-version = "1.7.2"
+version = "1.7.3"
 description = "A Python handler for mkdocstrings."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mkdocstrings_python-1.7.2-py3-none-any.whl", hash = "sha256:2d005729a90f1b86d6d71fad4953d787140996adec5b00a25fafc6ee48e1b79a"},
-    {file = "mkdocstrings_python-1.7.2.tar.gz", hash = "sha256:75b6af86f9dcdc2d864072d8fed5b1d45ad94dd2ce97843ef52ca87ad53d9b26"},
+    {file = "mkdocstrings_python-1.7.3-py3-none-any.whl", hash = "sha256:2439d6ad3e34f0bb4c643b845fb3c06ae9233499a1736f9fa273424b75cc5894"},
+    {file = "mkdocstrings_python-1.7.3.tar.gz", hash = "sha256:c20128fa96c24dbc6437b10dfedaf33b0415d4503e51ce9ce5e84b271278268e"},
 ]
 
 [package.dependencies]
@@ -5194,5 +5194,5 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.9,<3.9.7 || >3.9.7,<3.12"
-content-hash = "089544192d80597de1cf2ad7c0ea9143c06c3fe3c21147250b3a553c70121321"
+python-versions = ">=3.9, !=3.9.7, <3.12"
+content-hash = "16c9301d9c005495fd801de529f9c5c2887db894431ead96eb4bd7cc19d0f7af"
