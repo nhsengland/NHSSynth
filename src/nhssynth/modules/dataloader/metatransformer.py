@@ -4,9 +4,10 @@ from typing import Any, Callable, Optional, Self, Union
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
+
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.missingness import *
-from tqdm import tqdm
 
 
 class MetaTransformer:

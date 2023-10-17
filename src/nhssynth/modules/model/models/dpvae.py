@@ -1,8 +1,9 @@
 from typing import Optional
 
+from opacus import GradSampleModule
+
 from nhssynth.modules.model.common.dp import DPMixin
 from nhssynth.modules.model.models.vae import VAE
-from opacus import GradSampleModule
 
 
 class DPVAE(DPMixin, VAE):

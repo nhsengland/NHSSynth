@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from nhssynth.common.constants import ACTIVATION_FUNCTIONS
-from nhssynth.modules.model.common.model import Model
 from torch.distributions.normal import Normal
 from tqdm import tqdm
+
+from nhssynth.common.constants import ACTIVATION_FUNCTIONS
+from nhssynth.modules.model.common.model import Model
 
 
 class Encoder(nn.Module):

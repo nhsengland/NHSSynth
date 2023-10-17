@@ -1,4 +1,3 @@
-import argparse
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -7,11 +6,12 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
+
 from nhssynth.common.constants import TRACKED_METRICS
 from nhssynth.common.strings import add_spaces_before_caps
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
-from torch.utils.data import DataLoader, TensorDataset
-from tqdm import tqdm
 
 
 class Model(nn.Module, ABC):

@@ -5,6 +5,7 @@ from importlib.metadata import version as ver
 from typing import Any, Callable
 
 import yaml
+
 from nhssynth.cli.module_setup import MODULE_MAP, PIPELINE, run_pipeline
 from nhssynth.common.dicts import *
 

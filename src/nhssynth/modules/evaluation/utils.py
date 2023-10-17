@@ -3,6 +3,9 @@ import warnings
 from typing import Any
 
 import pandas as pd
+from sdmetrics.single_table import MultiColumnPairsMetric, MultiSingleColumnMetric
+from tqdm import tqdm
+
 from nhssynth.common.constants import (
     CATEGORICAL_PRIVACY_METRICS,
     METRIC_CHOICES,
@@ -11,8 +14,6 @@ from nhssynth.common.constants import (
 )
 from nhssynth.modules.evaluation.aequitas import run_aequitas
 from nhssynth.modules.evaluation.tasks import Task, get_tasks
-from sdmetrics.single_table import MultiColumnPairsMetric, MultiSingleColumnMetric
-from tqdm import tqdm
 
 
 class EvalFrame:

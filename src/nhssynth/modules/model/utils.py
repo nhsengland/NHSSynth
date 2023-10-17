@@ -3,6 +3,7 @@ import itertools
 from typing import Any, Union
 
 import pandas as pd
+
 from nhssynth.modules.model import MODELS
 
 

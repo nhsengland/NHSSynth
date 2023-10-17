@@ -1,4 +1,5 @@
 import pytest
+
 from nhssynth.common.dicts import *
 
 

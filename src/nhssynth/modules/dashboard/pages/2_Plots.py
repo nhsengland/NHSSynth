@@ -7,12 +7,13 @@ import plotly.express as px
 import plotly.graph_objs as go
 import streamlit as st
 import umap
+from sklearn.manifold import TSNE
+
 from nhssynth.modules.dashboard.utils import (
     hide_streamlit_content,
     id_selector,
     subset_selector,
 )
-from sklearn.manifold import TSNE
 
 
 def triangle(matrix):

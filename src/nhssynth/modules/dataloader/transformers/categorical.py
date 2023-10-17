@@ -2,8 +2,9 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
+
+from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
 
 
 class OHECategoricalTransformer(ColumnTransformer):

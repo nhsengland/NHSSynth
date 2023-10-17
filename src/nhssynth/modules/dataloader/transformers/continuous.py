@@ -4,9 +4,10 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.mixture import BayesianGaussianMixture
+
+from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
 
 
 class ClusterContinuousTransformer(ColumnTransformer):

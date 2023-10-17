@@ -5,6 +5,8 @@ from typing import Any, Iterator, Optional, Union
 import numpy as np
 import pandas as pd
 import yaml
+from pandas.core.tools.datetimes import _guess_datetime_format_for_array
+
 from nhssynth.common.dicts import filter_dict, get_key_by_value
 from nhssynth.modules.dataloader.constraints import ConstraintGraph
 from nhssynth.modules.dataloader.missingness import (
@@ -13,7 +15,6 @@ from nhssynth.modules.dataloader.missingness import (
 )
 from nhssynth.modules.dataloader.transformers import *
 from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
-from pandas.core.tools.datetimes import _guess_datetime_format_for_array
 
 
 class MetaData:

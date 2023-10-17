@@ -4,8 +4,9 @@ from typing import Optional
 
 import numpy as np
 import torch.nn as nn
-from nhssynth.modules.model.common.model import Model
 from opacus import GradSampleModule, PrivacyEngine
+
+from nhssynth.modules.model.common.model import Model
 
 
 class DPMixin(ABC):

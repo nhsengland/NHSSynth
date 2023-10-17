@@ -1,9 +1,10 @@
 import pandas as pd
-from nhssynth.modules.evaluation.tasks import Task
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+
+from nhssynth.modules.evaluation.tasks import Task
 
 
 def run(dataset) -> tuple[pd.DataFrame, dict]:
