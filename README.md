@@ -83,7 +83,7 @@ If you intend on contributing or working with the codebase directly, or if you w
 
       You can now instantiate a virtual environment in the usual way (e.g. via `python -m venv nhssynth`) and activate it via `source nhssynth/bin/activate` before moving to the next step
 
-4. Install the project dependencies with `poetry install` (optionally install `--with aux` to work with the [auxiliary notebooks](auxiliary/), `--with docs` to work with the [documentation](docs/), and/or `--with test` to be able to run the [testing suite](tests/))
+4. Install the project dependencies with `poetry install` (add optional flags: `--with dev` when developing and [testing](tests/) the package, `--with aux` to work with the [auxiliary notebooks](auxiliary/), `--with docs` to work with the [documentation](docs/))
 5. You can then interact with the package in one of two ways:
     - Via the [CLI](src/nhssynth/cli/) module, which is accessed using the `nhssynth` command, e.g.
       
