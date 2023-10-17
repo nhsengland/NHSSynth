@@ -7,10 +7,10 @@ from pyvis.network import Network
 
 
 class ConstraintGraph:
-    _VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-    _POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
-    _BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
-    _OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
+    VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
+    POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+    BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
+    OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
 
     class Constraint:
         def __init__(
@@ -46,7 +46,7 @@ class ConstraintGraph:
             else:
                 reference = float(self.reference)
 
-            adherence = self._OPERATOR_TO_PANDAS[self.operator](reference).astype(int)
+            adherence = self.OPERATOR_TO_PANDAS[self.operator](reference).astype(int)
             adherence[reference.isna()] = 1
             # When there is no reference, i.e. admidate and disdate, constraint is disdate >= admidate and admidate is null, we assume we want to keep the ability to generate disdates without a reference admidate, so we require a new column that inherits the constraints of the base column except for this constraint
             diff = abs(base[adherence] - reference[adherence])
@@ -78,6 +78,7 @@ class ConstraintGraph:
         self.validated_constraint_strings = self.validate_constraint_strings()
         self.graph = self.build_graph(self.validated_constraint_strings)
         self.minimal_constraints = self.determine_minimal_constraints()
+        print(self.minimal_constraints)
         self.minimal_graph = self.build_graph(
             [str(c).split(" ") for c in self.minimal_constraints if isinstance(c, self.Constraint)]
             + [
@@ -99,16 +100,16 @@ class ConstraintGraph:
             raise ValueError(f"Constraint refers to a column that does not exist ('{column}').")
 
     def _validate_positivity(self, positivity: str) -> None:
-        if positivity not in self._POSITIVITY_TO_OPERATOR:
+        if positivity not in self.POSITIVITY_TO_OPERATOR:
             raise ValueError(f"Constraint has an invalid positivity specification ('{positivity}').")
 
     def _validate_simple_constraint(self, base: str, positivity: str) -> tuple[str, str, str]:
         self._column_exists(base)
         self._validate_positivity(positivity)
-        return (base, self._POSITIVITY_TO_OPERATOR[positivity], "0")
+        return (base, self.POSITIVITY_TO_OPERATOR[positivity], "0")
 
     def _validate_operator(self, base: str, operator: str) -> None:
-        if operator not in self._VALID_OPERATORS:
+        if operator not in self.VALID_OPERATORS:
             raise ValueError(f"Constraint has an invalid operator ('{operator}').")
         if self._metadata[base].dtype.kind == "O":
             raise ValueError(
@@ -130,7 +131,7 @@ class ConstraintGraph:
             raise ValueError(
                 f"Constraint's reference is not a valid range specification ('{reference}'), it must be of the form '[' or '(' + 'a,b' + ']' or ')'."
             )
-        return self._BRACKET_TO_OPERATOR[reference[0]], self._BRACKET_TO_OPERATOR[reference[-1]]
+        return self.BRACKET_TO_OPERATOR[reference[0]], self.BRACKET_TO_OPERATOR[reference[-1]]
 
     def _validate_constant_dtype(self, base: str, reference: str) -> None:
         if self._metadata[base].dtype.kind == "O":
