@@ -11,25 +11,25 @@
       
       
       
-        <link rel="prev" href="../run/">
+        <link rel="prev" href="../modules/">
       
       
-        <link rel="next" href="../../dataloader/">
+        <link rel="next" href="../model_card/">
       
       
-      <link rel="icon" href="../../../../assets/NHS.svg">
+      <link rel="icon" href="../assets/NHS.svg">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.6">
     
     
       
-        <title>utils - Generating Useful Synthetic Data</title>
+        <title>Development Guide - Generating Useful Synthetic Data</title>
       
     
     
-      <link rel="stylesheet" href="../../../../assets/stylesheets/main.35e1ed30.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.35e1ed30.min.css">
       
         
-        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.356b1318.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.356b1318.min.css">
       
       
 
@@ -48,13 +48,13 @@
       
     
     
-      <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../../../css/style.css">
+      <link rel="stylesheet" href="../css/style.css">
     
-      <link rel="stylesheet" href="../../../../css/mkdocstrings.css">
+      <link rel="stylesheet" href="../css/mkdocstrings.css">
     
-    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -83,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nhssynth.modules.dashboard.utils" class="md-skip">
+        <a href="#development-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -99,9 +99,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../../.." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
+    <a href=".." title="Generating Useful Synthetic Data" class="md-header__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../assets/NHS.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              utils
+              Development Guide
             
           </span>
         </div>
@@ -223,7 +223,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
     
@@ -238,11 +238,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../../../modules/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../modules/" class="md-tabs__link">
           
   
   User Guide
@@ -256,13 +258,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../../cli/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../reference/cli/" class="md-tabs__link">
           
   
   Code Reference
@@ -303,9 +303,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../../.." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
+    <a href=".." title="Generating Useful Synthetic Data" class="md-nav__button md-logo" aria-label="Generating Useful Synthetic Data" data-md-component="logo">
       
-  <img src="../../../../assets/NHS.svg" alt="logo">
+  <img src="../assets/NHS.svg" alt="logo">
 
     </a>
     Generating Useful Synthetic Data
@@ -331,7 +331,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -340,132 +340,6 @@
   
 
       </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-    
-    
-    
-    
-    
-      
-      
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
-            
-  
-  <span class="md-ellipsis">
-    User Guide
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            User Guide
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../modules/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Modules
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../development_guide/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Development Guide
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../model_card/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Model Card
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../secure_mode/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Secure Mode
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -490,7 +364,315 @@
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modules/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modules
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Development Guide
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Development Guide
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dev-environment-setup" class="md-nav__link">
+    Dev Environment Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Dev Environment Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    Python
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poetry" class="md-nav__link">
+    Poetry
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#package-installation" class="md-nav__link">
+    Package Installation
+  </a>
+  
+    <nav class="md-nav" aria-label="Package Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secure-mode" class="md-nav__link">
+    Secure Mode
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coding-practices" class="md-nav__link">
+    Coding Practices
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#style" class="md-nav__link">
+    Style
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    Documentation
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    Testing
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-tests" class="md-nav__link">
+    Adding Tests
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releases" class="md-nav__link">
+    Releases
+  </a>
+  
+    <nav class="md-nav" aria-label="Releases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#version-management" class="md-nav__link">
+    Version Management
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-and-publishing-to-pypi" class="md-nav__link">
+    Building and Publishing to PyPI
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    Continuous Integration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-and-vulnerability-management" class="md-nav__link">
+    Security and Vulnerability Management
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_card/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Card
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secure_mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Secure Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    
+    
+      
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -504,7 +686,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Code Reference
@@ -531,7 +713,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../cli/" class="md-nav__link ">
+            <a href="../reference/cli/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -561,7 +743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/common_arguments/" class="md-nav__link">
+      <a href="../reference/cli/common_arguments/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -581,7 +763,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/config/" class="md-nav__link">
+      <a href="../reference/cli/config/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -601,7 +783,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/model_arguments/" class="md-nav__link">
+      <a href="../reference/cli/model_arguments/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -621,7 +803,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/module_arguments/" class="md-nav__link">
+      <a href="../reference/cli/module_arguments/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -641,7 +823,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/module_setup/" class="md-nav__link">
+      <a href="../reference/cli/module_setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -661,7 +843,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/run/" class="md-nav__link">
+      <a href="../reference/cli/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -703,7 +885,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../common/" class="md-nav__link ">
+            <a href="../reference/common/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -733,7 +915,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../common/common/" class="md-nav__link">
+      <a href="../reference/common/common/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -753,7 +935,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../common/constants/" class="md-nav__link">
+      <a href="../reference/common/constants/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -773,7 +955,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../common/debugging/" class="md-nav__link">
+      <a href="../reference/common/debugging/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -793,7 +975,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../common/dicts/" class="md-nav__link">
+      <a href="../reference/common/dicts/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -813,7 +995,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../common/io/" class="md-nav__link">
+      <a href="../reference/common/io/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -833,7 +1015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../common/strings/" class="md-nav__link">
+      <a href="../reference/common/strings/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -859,25 +1041,23 @@
                 
   
   
-    
-  
   
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
         
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../" class="md-nav__link ">
+            <a href="../reference/modules/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -894,7 +1074,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_3">
             <span class="md-nav__icon md-icon"></span>
             modules
@@ -905,25 +1085,23 @@
                 
   
   
-    
-  
   
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_1" >
         
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../reference/modules/dashboard/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -940,7 +1118,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_3_1">
             <span class="md-nav__icon md-icon"></span>
             dashboard
@@ -953,7 +1131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Upload/" class="md-nav__link">
+      <a href="../reference/modules/dashboard/Upload/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -973,7 +1151,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../io/" class="md-nav__link">
+      <a href="../reference/modules/dashboard/io/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1007,7 +1185,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../pages/" class="md-nav__link ">
+            <a href="../reference/modules/dashboard/pages/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1037,7 +1215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../pages/1_Tables/" class="md-nav__link">
+      <a href="../reference/modules/dashboard/pages/1_Tables/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1057,7 +1235,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../pages/2_Plots/" class="md-nav__link">
+      <a href="../reference/modules/dashboard/pages/2_Plots/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1077,7 +1255,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../pages/3_Experiment_Configurations/" class="md-nav__link">
+      <a href="../reference/modules/dashboard/pages/3_Experiment_Configurations/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1105,7 +1283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../run/" class="md-nav__link">
+      <a href="../reference/modules/dashboard/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1123,27 +1301,9 @@
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    utils
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../reference/modules/dashboard/utils/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1152,52 +1312,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#nhssynth.modules.dashboard.utils" class="md-nav__link">
-    utils
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nhssynth.modules.dashboard.utils.hide_streamlit_content" class="md-nav__link">
-    hide_streamlit_content()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nhssynth.modules.dashboard.utils.id_selector" class="md-nav__link">
-    id_selector()
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nhssynth.modules.dashboard.utils.subset_selector" class="md-nav__link">
-    subset_selector()
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1231,7 +1345,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dataloader/" class="md-nav__link ">
+            <a href="../reference/modules/dataloader/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1261,7 +1375,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/constraints/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/constraints/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1281,7 +1395,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/io/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/io/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1301,7 +1415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/metadata/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/metadata/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1321,7 +1435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/metatransformer/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/metatransformer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1341,7 +1455,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/missingness/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/missingness/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1361,7 +1475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/run/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1395,7 +1509,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dataloader/transformers/" class="md-nav__link ">
+            <a href="../reference/modules/dataloader/transformers/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1425,7 +1539,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/transformers/base/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/transformers/base/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1445,7 +1559,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/transformers/categorical/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/transformers/categorical/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1465,7 +1579,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/transformers/continuous/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/transformers/continuous/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1485,7 +1599,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dataloader/transformers/datetime/" class="md-nav__link">
+      <a href="../reference/modules/dataloader/transformers/datetime/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1535,7 +1649,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../evaluation/" class="md-nav__link ">
+            <a href="../reference/modules/evaluation/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1565,7 +1679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/aequitas/" class="md-nav__link">
+      <a href="../reference/modules/evaluation/aequitas/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1585,7 +1699,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/io/" class="md-nav__link">
+      <a href="../reference/modules/evaluation/io/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1605,7 +1719,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/metrics/" class="md-nav__link">
+      <a href="../reference/modules/evaluation/metrics/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1625,7 +1739,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/run/" class="md-nav__link">
+      <a href="../reference/modules/evaluation/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1645,7 +1759,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/tasks/" class="md-nav__link">
+      <a href="../reference/modules/evaluation/tasks/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1665,7 +1779,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../evaluation/utils/" class="md-nav__link">
+      <a href="../reference/modules/evaluation/utils/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1707,7 +1821,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../model/" class="md-nav__link ">
+            <a href="../reference/modules/model/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1751,7 +1865,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../model/common/" class="md-nav__link ">
+            <a href="../reference/modules/model/common/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1781,7 +1895,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/common/dp/" class="md-nav__link">
+      <a href="../reference/modules/model/common/dp/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1801,7 +1915,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/common/model/" class="md-nav__link">
+      <a href="../reference/modules/model/common/model/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1829,7 +1943,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/io/" class="md-nav__link">
+      <a href="../reference/modules/model/io/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1863,7 +1977,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../model/models/" class="md-nav__link ">
+            <a href="../reference/modules/model/models/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1893,7 +2007,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/models/dpvae/" class="md-nav__link">
+      <a href="../reference/modules/model/models/dpvae/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1913,7 +2027,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/models/vae/" class="md-nav__link">
+      <a href="../reference/modules/model/models/vae/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1941,7 +2055,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/run/" class="md-nav__link">
+      <a href="../reference/modules/model/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1961,7 +2075,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../model/utils/" class="md-nav__link">
+      <a href="../reference/modules/model/utils/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2003,7 +2117,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../plotting/" class="md-nav__link ">
+            <a href="../reference/modules/plotting/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -2033,7 +2147,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plotting/io/" class="md-nav__link">
+      <a href="../reference/modules/plotting/io/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2053,7 +2167,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plotting/plots/" class="md-nav__link">
+      <a href="../reference/modules/plotting/plots/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2073,7 +2187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plotting/run/" class="md-nav__link">
+      <a href="../reference/modules/plotting/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2115,7 +2229,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../structure/" class="md-nav__link ">
+            <a href="../reference/modules/structure/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -2145,7 +2259,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../structure/run/" class="md-nav__link">
+      <a href="../reference/modules/structure/run/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2197,7 +2311,7 @@
                   
 
   
-    <a href="https://github.com/nhsx/NHSSynth/edit/main/src/nhssynth/modules/dashboard/utils.py" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsx/NHSSynth/edit/main/docs/development_guide.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
     </a>
@@ -2206,328 +2320,118 @@
     
       
     
-    <a href="https://github.com/nhsx/NHSSynth/raw/main/src/nhssynth/modules/dashboard/utils.py" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsx/NHSSynth/raw/main/docs/development_guide.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5Z"/></svg>
     </a>
   
 
 
-  <h1>utils</h1>
-
-<div class="doc doc-object doc-module">
-
-
-
-<a id="nhssynth.modules.dashboard.utils"></a>
-  <div class="doc doc-contents first">
-
-  
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-
-
-<h2 id="nhssynth.modules.dashboard.utils.hide_streamlit_content" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">hide_streamlit_content</span><span class="p">()</span></code>
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Hide the footer message and deploy button in Streamlit.</p>
-
-          <details class="quote">
-            <summary>Source code in <code>src/nhssynth/modules/dashboard/utils.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
-<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
-<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-0-10">10</a></span>
-<span class="normal"><a href="#__codelineno-0-11">11</a></span>
-<span class="normal"><a href="#__codelineno-0-12">12</a></span>
-<span class="normal"><a href="#__codelineno-0-13">13</a></span>
-<span class="normal"><a href="#__codelineno-0-14">14</a></span>
-<span class="normal"><a href="#__codelineno-0-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="k">def</span> <span class="nf">hide_streamlit_content</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="sd">    Hide the footer message and deploy button in Streamlit.</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a>    <span class="n">hide_streamlit_style</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="s2">    &lt;style&gt;</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="s2">    footer {visibility: hidden;}</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="s2">    .stDeployButton {visibility: hidden;}</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="s2">    &lt;/style&gt;</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="s2">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a>    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">hide_streamlit_style</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
-
-</div>
-
-
-<div class="doc doc-object doc-function">
-
-
-
-
-<h2 id="nhssynth.modules.dashboard.utils.id_selector" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">id_selector</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Select an ID from the dataframe to then operate on.</p>
-
-
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>df</code></td>
-          <td>
-                <code><span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>The dataframe to select an ID from.</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="pandas.Series">Series</span></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>The dataset subset to only the row corresponding to the ID.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-          <details class="quote">
-            <summary>Source code in <code>src/nhssynth/modules/dashboard/utils.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-18">18</a></span>
-<span class="normal"><a href="#__codelineno-0-19">19</a></span>
-<span class="normal"><a href="#__codelineno-0-20">20</a></span>
-<span class="normal"><a href="#__codelineno-0-21">21</a></span>
-<span class="normal"><a href="#__codelineno-0-22">22</a></span>
-<span class="normal"><a href="#__codelineno-0-23">23</a></span>
-<span class="normal"><a href="#__codelineno-0-24">24</a></span>
-<span class="normal"><a href="#__codelineno-0-25">25</a></span>
-<span class="normal"><a href="#__codelineno-0-26">26</a></span>
-<span class="normal"><a href="#__codelineno-0-27">27</a></span>
-<span class="normal"><a href="#__codelineno-0-28">28</a></span>
-<span class="normal"><a href="#__codelineno-0-29">29</a></span>
-<span class="normal"><a href="#__codelineno-0-30">30</a></span>
-<span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span>
-<span class="normal"><a href="#__codelineno-0-38">38</a></span>
-<span class="normal"><a href="#__codelineno-0-39">39</a></span>
-<span class="normal"><a href="#__codelineno-0-40">40</a></span>
-<span class="normal"><a href="#__codelineno-0-41">41</a></span>
-<span class="normal"><a href="#__codelineno-0-42">42</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="k">def</span> <span class="nf">id_selector</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="sd">    Select an ID from the dataframe to then operate on.</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">        df: The dataframe to select an ID from.</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="sd">        The dataset subset to only the row corresponding to the ID.</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a>    <span class="n">architecture</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a>        <span class="s2">&quot;Select architecture to display&quot;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;architecture&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30"></a>    <span class="p">)</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31"></a>    <span class="c1"># Different architectures may have different numbers of repeats and configs</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32"></a>    <span class="n">repeats</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">architecture</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;repeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33"></a>    <span class="n">configs</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">architecture</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">repeats</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a>        <span class="n">repeat</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span><span class="s2">&quot;Select repeat to display&quot;</span><span class="p">,</span> <span class="n">repeats</span><span class="p">)</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a>        <span class="n">repeat</span> <span class="o">=</span> <span class="n">repeats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">configs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a>        <span class="n">config</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span><span class="s2">&quot;Select configuration to display&quot;</span><span class="p">,</span> <span class="n">configs</span><span class="p">)</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a>        <span class="n">config</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">architecture</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span> <span class="n">config</span><span class="p">)]</span>
-</span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
-
-</div>
-
-
-<div class="doc doc-object doc-function">
-
-
-
-
-<h2 id="nhssynth.modules.dashboard.utils.subset_selector" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">subset_selector</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Select a subset of the dataframe to then operate on.</p>
-
-
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>df</code></td>
-          <td>
-                <code><span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>The dataframe to select a subset of.</p>
-            </div>
-          </td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="pandas.DataFrame">DataFrame</span></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>The subset of the dataframe.</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-          <details class="quote">
-            <summary>Source code in <code>src/nhssynth/modules/dashboard/utils.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-45">45</a></span>
-<span class="normal"><a href="#__codelineno-0-46">46</a></span>
-<span class="normal"><a href="#__codelineno-0-47">47</a></span>
-<span class="normal"><a href="#__codelineno-0-48">48</a></span>
-<span class="normal"><a href="#__codelineno-0-49">49</a></span>
-<span class="normal"><a href="#__codelineno-0-50">50</a></span>
-<span class="normal"><a href="#__codelineno-0-51">51</a></span>
-<span class="normal"><a href="#__codelineno-0-52">52</a></span>
-<span class="normal"><a href="#__codelineno-0-53">53</a></span>
-<span class="normal"><a href="#__codelineno-0-54">54</a></span>
-<span class="normal"><a href="#__codelineno-0-55">55</a></span>
-<span class="normal"><a href="#__codelineno-0-56">56</a></span>
-<span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="k">def</span> <span class="nf">subset_selector</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">    Select a subset of the dataframe to then operate on.</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">        df: The dataframe to select a subset of.</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="sd">        The subset of the dataframe.</span>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a>    <span class="n">architectures</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;architecture&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>    <span class="n">repeats</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;repeat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="n">configs</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>    <span class="n">selected_architectures</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">multiselect</span><span class="p">(</span>
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a>        <span class="s2">&quot;Select architectures to display&quot;</span><span class="p">,</span> <span class="n">architectures</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">architectures</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a>    <span class="p">)</span>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a>    <span class="n">selected_repeats</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">multiselect</span><span class="p">(</span><span class="s2">&quot;Select repeats to display&quot;</span><span class="p">,</span> <span class="n">repeats</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">repeats</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a>    <span class="n">selected_configs</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">multiselect</span><span class="p">(</span><span class="s2">&quot;Select configurations to display&quot;</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">configs</span><span class="p">)</span>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a>    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">selected_architectures</span><span class="p">,</span> <span class="n">selected_repeats</span><span class="p">,</span> <span class="n">selected_configs</span><span class="p">)]</span>
-</span></code></pre></div></td></tr></table></div>
-          </details>
-  </div>
-
-</div>
-
-
-
-  </div>
-
-  </div>
-
-</div>
+<h1 id="development-guide">Development Guide</h1>
+<p><em>This document aims to provide a comprehensive guide to contributing to the package. Good knowledge of Python development is assumed. Some ways of working are subjective and preferential; as such we try to be as minimal in our proscription of other methods as possible.</em></p>
+<h2 id="dev-environment-setup">Dev Environment Setup</h2>
+<h3 id="python">Python</h3>
+<p>The package currently supports major versions 3.9, 3.10 and 3.11 of Python. We recommend installing all of these versions, though at minimum the latest supported version should be used. Many people use <a href="https://github.com/pyenv/pyenv"><code>pyenv</code></a> for managing multiple python versions, on MacOS <a href="https://brew.sh">homebrew</a> is a good, less invasive option for this (provided you then use a virtual environment manager too). For virtual environment management, we recommend <a href="https://docs.python.org/3/library/venv.html"><code>venv</code></a>, but <a href="https://docs.conda.io/en/latest/">conda</a> or some other similar system would suffice (note that in the section below it may not be necessary to use any specific virtual environment management at all).</p>
+<h3 id="poetry">Poetry</h3>
+<p>We use <a href="https://python-poetry.org/">Poetry</a> to manage dependencies and the actual packaging and publishing of <code>NHSSynth</code> to <a href="https://pypi.org">PyPI</a>. Poetry is a more robust alternative to a <code>requirements.txt</code> file, allowing for grouped dependencies and advanced build options. Rather than freezing a specific <code>pip</code> state, Poetry only specifies the top-level dependencies and allows for the installation of the latest compatible versions of the full dependency tree. <em>See the <a href="../pyproject.toml"><code>pyproject.toml</code></a> in the GitHub repository and Poetry's documentation for further context.</em></p>
+<p>Once Poetry is installed (in your preferred way per the instructions <a href="https://python-poetry.org/docs/#installation">on their website</a>), you can choose one of two options:</p>
+<ol>
+<li>Allow <code>poetry</code> to control virtual environments in their <a href="https://python-poetry.org/docs/managing-environments/">proprietary way</a>), such that when you install and develop the package poetry will automatically create a virtual environment for you.</li>
+<li>
+<p>Change <code>poetry</code>'s configuration to manage your own virtual environments:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>poetry<span class="w"> </span>config<span class="w"> </span>virtualenvs.create<span class="w"> </span><span class="nb">false</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>poetry<span class="w"> </span>config<span class="w"> </span>virtualenvs.in-project<span class="w"> </span><span class="nb">false</span>
+</span></code></pre></div>
+<p>In this setup, a virtual environment can be be instantiated and activated in whichever way you prefer. For example, using <code>venv</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python3.11<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>nhssynth-3.11
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">source</span><span class="w"> </span>nhssynth-3.11/bin/activate
+</span></code></pre></div>
+</li>
+</ol>
+<h3 id="package-installation">Package Installation</h3>
+<p>At this point, the project dependencies can be installed via <code>poetry install --with dev</code> (add optional flags: <code>--with aux</code> to work with the <a href="../auxiliary/">auxiliary notebooks</a>, <code>--with docs</code> to work with the <a href="../docs/">documentation</a>). This will install the package in editable mode, meaning that changes to the source code will be reflected in the installed package without needing to reinstall it. <em>Note that if you are using your own virtual environment, you will need to activate it before running this command.</em></p>
+<p>You can then interact with the package in one of two ways:
+1. Via the <a href="src/nhssynth/cli/">CLI</a> module, which is accessed using the <code>nhssynth</code> command, e.g.</p>
+<div class="language-text highlight"><pre><span></span><code>```bash
+poetry run nhssynth ...
+```
+
+*Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
+</code></pre></div>
+<ol>
+<li>Through directly importing parts of the package to use in an existing project (<code>from nhssynth.modules... import ...</code>).</li>
+</ol>
+<h4 id="secure-mode">Secure Mode</h4>
+<p>Note that in order to train a generator in <em>secure mode</em> (see the <a href="https://nhsx.github.io/NHSSynth/secure_mode/">documentation</a> for details) the PyTorch extension package <a href="https://github.com/pytorch/csprng"><code>csprng</code></a> must be installed separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:pytorch/csprng.git
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>csprng
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>git<span class="w"> </span>branch<span class="w"> </span>release<span class="w"> </span><span class="s2">&quot;v0.2.2-rc1&quot;</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>git<span class="w"> </span>checkout<span class="w"> </span>release
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>python<span class="w"> </span>setup.py<span class="w"> </span>install
+</span></code></pre></div>
+<h2 id="coding-practices">Coding Practices</h2>
+<h3 id="style">Style</h3>
+<p>We use <a href="https://black.readthedocs.io/en/stable/"><code>black</code></a> for code formatting. This is a fairly opinionated formatter, but it is widely used and has a good reputation. We also use <a href="https://pycqa.github.io/isort/"><code>isort</code></a> to manage imports. Both of these tools are run automatically via a <code>pre-commit</code> hook. Ensure you have installed the package with the <code>dev</code> group of dependencies and then run the following command to install the hooks:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pre-commit<span class="w"> </span>install
+</span></code></pre></div>
+<p><em>Note that you may need to pre-pend this command with <code>poetry run</code> if you are not using your own virtual environment.</em></p>
+<p><code>black</code> and <code>isort</code> are also run as part of the CI workflow discussed below.</p>
+<h3 id="documentation">Documentation</h3>
+<p>There should be Google-style docstrings on all non-trivial functions and classes. Ideally a docstring should take the form:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">arg1</span><span class="p">:</span> <span class="n">type1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">:</span> <span class="n">type2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">returntype</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="sd">    One-line summary of the function.</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="sd">    AND / OR</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="sd">    Longer description of the function, including any caveats or assumptions.</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="sd">    Args:</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="sd">        arg1: Description of arg1.</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="sd">        arg2: Description of arg2.</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="sd">    Returns:</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="sd">        Description of the return value.</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="o">...</span>
+</span></code></pre></div>
+<p>These docstrings are then <a href="../docs/scripts/gen_ref_pages.py">compiled</a> into a full API documentation tree as part of a larger MkDocs documentation site hosted via GitHub. This process is derived from <a href="https://squidfunk.github.io/mkdocs-material/getting-started/">this tutorial</a>.</p>
+<p>The MkDocs page is built using the <code>mkdocs-material</code> theme. The documentation is built and hosted <a href="../.github/workflows/build_mkdocs.yaml">automatically</a> via GitHub Pages.</p>
+<p>The other parts of this site comprise markdown documents in the <a href="../docs/">docs</a> folder. Adding new pages is handled in the <a href="../mkdocs.yml"><code>mkdocs.yml</code></a> file as in any other Material MkDocs site. See <a href="https://squidfunk.github.io/mkdocs-material/setup/">their documentation</a> if more complex changes to the site are required.</p>
+<h2 id="testing">Testing</h2>
+<p>We use <a href="https://tox.readthedocs.io/en/latest/"><code>tox</code></a> to manage the testing suite. This allows us to test the package against multiple versions of Python, and to run the tests in a clean environment. To run the tests, simply execute <code>tox</code> in the root directory of the repository. This will run the tests against all supported versions of Python. To run the tests against a specific version of Python, use <code>tox -e py39</code> (or <code>py310</code> or <code>py311</code>).</p>
+<h3 id="configuration">Configuration</h3>
+<p>See the <a href="../tox.ini">tox.ini</a> file for more information on the testing configuration. We follow the <a href="https://python-poetry.org/docs/faq/#usecase-2">Poetry documentation on <code>tox</code> support</a> to ensure that for each version of Python, <code>tox</code> will create an <code>sdist</code> package of the project and use <code>pip</code> to install it in a fresh environment. Thus, dependencies are resolved by pip in the first place and then afterwards updated to the locked dependencies in <a href="../poetry.lock"><code>poetry.lock</code></a> by running <code>poetry install ...</code>. The tests are then run using <code>poetry pytest</code>, which is configured in the <a href="../pyproject.toml">pyproject.toml</a> file. This configuration is fairly minimal: simply specifying the testing directory as the <a href="../tests/">tests</a> folder and filtering some known warnings.</p>
+<h3 id="adding-tests">Adding Tests</h3>
+<p>We use the <code>pytest</code> framework for testing. The testing directory structure mirrors that of <a href="../src/"><code>src</code></a>. The usual testing practices apply.</p>
+<h2 id="releases">Releases</h2>
+<h3 id="version-management">Version Management</h3>
+<p>The package's version should be updated following the <a href="https://semver.org/spec/v2.0.0.html">semantic versioning</a> framework. The package is currently in a <em>pre-release</em> state, such that major version 1.0.0 should only be reached once the package is functionally complete and stable.</p>
+<p>To update the package, we can use Poetry's <code>version</code> command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>poetry<span class="w"> </span>version<span class="w"> </span>&lt;version&gt;
+</span></code></pre></div>
+<p>We can then commit and push the changes to the version file, and create a new tag:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>git<span class="w"> </span>add<span class="w"> </span>pyproject.toml
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Bump version to &lt;version&gt;&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>git<span class="w"> </span>push
+</span></code></pre></div>
+<p>We should then tag the release using GitHub's CLI:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>gh<span class="w"> </span>release<span class="w"> </span>create<span class="w"> </span>&lt;version&gt;<span class="w"> </span>--generate-notes
+</span></code></pre></div>
+<p>This will create a new release on GitHub, and will automatically generate a changelog based on the commit messages and PR's closed since the last release. This changelog can then be edited to add more detail if necessary.</p>
+<h3 id="building-and-publishing-to-pypi">Building and Publishing to PyPI</h3>
+<p>As mentioned above, Poetry offers not only dependency management, but also a simple way to build and distribute the package.</p>
+<p>To build the package, we can use the <code>build</code> command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>poetry<span class="w"> </span>build
+</span></code></pre></div>
+<p>This will create a <code>dist</code> folder containing the built package. To publish this to PyPI, we can use the <code>publish</code> command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>poetry<span class="w"> </span>publish
+</span></code></pre></div>
+<p>This will prompt for PyPI credentials, and then publish the package. <em>Note that this will only work if you have been added as a Maintainer of the package on PyPI.</em></p>
+<p><em>It might be preferable at some point in the future to set up Trusted Publisher Management via OpenID Connect (OIDC) to allow for automated publishing of the package via a GitHub workflow. See the "Publishing" tab of <code>NHSSynth</code>'s project management panel on PyPI to set this up.</em></p>
+<h2 id="continuous-integration">Continuous Integration</h2>
+<p>We use GitHub Actions for continuous integration. The configuration for this can be found in the <a href="../.github/workflows/"><code>.github/workflows</code></a> folder. The CI workflow is triggered on every push to the <code>main</code> branch, and runs the tests against all supported versions of Python. It also runs <code>black</code> and <code>isort</code> to check that the code is formatted correctly, and builds the documentation site.</p>
+<p>There are also scripts to update the dynamic badges in the <a href="../README.md"><code>README</code></a>. These work via a gist associated with the repository. It is not easy to transfer ownership of this process, so if they break please feel free to <a href="mailto:h.wilde@ucl.ac.uk">contact me</a>.</p>
+<h2 id="security-and-vulnerability-management">Security and Vulnerability Management</h2>
+<p>The GitHub repository for the package has Dependabot, code scanning, and other security features enabled. These should be monitored continuously and any issues resolved as soon as possible. When issues of this type require a specific version of a dependency to be specified, the version should be updated as part of the <code>security</code> group of dependencies (i.e. with <code>poetry add &lt;package&gt; --group security</code>) and a new release created (see above).</p>
 
   <hr>
 <div class="md-source-file">
@@ -2566,7 +2470,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../run/" class="md-footer__link md-footer__link--prev" aria-label="Previous: run">
+          <a href="../modules/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Modules">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -2576,20 +2480,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                run
+                Modules
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../dataloader/" class="md-footer__link md-footer__link--next" aria-label="Next: dataloader">
+          <a href="../model_card/" class="md-footer__link md-footer__link--next" aria-label="Next: Model Card">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                dataloader
+                Model Card
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2618,10 +2522,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "search.share", "navigation.footer", "content.action.view", "content.action.edit", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../../assets/javascripts/bundle.aecac24b.min.js"></script>
+      <script src="../assets/javascripts/bundle.aecac24b.min.js"></script>
       
     
   </body>
