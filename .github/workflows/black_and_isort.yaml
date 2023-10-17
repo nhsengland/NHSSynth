@@ -14,4 +14,4 @@ jobs:
       with:
         jupyter: true
     - name: Run isort
-      uses: isort/isort-action@stable
+      uses: isort/isort-action@v1
