@@ -1,6 +1,6 @@
 # Development Guide
 
-*This document aims to provide a comprehensive guide to contributing to the package. Good knowledge of Python development is assumed. Some ways of working are subjective and preferential; as such we try to be as minimal in our proscription of other methods as possible.*
+*This document aims to provide a comprehensive set of instructions for continuing development of this package. Good knowledge of Python development is assumed. Some ways of working are subjective and preferential; as such we try to be as minimal in our proscription of other methods as possible.*
 
 ## Dev Environment Setup
 

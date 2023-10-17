@@ -163,7 +163,7 @@ class MetaTransformer:
                     return working_column.astype(dtype.name.capitalize())
                 else:
                     return working_column.astype(dtype)
-        except:
+        except ValueError:
             raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{working_column.name}'")
 
     def apply_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
