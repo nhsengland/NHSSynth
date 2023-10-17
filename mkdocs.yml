@@ -8,9 +8,9 @@ nav:
     - Home: index.md
     - User Guide:
         - Modules: modules.md
-        - Development Guide: development_guide.md
         - Model Card: model_card.md
         - Secure Mode: secure_mode.md
+    - Development Guide: development_guide.md
     - Code Reference: reference/
 
 theme:

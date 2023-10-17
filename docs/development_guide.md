@@ -35,6 +35,7 @@ Once Poetry is installed (in your preferred way per the instructions [on their w
 At this point, the project dependencies can be installed via `poetry install --with dev` (add optional flags: `--with aux` to work with the [auxiliary notebooks](../auxiliary/), `--with docs` to work with the [documentation](../docs/)). This will install the package in editable mode, meaning that changes to the source code will be reflected in the installed package without needing to reinstall it. *Note that if you are using your own virtual environment, you will need to activate it before running this command.*
 
 You can then interact with the package in one of two ways:
+
 1. Via the [CLI](src/nhssynth/cli/) module, which is accessed using the `nhssynth` command, e.g.
     
     ```bash
@@ -42,7 +43,6 @@ You can then interact with the package in one of two ways:
     ```
     
     *Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
-
 2. Through directly importing parts of the package to use in an existing project (`from nhssynth.modules... import ...`).
 
 #### Secure Mode
