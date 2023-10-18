@@ -2,7 +2,7 @@
 
 ## Model Details
 
-The implementation of the Variational AutoEncoder (VAE) with Differential Privacy within this repository is based on work done by Dominic Danks during an NHSX Analytics Unit PhD internship [(last commit to the original SynthVAE repository: commit 88a4bdf)](https://github.com/nhsx/SynthVAE/commit/88a4bdf613f538af45834f22d38e52312cfe24c5). This model card describes an updated and extended version of the model, by Harrison Wilde. Further information about the previous version created by Dom and its model implementation can be found in Section 5.4 of the associated [report](./reports/report.pdf).
+The implementation of the Variational AutoEncoder (VAE) with Differential Privacy within this repository is based on work done by Dominic Danks during an NHSX Analytics Unit PhD internship [(last commit to the original SynthVAE repository: commit 88a4bdf)](https://github.com/nhsengland/SynthVAE/commit/88a4bdf613f538af45834f22d38e52312cfe24c5). This model card describes an updated and extended version of the model, by Harrison Wilde. Further information about the previous version created by Dom and its model implementation can be found in Section 5.4 of the associated [report](./reports/report.pdf).
 
 ## Model Use
 

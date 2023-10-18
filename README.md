@@ -14,7 +14,7 @@
 [![PyPI - Package Status](https://img.shields.io/pypi/status/nhssynth)](https://pypi.org/project/nhssynth/)
 [![PyPI - Latest Release](https://img.shields.io/pypi/v/nhssynth)](https://pypi.org/project/nhssynth/)
 [![PyPI - Wheel](https://img.shields.io/pypi/wheel/nhssynth)](https://pypi.org/project/nhssynth/)
-[![PyPI - License](https://img.shields.io/pypi/l/nhssynth)](https://github.com/nhsx/nhssynth/blob/main/LICENSE)
+[![PyPI - License](https://img.shields.io/pypi/l/nhssynth)](https://github.com/nhsengland/nhssynth/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1)](https://pycqa.github.io/isort/)
 
@@ -22,11 +22,11 @@
 
 <!-- PROJECT LOGO -->
 <div align="center">
-  <a href="https://nhsx.github.io/NHSSynth">
+  <a href="https://nhsengland.github.io/NHSSynth">
     <img src="docs/assets/NHS.svg" alt="Logo" width="200" height="100">
   </a>
   <p align="center">
-    <a href="https://nhsx.github.io/NHSSynth"><strong>Explore the docs »</strong></a>
+    <a href="https://nhsengland.github.io/NHSSynth"><strong>Explore the docs »</strong></a>
     <br /><br />
   </p>
 </div>
@@ -35,7 +35,7 @@
 
 ## About
 
-This repository currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases. See the internal [project description](https://nhsx.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/) for more information.
+This repository currently consists of a Python package alongside research and investigative materials covering the effectiveness of the package and synthetic data more generally when applied to NHS use cases. See the internal [project description](https://nhsengland.github.io/nhsx-internship-projects/synthetic-data-exploration-vae/) for more information.
 
 ## Getting Started
 
@@ -43,7 +43,7 @@ This repository currently consists of a Python package alongside research and in
 
 - The main package and codebase is found in [`src/nhssynth`](src/nhssynth/) (see [Usage](#usage) below for more information)
 - Accompanying materials are available in the [`docs`](docs/) folder:
-  - The components used to create the GitHub Pages [documentation site](https://nhsx.github.io/NHSSynth/)
+  - The components used to create the GitHub Pages [documentation site](https://nhsengland.github.io/NHSSynth/)
   - A [report](docs/reports/report.pdf) summarising the previous iteration of this project
   - A [model card](docs/model_card.md) providing more information about the VAE with Differential Privacy
 - Numerous exemplar configurations are found in [`config`](config/)
@@ -56,7 +56,7 @@ For general usage, we recommend installing the package via `pip install nhssynth
 
 #### Secure Mode
 
-Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsx.github.io/NHSSynth/secure_mode/) for details) you will need to install the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually; for this we recommend following the instructions below:
+Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsengland.github.io/NHSSynth/secure_mode/) for details) you will need to install the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually; for this we recommend following the instructions below:
 
 ```bash
 git clone git@github.com:pytorch/csprng.git
@@ -123,11 +123,11 @@ The figure below shows the structure and workflow of the package and its modules
 
 ![](docs/modules.png)
 
-View a visualisation of the codebase [here](https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=nhsx%2Fnhssynth)!
+View a visualisation of the codebase [here](https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=nhsengland%2Fnhssynth)!
 
 ### Roadmap
 
-See the [open issues](https://github.com/nhsx/NHSSynth/issues) for a list of proposed features (and known bugs). Our [milestones](https://github.com/nhsx/NHSSynth/milestones) represent longer term goals for the project.
+See the [open issues](https://github.com/nhsengland/NHSSynth/issues) for a list of proposed features (and known bugs). Our [milestones](https://github.com/nhsengland/NHSSynth/milestones) represent longer term goals for the project.
 
 ### Contributing
 
@@ -144,8 +144,8 @@ _See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidance._
 Thanks to everyone that has contributed so far!
 
 <div align="center">
-<a href="https://github.com/nhsx/nhssynth/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nhsx/nhssynth" />
+<a href="https://github.com/nhsengland/nhssynth/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nhsengland/nhssynth" />
 </a>
 </div>
 
@@ -157,8 +157,8 @@ Distributed under the MIT License. _See [LICENSE](./LICENSE) for more informatio
 
 ### Contact
 
-This project is under active development by [@HarrisonWilde](https://github.com/HarrisonWilde). For feature requests and bugs, please [raise an issue](https://github.com/nhsx/NHSSynth/issues/new/choose); for security concerns, please open a [draft security advisory](https://github.com/nhsx/NHSSynth/security/advisories/new). Alternatively, contact [NHS England TDAU](mailto:england.tdau@nhs.net).
+This project is under active development by [@HarrisonWilde](https://github.com/HarrisonWilde). For feature requests and bugs, please [raise an issue](https://github.com/nhsengland/NHSSynth/issues/new/choose); for security concerns, please open a [draft security advisory](https://github.com/nhsengland/NHSSynth/security/advisories/new). Alternatively, contact [NHS England TDAU](mailto:england.tdau@nhs.net).
 
-To find out more about the [Analytics Unit](https://www.nhsx.nhs.uk/key-tools-and-info/nhsx-analytics-unit/) visit our [project website](https://nhsx.github.io/AnalyticsUnit/projects.html) or get in touch at [england.tdau@nhs.net](mailto:england.tdau@nhs.net).
+To find out more about the [Analytics Unit](https://www.nhsx.nhs.uk/key-tools-and-info/nhsx-analytics-unit/) visit our [project website](https://nhsengland.github.io/AnalyticsUnit/projects.html) or get in touch at [england.tdau@nhs.net](mailto:england.tdau@nhs.net).
 
 <!-- ### Acknowledgements -->

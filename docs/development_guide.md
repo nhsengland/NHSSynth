@@ -10,7 +10,7 @@ The package currently supports major versions 3.9, 3.10 and 3.11 of Python. We r
 
 ### Poetry
 
-We use [Poetry](https://python-poetry.org/) to manage dependencies and the actual packaging and publishing of `NHSSynth` to [PyPI](https://pypi.org). Poetry is a more robust alternative to a `requirements.txt` file, allowing for grouped dependencies and advanced build options. Rather than freezing a specific `pip` state, Poetry only specifies the top-level dependencies and then handles the resolution and installation of the latest compatible versions of the full dependency tree per these top-level dependencies. *See the [`pyproject.toml`](https://github.com/nhsx/NHSSynth/blob/main/pyproject.toml) in the GitHub repository and Poetry's documentation for further context.*
+We use [Poetry](https://python-poetry.org/) to manage dependencies and the actual packaging and publishing of `NHSSynth` to [PyPI](https://pypi.org). Poetry is a more robust alternative to a `requirements.txt` file, allowing for grouped dependencies and advanced build options. Rather than freezing a specific `pip` state, Poetry only specifies the top-level dependencies and then handles the resolution and installation of the latest compatible versions of the full dependency tree per these top-level dependencies. *See the [`pyproject.toml`](https://github.com/nhsengland/NHSSynth/blob/main/pyproject.toml) in the GitHub repository and Poetry's documentation for further context.*
 
 Once Poetry is installed (in your preferred way per the instructions [on their website](https://python-poetry.org/docs/#installation)), you can choose one of two options:
 
@@ -33,7 +33,7 @@ Once Poetry is installed (in your preferred way per the instructions [on their w
 
 ### Package Installation
 
-At this point, the project dependencies can be installed via `poetry install --with dev` (add optional flags: `--with aux` to work with the [auxiliary notebooks](https://github.com/nhsx/NHSSynth/blob/main/auxiliary/), `--with docs` to work with the [documentation](https://github.com/nhsx/NHSSynth/blob/main/docs/)). This will install the package in editable mode, meaning that changes to the source code will be reflected in the installed package without needing to reinstall it. *Note that if you are using your own virtual environment, you will need to activate it before running this command.*
+At this point, the project dependencies can be installed via `poetry install --with dev` (add optional flags: `--with aux` to work with the [auxiliary notebooks](https://github.com/nhsengland/NHSSynth/blob/main/auxiliary/), `--with docs` to work with the [documentation](https://github.com/nhsengland/NHSSynth/blob/main/docs/)). This will install the package in editable mode, meaning that changes to the source code will be reflected in the installed package without needing to reinstall it. *Note that if you are using your own virtual environment, you will need to activate it before running this command.*
 
 You can then interact with the package in one of two ways:
 
@@ -48,7 +48,7 @@ You can then interact with the package in one of two ways:
 
 #### Secure Mode
 
-Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsx.github.io/NHSSynth/secure_mode/) for details) the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) must be installed separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually, you can do this in your environment by running:
+Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsengland.github.io/NHSSynth/secure_mode/) for details) the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) must be installed separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually, you can do this in your environment by running:
 
 ```bash
 git clone git@github.com:pytorch/csprng.git
@@ -72,7 +72,7 @@ pre-commit install
 
 This will ensure that your code conforms to the two formatters' requirements each time you commit to a branch. `black` and `isort` are also run as part of the CI workflow discussed below, such that even without these hooks, the code will be checked and raise an error on GitHub if it is not formatted consistently.
 
-Configuration for both packages can be found in the [`pyproject.toml`](https://github.com/nhsx/NHSSynth/blob/main/pyproject.toml), this configuration should be picked up automatically by both the pre-commit hooks and your IDE / running them manually in the command line. The main configuration is as follows:
+Configuration for both packages can be found in the [`pyproject.toml`](https://github.com/nhsengland/NHSSynth/blob/main/pyproject.toml), this configuration should be picked up automatically by both the pre-commit hooks and your IDE / running them manually in the command line. The main configuration is as follows:
 
 ```toml
 [tool.black]
@@ -106,11 +106,11 @@ def func(arg1: type1, arg2: type2) -> returntype:
     ...
 ```
 
-These docstrings are then [compiled](https://github.com/nhsx/NHSSynth/blob/main/docs/scripts/gen_ref_pages.py) into a full API documentation tree as part of a larger MkDocs documentation site hosted via GitHub (the one you are reading right now!). This process is derived from [this tutorial](https://squidfunk.github.io/mkdocs-material/getting-started/).
+These docstrings are then [compiled](https://github.com/nhsengland/NHSSynth/blob/main/docs/scripts/gen_ref_pages.py) into a full API documentation tree as part of a larger MkDocs documentation site hosted via GitHub (the one you are reading right now!). This process is derived from [this tutorial](https://squidfunk.github.io/mkdocs-material/getting-started/).
 
-The MkDocs page is built using the `mkdocs-material` theme. The documentation is built and hosted [automatically](https://github.com/nhsx/NHSSynth/blob/main/.github/workflows/build_mkdocs.yaml) via GitHub Pages.
+The MkDocs page is built using the `mkdocs-material` theme. The documentation is built and hosted [automatically](https://github.com/nhsengland/NHSSynth/blob/main/.github/workflows/build_mkdocs.yaml) via GitHub Pages.
 
-The other parts of this site comprise markdown documents in the [docs](https://github.com/nhsx/NHSSynth/blob/main/docs/) folder. Adding new pages is handled in the [`mkdocs.yml`](https://github.com/nhsx/NHSSynth/blob/main/mkdocs.yml) file as in any other Material MkDocs site. See [their documentation](https://squidfunk.github.io/mkdocs-material/setup/) if more complex changes to the site are required.
+The other parts of this site comprise markdown documents in the [docs](https://github.com/nhsengland/NHSSynth/blob/main/docs/) folder. Adding new pages is handled in the [`mkdocs.yml`](https://github.com/nhsengland/NHSSynth/blob/main/mkdocs.yml) file as in any other Material MkDocs site. See [their documentation](https://squidfunk.github.io/mkdocs-material/setup/) if more complex changes to the site are required.
 
 ## Testing
 
@@ -118,7 +118,7 @@ We use [`tox`](https://tox.readthedocs.io/en/latest/) to manage the execution of
 
 ### Configuration
 
-See the [tox.ini](https://github.com/nhsx/NHSSynth/blob/main/tox.ini) file for more information on the testing configuration. We follow the [Poetry documentation on `tox` support](https://python-poetry.org/docs/faq/#usecase-2) to ensure that for each version of Python, `tox` will create an `sdist` package of the project and use `pip` to install it in a fresh environment. Thus, dependencies are resolved by pip in the first place and then afterwards updated to the locked dependencies in [`poetry.lock`](https://github.com/nhsx/NHSSynth/blob/main/poetry.lock) by running `poetry install ...` in this fresh environment. The tests are then run using `poetry pytest`, which is configured in the [pyproject.toml](https://github.com/nhsx/NHSSynth/blob/main/pyproject.toml) file. This configuration is fairly minimal: simply specifying the testing directory as the [tests](https://github.com/nhsx/NHSSynth/blob/main/tests/) folder and filtering some known warnings.
+See the [tox.ini](https://github.com/nhsengland/NHSSynth/blob/main/tox.ini) file for more information on the testing configuration. We follow the [Poetry documentation on `tox` support](https://python-poetry.org/docs/faq/#usecase-2) to ensure that for each version of Python, `tox` will create an `sdist` package of the project and use `pip` to install it in a fresh environment. Thus, dependencies are resolved by pip in the first place and then afterwards updated to the locked dependencies in [`poetry.lock`](https://github.com/nhsengland/NHSSynth/blob/main/poetry.lock) by running `poetry install ...` in this fresh environment. The tests are then run using `poetry pytest`, which is configured in the [pyproject.toml](https://github.com/nhsengland/NHSSynth/blob/main/pyproject.toml) file. This configuration is fairly minimal: simply specifying the testing directory as the [tests](https://github.com/nhsengland/NHSSynth/blob/main/tests/) folder and filtering some known warnings.
 
 ```toml
 [tool.pytest.ini_options]
@@ -126,7 +126,7 @@ testpaths = "tests"
 filterwarnings = ["ignore::DeprecationWarning:pkg_resources"]
 ```
 
-We can also use `coverage` to check the test coverage of the package. This is configured in the [pyproject.toml](https://github.com/nhsx/NHSSynth/blob/main/pyproject.toml) file as follows:
+We can also use `coverage` to check the test coverage of the package. This is configured in the [pyproject.toml](https://github.com/nhsengland/NHSSynth/blob/main/pyproject.toml) file as follows:
 
 ```toml
 [tool.coverage.run]
@@ -140,7 +140,7 @@ We omit `debugging.py` as it is a wrapper for reading full trace-backs of warnin
 
 ### Adding Tests
 
-We use the [`pytest`](https://docs.pytest.org/) framework for testing. The testing directory structure mirrors that of [`src`](https://github.com/nhsx/NHSSynth/blob/main/src/). The usual testing practices apply.
+We use the [`pytest`](https://docs.pytest.org/) framework for testing. The testing directory structure mirrors that of [`src`](https://github.com/nhsengland/NHSSynth/blob/main/src/). The usual testing practices apply.
 
 ## Releases
 
@@ -194,9 +194,9 @@ This will prompt for PyPI credentials, and then publish the package. *Note that 
 
 ### Continuous Integration
 
-We use GitHub Actions for continuous integration. The different workflows comprising this can be found in the [`.github/workflows`](https://github.com/nhsx/NHSSynth/blob/main/.github/workflows/) folder. In general, the CI workflow is triggered on every push to the `main` or a feature branch - as appropriate - and runs tests against all supported versions of Python. It also runs `black` and `isort` to check that the code is formatted correctly, and builds the documentation site.
+We use GitHub Actions for continuous integration. The different workflows comprising this can be found in the [`.github/workflows`](https://github.com/nhsengland/NHSSynth/blob/main/.github/workflows/) folder. In general, the CI workflow is triggered on every push to the `main` or a feature branch - as appropriate - and runs tests against all supported versions of Python. It also runs `black` and `isort` to check that the code is formatted correctly, and builds the documentation site.
 
-There are also scripts to update the [dynamic badges](https://github.com/marketplace/actions/dynamic-badges) in the [`README`](https://github.com/nhsx/NHSSynth/blob/main/README.md). These work via a gist associated with the repository. It is not easy to transfer ownership of this process, so if they break please feel free to [contact me](mailto:h.wilde@ucl.ac.uk).
+There are also scripts to update the [dynamic badges](https://github.com/marketplace/actions/dynamic-badges) in the [`README`](https://github.com/nhsengland/NHSSynth/blob/main/README.md). These work via a gist associated with the repository. It is not easy to transfer ownership of this process, so if they break please feel free to [contact me](mailto:h.wilde@ucl.ac.uk).
 
 ### Branching
 
