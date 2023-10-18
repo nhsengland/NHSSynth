@@ -70,7 +70,8 @@ mkdocs-git-revision-date-localized-plugin = "^1.2.0"
 pymdown-extensions = "^10.0.1"
 
 [tool.poetry.group.security.dependencies]
-pillow = ">=10.0.1"
+pillow = "^10.0.1"
+urllib3 = "^2.0.7"
 
 [tool.black]
 line-length = 120
