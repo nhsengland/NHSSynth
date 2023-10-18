@@ -1,7 +1,7 @@
 site_name: Generating Useful Synthetic Data
 site_description: A library for generating and evaluating synthetic data for the NHS
-repo_url: https://github.com/nhsx/NHSSynth
-repo_name: nhsx/NHSSynth
+repo_url: https://github.com/nhsengland/NHSSynth
+repo_name: nhsengland/NHSSynth
 edit_uri: edit/main/docs/
 
 nav:
