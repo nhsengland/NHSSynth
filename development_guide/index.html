@@ -519,11 +519,11 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dev-environment-setup" class="md-nav__link">
-    Dev Environment Setup
+  <a href="#development-environment-setup" class="md-nav__link">
+    Development Environment Setup
   </a>
   
-    <nav class="md-nav" aria-label="Dev Environment Setup">
+    <nav class="md-nav" aria-label="Development Environment Setup">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -647,16 +647,36 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#github" class="md-nav__link">
+    GitHub
+  </a>
+  
+    <nav class="md-nav" aria-label="GitHub">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#continuous-integration" class="md-nav__link">
     Continuous Integration
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    Branching
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#security-and-vulnerability-management" class="md-nav__link">
     Security and Vulnerability Management
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2343,14 +2363,16 @@
 
 <h1 id="development-guide">Development Guide</h1>
 <p><em>This document aims to provide a comprehensive set of instructions for continuing development of this package. Good knowledge of Python development is assumed. Some ways of working are subjective and preferential; as such we try to be as minimal in our proscription of other methods as possible.</em></p>
-<h2 id="dev-environment-setup">Dev Environment Setup</h2>
+<h2 id="development-environment-setup">Development Environment Setup</h2>
 <h3 id="python">Python</h3>
-<p>The package currently supports major versions 3.9, 3.10 and 3.11 of Python. We recommend installing all of these versions, though at minimum the latest supported version should be used. Many people use <a href="https://github.com/pyenv/pyenv"><code>pyenv</code></a> for managing multiple python versions, on MacOS <a href="https://brew.sh">homebrew</a> is a good, less invasive option for this (provided you then use a virtual environment manager too). For virtual environment management, we recommend <a href="https://docs.python.org/3/library/venv.html"><code>venv</code></a>, but <a href="https://docs.conda.io/en/latest/">conda</a> or some other similar system would suffice (note that in the section below it may not be necessary to use any specific virtual environment management at all).</p>
+<p>The package currently supports major versions 3.9, 3.10 and 3.11 of Python. We recommend installing all of these versions; at minimum the latest supported version of Python should be used. Many people use <a href="https://github.com/pyenv/pyenv"><code>pyenv</code></a> for managing multiple python versions. On MacOS <a href="https://brew.sh">homebrew</a> is a good, less invasive option for this (provided you then use a virtual environment manager too). For virtual environment management, we recommend Python's in-built <a href="https://docs.python.org/3/library/venv.html"><code>venv</code></a> functionality, but <a href="https://docs.conda.io/en/latest/">conda</a> or some similar system would suffice (note that in the section below it may not be necessary to use any specific virtual environment management at all depending on the setup of Poetry).</p>
 <h3 id="poetry">Poetry</h3>
-<p>We use <a href="https://python-poetry.org/">Poetry</a> to manage dependencies and the actual packaging and publishing of <code>NHSSynth</code> to <a href="https://pypi.org">PyPI</a>. Poetry is a more robust alternative to a <code>requirements.txt</code> file, allowing for grouped dependencies and advanced build options. Rather than freezing a specific <code>pip</code> state, Poetry only specifies the top-level dependencies and allows for the installation of the latest compatible versions of the full dependency tree. <em>See the <a href="../pyproject.toml"><code>pyproject.toml</code></a> in the GitHub repository and Poetry's documentation for further context.</em></p>
+<p>We use <a href="https://python-poetry.org/">Poetry</a> to manage dependencies and the actual packaging and publishing of <code>NHSSynth</code> to <a href="https://pypi.org">PyPI</a>. Poetry is a more robust alternative to a <code>requirements.txt</code> file, allowing for grouped dependencies and advanced build options. Rather than freezing a specific <code>pip</code> state, Poetry only specifies the top-level dependencies and then handles the resolution and installation of the latest compatible versions of the full dependency tree per these top-level dependencies. <em>See the <a href="../pyproject.toml"><code>pyproject.toml</code></a> in the GitHub repository and Poetry's documentation for further context.</em></p>
 <p>Once Poetry is installed (in your preferred way per the instructions <a href="https://python-poetry.org/docs/#installation">on their website</a>), you can choose one of two options:</p>
 <ol>
-<li>Allow <code>poetry</code> to control virtual environments in their <a href="https://python-poetry.org/docs/managing-environments/">proprietary way</a>), such that when you install and develop the package poetry will automatically create a virtual environment for you.</li>
+<li>
+<p>Allow <code>poetry</code> to control virtual environments in their <a href="https://python-poetry.org/docs/managing-environments/">proprietary way</a>), such that when you install and develop the package poetry will automatically create a virtual environment for you.</p>
+</li>
 <li>
 <p>Change <code>poetry</code>'s configuration to manage your own virtual environments:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>poetry<span class="w"> </span>config<span class="w"> </span>virtualenvs.create<span class="w"> </span><span class="nb">false</span>
@@ -2375,7 +2397,7 @@
 </li>
 </ol>
 <h4 id="secure-mode">Secure Mode</h4>
-<p>Note that in order to train a generator in <em>secure mode</em> (see the <a href="https://nhsx.github.io/NHSSynth/secure_mode/">documentation</a> for details) the PyTorch extension package <a href="https://github.com/pytorch/csprng"><code>csprng</code></a> must be installed separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually:</p>
+<p>Note that in order to train a generator in <em>secure mode</em> (see the <a href="https://nhsx.github.io/NHSSynth/secure_mode/">documentation</a> for details) the PyTorch extension package <a href="https://github.com/pytorch/csprng"><code>csprng</code></a> must be installed separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually, you can do this in your environment by running:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:pytorch/csprng.git
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>csprng
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>git<span class="w"> </span>branch<span class="w"> </span>release<span class="w"> </span><span class="s2">&quot;v0.2.2-rc1&quot;</span>
@@ -2384,74 +2406,99 @@
 </span></code></pre></div>
 <h2 id="coding-practices">Coding Practices</h2>
 <h3 id="style">Style</h3>
-<p>We use <a href="https://black.readthedocs.io/en/stable/"><code>black</code></a> for code formatting. This is a fairly opinionated formatter, but it is widely used and has a good reputation. We also use <a href="https://pycqa.github.io/isort/"><code>isort</code></a> to manage imports. Both of these tools are run automatically via a <code>pre-commit</code> hook. Ensure you have installed the package with the <code>dev</code> group of dependencies and then run the following command to install the hooks:</p>
+<p>We use <a href="https://black.readthedocs.io/en/stable/"><code>black</code></a> for code formatting. This is a fairly opinionated formatter, but it is widely used and has a good reputation. We also use <a href="https://pycqa.github.io/isort/"><code>isort</code></a> to manage imports. Both of these tools are run automatically via a <a href="https://pre-commit.com"><code>pre-commit</code></a> hook. Ensure you have installed the package with the <code>dev</code> group of dependencies and then run the following command to install the hooks:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pre-commit<span class="w"> </span>install
 </span></code></pre></div>
 <p><em>Note that you may need to pre-pend this command with <code>poetry run</code> if you are not using your own virtual environment.</em></p>
-<p><code>black</code> and <code>isort</code> are also run as part of the CI workflow discussed below.</p>
+<p>This will ensure that your code conforms to the two formatters' requirements each time you commit to a branch. <code>black</code> and <code>isort</code> are also run as part of the CI workflow discussed below, such that even without these hooks, the code will be checked and raise an error on GitHub if it is not formatted consistently.</p>
+<p>Configuration for both packages can be found in the <a href="../pyproject.toml"><code>pyproject.toml</code></a>, this configuration should be picked up automatically by both the pre-commit hooks and your IDE / running them manually in the command line. The main configuration is as follows:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[tool.black]</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">line-length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">[tool.isort]</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">profile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;black&quot;</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">known_first_party</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;nhssynth&quot;</span>
+</span></code></pre></div>
+<p>This ensure that absolute imports from <code>NHSSynth</code> are sorted separately from the rest of the imports in a file.</p>
 <h3 id="documentation">Documentation</h3>
 <p>There should be Google-style docstrings on all non-trivial functions and classes. Ideally a docstring should take the form:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">arg1</span><span class="p">:</span> <span class="n">type1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">:</span> <span class="n">type2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">returntype</span><span class="p">:</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="sd">    One-line summary of the function.</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="sd">    AND / OR</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="sd">    Longer description of the function, including any caveats or assumptions.</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="sd">    Args:</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="sd">        arg1: Description of arg1.</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="sd">        arg2: Description of arg2.</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="sd">    Returns:</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="sd">        Description of the return value.</span>
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="o">...</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">arg1</span><span class="p">:</span> <span class="n">type1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">:</span> <span class="n">type2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">returntype</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="sd">    One-line summary of the function.</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="sd">    AND / OR</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="sd">    Longer description of the function, including any caveats or assumptions where appropriate.</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sd">    Args:</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="sd">        arg1: Description of arg1.</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="sd">        arg2: Description of arg2.</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="sd">    Returns:</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="sd">        Description of the return value.</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="o">...</span>
 </span></code></pre></div>
-<p>These docstrings are then <a href="../docs/scripts/gen_ref_pages.py">compiled</a> into a full API documentation tree as part of a larger MkDocs documentation site hosted via GitHub. This process is derived from <a href="https://squidfunk.github.io/mkdocs-material/getting-started/">this tutorial</a>.</p>
+<p>These docstrings are then <a href="../docs/scripts/gen_ref_pages.py">compiled</a> into a full API documentation tree as part of a larger MkDocs documentation site hosted via GitHub (the one you are reading right now!). This process is derived from <a href="https://squidfunk.github.io/mkdocs-material/getting-started/">this tutorial</a>.</p>
 <p>The MkDocs page is built using the <code>mkdocs-material</code> theme. The documentation is built and hosted <a href="../.github/workflows/build_mkdocs.yaml">automatically</a> via GitHub Pages.</p>
 <p>The other parts of this site comprise markdown documents in the <a href="../docs/">docs</a> folder. Adding new pages is handled in the <a href="../mkdocs.yml"><code>mkdocs.yml</code></a> file as in any other Material MkDocs site. See <a href="https://squidfunk.github.io/mkdocs-material/setup/">their documentation</a> if more complex changes to the site are required.</p>
 <h2 id="testing">Testing</h2>
-<p>We use <a href="https://tox.readthedocs.io/en/latest/"><code>tox</code></a> to manage the testing suite. This allows us to test the package against multiple versions of Python, and to run the tests in a clean environment. To run the tests, simply execute <code>tox</code> in the root directory of the repository. This will run the tests against all supported versions of Python. To run the tests against a specific version of Python, use <code>tox -e py39</code> (or <code>py310</code> or <code>py311</code>).</p>
+<p>We use <a href="https://tox.readthedocs.io/en/latest/"><code>tox</code></a> to manage the execution of tests for the package against multiple versions of Python, and to ensure that they are being run in a clean environment. To run the tests, simply execute <code>tox</code> in the root directory of the repository. This will run the tests against all supported versions of Python. To run the tests against a specific version of Python, use <code>tox -e py311</code> (or <code>py310</code> or <code>py39</code>).</p>
 <h3 id="configuration">Configuration</h3>
-<p>See the <a href="../tox.ini">tox.ini</a> file for more information on the testing configuration. We follow the <a href="https://python-poetry.org/docs/faq/#usecase-2">Poetry documentation on <code>tox</code> support</a> to ensure that for each version of Python, <code>tox</code> will create an <code>sdist</code> package of the project and use <code>pip</code> to install it in a fresh environment. Thus, dependencies are resolved by pip in the first place and then afterwards updated to the locked dependencies in <a href="../poetry.lock"><code>poetry.lock</code></a> by running <code>poetry install ...</code>. The tests are then run using <code>poetry pytest</code>, which is configured in the <a href="../pyproject.toml">pyproject.toml</a> file. This configuration is fairly minimal: simply specifying the testing directory as the <a href="../tests/">tests</a> folder and filtering some known warnings.</p>
+<p>See the <a href="../tox.ini">tox.ini</a> file for more information on the testing configuration. We follow the <a href="https://python-poetry.org/docs/faq/#usecase-2">Poetry documentation on <code>tox</code> support</a> to ensure that for each version of Python, <code>tox</code> will create an <code>sdist</code> package of the project and use <code>pip</code> to install it in a fresh environment. Thus, dependencies are resolved by pip in the first place and then afterwards updated to the locked dependencies in <a href="../poetry.lock"><code>poetry.lock</code></a> by running <code>poetry install ...</code> in this fresh environment. The tests are then run using <code>poetry pytest</code>, which is configured in the <a href="../pyproject.toml">pyproject.toml</a> file. This configuration is fairly minimal: simply specifying the testing directory as the <a href="../tests/">tests</a> folder and filtering some known warnings.</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[tool.pytest.ini_options]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">testpaths</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;tests&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">filterwarnings</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;ignore::DeprecationWarning:pkg_resources&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>We can also use <code>coverage</code> to check the test coverage of the package. This is configured in the <a href="../pyproject.toml">pyproject.toml</a> file as follows:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[tool.coverage.run]</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;src/nhssynth/cli&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;src/nhssynth/common&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;src/nhssynth/modules&quot;</span><span class="p">]</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">omit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="s">&quot;src/nhssynth/common/debugging.py&quot;</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">]</span>
+</span></code></pre></div>
+<p>We omit <code>debugging.py</code> as it is a wrapper for reading full trace-backs of warnings and not to be imported directly.</p>
 <h3 id="adding-tests">Adding Tests</h3>
-<p>We use the <code>pytest</code> framework for testing. The testing directory structure mirrors that of <a href="../src/"><code>src</code></a>. The usual testing practices apply.</p>
+<p>We use the <a href="https://docs.pytest.org/"><code>pytest</code></a> framework for testing. The testing directory structure mirrors that of <a href="../src/"><code>src</code></a>. The usual testing practices apply.</p>
 <h2 id="releases">Releases</h2>
 <h3 id="version-management">Version Management</h3>
-<p>The package's version should be updated following the <a href="https://semver.org/spec/v2.0.0.html">semantic versioning</a> framework. The package is currently in a <em>pre-release</em> state, such that major version 1.0.0 should only be reached once the package is functionally complete and stable.</p>
-<p>To update the package, we can use Poetry's <code>version</code> command:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>poetry<span class="w"> </span>version<span class="w"> </span>&lt;version&gt;
+<p>The package's version should be updated following the <a href="https://semver.org/spec/v2.0.0.html">semantic versioning</a> framework. The package is currently in a <em>pre-release</em> state, such that major version 1.0.0 should only be tagged once the package is functionally complete and stable.</p>
+<p>To update the package's metadata, we can use Poetry's <code>version</code> command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>poetry<span class="w"> </span>version<span class="w"> </span>&lt;version&gt;
 </span></code></pre></div>
 <p>We can then commit and push the changes to the version file, and create a new tag:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>git<span class="w"> </span>add<span class="w"> </span>pyproject.toml
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Bump version to &lt;version&gt;&quot;</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>git<span class="w"> </span>push
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>git<span class="w"> </span>add<span class="w"> </span>pyproject.toml
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Bump version to &lt;version&gt;&quot;</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>git<span class="w"> </span>push
 </span></code></pre></div>
-<p>We should then tag the release using GitHub's CLI:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>gh<span class="w"> </span>release<span class="w"> </span>create<span class="w"> </span>&lt;version&gt;<span class="w"> </span>--generate-notes
+<p>We should then tag the release using GitHub's CLI (or manually via <code>git</code> if you prefer):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>gh<span class="w"> </span>release<span class="w"> </span>create<span class="w"> </span>&lt;version&gt;<span class="w"> </span>--generate-notes
 </span></code></pre></div>
 <p>This will create a new release on GitHub, and will automatically generate a changelog based on the commit messages and PR's closed since the last release. This changelog can then be edited to add more detail if necessary.</p>
 <h3 id="building-and-publishing-to-pypi">Building and Publishing to PyPI</h3>
-<p>As mentioned above, Poetry offers not only dependency management, but also a simple way to build and distribute the package.</p>
-<p>To build the package, we can use the <code>build</code> command:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>poetry<span class="w"> </span>build
+<p>Poetry offers not only dependency management, but also a simple way to build and distribute the package.</p>
+<p>After tagging a release per the section above, we can build the package using Poetry's <code>build</code> command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>poetry<span class="w"> </span>build
 </span></code></pre></div>
 <p>This will create a <code>dist</code> folder containing the built package. To publish this to PyPI, we can use the <code>publish</code> command:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>poetry<span class="w"> </span>publish
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>poetry<span class="w"> </span>publish
 </span></code></pre></div>
 <p>This will prompt for PyPI credentials, and then publish the package. <em>Note that this will only work if you have been added as a Maintainer of the package on PyPI.</em></p>
 <p><em>It might be preferable at some point in the future to set up Trusted Publisher Management via OpenID Connect (OIDC) to allow for automated publishing of the package via a GitHub workflow. See the "Publishing" tab of <code>NHSSynth</code>'s project management panel on PyPI to set this up.</em></p>
-<h2 id="continuous-integration">Continuous Integration</h2>
-<p>We use GitHub Actions for continuous integration. The configuration for this can be found in the <a href="../.github/workflows/"><code>.github/workflows</code></a> folder. The CI workflow is triggered on every push to the <code>main</code> branch, and runs the tests against all supported versions of Python. It also runs <code>black</code> and <code>isort</code> to check that the code is formatted correctly, and builds the documentation site.</p>
+<h2 id="github">GitHub</h2>
+<h3 id="continuous-integration">Continuous Integration</h3>
+<p>We use GitHub Actions for continuous integration. The different workflows comprising this can be found in the <a href="../.github/workflows/"><code>.github/workflows</code></a> folder. In general, the CI workflow is triggered on every push to the <code>main</code> or a feature branch - as appropriate - and runs tests against all supported versions of Python. It also runs <code>black</code> and <code>isort</code> to check that the code is formatted correctly, and builds the documentation site.</p>
 <p>There are also scripts to update the dynamic badges in the <a href="../README.md"><code>README</code></a>. These work via a gist associated with the repository. It is not easy to transfer ownership of this process, so if they break please feel free to <a href="mailto:h.wilde@ucl.ac.uk">contact me</a>.</p>
-<h2 id="security-and-vulnerability-management">Security and Vulnerability Management</h2>
-<p>The GitHub repository for the package has Dependabot, code scanning, and other security features enabled. These should be monitored continuously and any issues resolved as soon as possible. When issues of this type require a specific version of a dependency to be specified, the version should be updated as part of the <code>security</code> group of dependencies (i.e. with <code>poetry add &lt;package&gt; --group security</code>) and a new release created (see above).</p>
+<h3 id="branching">Branching</h3>
+<p>We encourage the use of the <a href="https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow">Gitflow</a> branching model for development. This means that the <code>main</code> branch is always in a stable state, and that all development work is done on feature branches. These feature branches are then merged into <code>main</code> via pull requests. The <code>main</code> branch is protected, such that pull requests must be reviewed and approved before they can be merged.</p>
+<p>At minimum, the <code>main</code> branches protection should be maintained, and roughly one branch per issue should be used. Ensure that all of the CI checks pass before merging.</p>
+<h3 id="security-and-vulnerability-management">Security and Vulnerability Management</h3>
+<p>The GitHub repository for the package has Dependabot, code scanning, and other security features enabled. These should be monitored continuously and any issues resolved as soon as possible. When issues of this type require a specific version of a dependency to be specified (and it is one that is not already amongst the dependency groups of the package), the version should be referenced as part of the <code>security</code> group of dependencies (i.e. with <code>poetry add &lt;package&gt; --group security</code>) and a new release created (see above).</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 17, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 18, 2023</span>
       
     
   </small>
