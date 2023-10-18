@@ -2337,7 +2337,7 @@
     <tbody>
         <tr>
           <td>
-                <code>tuple[<span title="nhssynth.common.io.Path">Path</span>, str, str]</code>
+                <code>tuple[<span title="pathlib.Path">Path</span>, str, str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2429,11 +2429,11 @@
 </span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35"></a><span class="sd">        UserWarning: When the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.</span>
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36"></a><span class="sd">        UserWarning: When the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.</span>
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a>    <span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">([(</span><span class="n">fn_input</span><span class="p">,</span> <span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="s2">&quot;.yaml&quot;</span><span class="p">)])</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38"></a>    <span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">consistent_endings</span><span class="p">([(</span><span class="n">fn_input</span><span class="p">,</span> <span class="s2">&quot;.csv&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="s2">&quot;.yaml&quot;</span><span class="p">)])</span>
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a>    <span class="n">dir_data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dir_data</span><span class="p">)</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a>    <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">)</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>    <span class="n">check_exists</span><span class="p">([</span><span class="n">fn_input</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a>    <span class="n">fn_metadata</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">potential_suffix</span><span class="p">(</span><span class="n">fn_metadata</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">)</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a>    <span class="n">io</span><span class="o">.</span><span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>    <span class="n">io</span><span class="o">.</span><span class="n">check_exists</span><span class="p">([</span><span class="n">fn_input</span><span class="p">],</span> <span class="n">dir_data</span><span class="p">)</span>
 </span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>    <span class="k">return</span> <span class="n">dir_data</span><span class="p">,</span> <span class="n">fn_input</span><span class="p">,</span> <span class="n">fn_metadata</span>
 </span></code></pre></div></td></tr></table></div>
           </details>
@@ -2557,7 +2557,7 @@
         <tr>
           <td><code>dir_experiment</code></td>
           <td>
-                <code><span title="nhssynth.common.io.Path">Path</span></code>
+                <code><span title="pathlib.Path">Path</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2686,13 +2686,13 @@
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">        UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="n">fn_dataset</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fn_dataset</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">(</span>
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">consistent_endings</span><span class="p">(</span>
 </span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="p">(</span><span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="s2">&quot;.html&quot;</span><span class="p">),</span> <span class="n">fn_sdv_metadata</span><span class="p">]</span>
 </span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="p">)</span>
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">(</span>
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">potential_suffixes</span><span class="p">(</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">],</span> <span class="n">fn_dataset</span>
 </span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="p">)</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">warn_if_path_supplied</span><span class="p">(</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="n">io</span><span class="o">.</span><span class="n">warn_if_path_supplied</span><span class="p">(</span>
 </span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>        <span class="p">[</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span><span class="p">],</span> <span class="n">dir_experiment</span>
 </span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="p">)</span>
 </span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>    <span class="k">return</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_transformed</span><span class="p">,</span> <span class="n">fn_metatransformer</span><span class="p">,</span> <span class="n">fn_constraint_graph</span><span class="p">,</span> <span class="n">fn_sdv_metadata</span>
@@ -2776,7 +2776,7 @@
         <tr>
           <td><code>dir_experiment</code></td>
           <td>
-                <code><span title="nhssynth.common.io.Path">Path</span></code>
+                <code><span title="pathlib.Path">Path</span></code>
           </td>
           <td>
             <div class="doc-md-description">

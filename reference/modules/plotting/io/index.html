@@ -2317,7 +2317,7 @@
         <tr>
           <td><code>dir_experiment</code></td>
           <td>
-                <code><span title="nhssynth.common.io.Path">Path</span></code>
+                <code><span title="pathlib.Path">Path</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2387,10 +2387,10 @@
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="sd">    Returns:</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="sd">        The paths to the data, metadata and metatransformer files.</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span> <span class="o">=</span> <span class="n">consistent_endings</span><span class="p">([</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span><span class="p">])</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span> <span class="o">=</span> <span class="n">potential_suffixes</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span><span class="p">],</span> <span class="n">fn_dataset</span><span class="p">)</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>    <span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a>    <span class="n">check_exists</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">consistent_endings</span><span class="p">([</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span><span class="p">])</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">potential_suffixes</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span><span class="p">],</span> <span class="n">fn_dataset</span><span class="p">)</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>    <span class="n">io</span><span class="o">.</span><span class="n">warn_if_path_supplied</span><span class="p">([</span><span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a>    <span class="n">io</span><span class="o">.</span><span class="n">check_exists</span><span class="p">([</span><span class="n">fn_typed</span><span class="p">],</span> <span class="n">dir_experiment</span><span class="p">)</span>
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a>    <span class="k">return</span> <span class="n">fn_dataset</span><span class="p">,</span> <span class="n">fn_typed</span><span class="p">,</span> <span class="n">fn_evaluations</span>
 </span></code></pre></div></td></tr></table></div>
           </details>
@@ -2444,7 +2444,7 @@
         <tr>
           <td><code>dir_experiment</code></td>
           <td>
-                <code><span title="nhssynth.common.io.Path">Path</span></code>
+                <code><span title="pathlib.Path">Path</span></code>
           </td>
           <td>
             <div class="doc-md-description">
