@@ -2,7 +2,7 @@ import argparse
 
 import pandas as pd
 
-from nhssynth.common import *
+import nhssynth.common as common
 from nhssynth.modules.plotting.io import load_required_data
 from nhssynth.modules.plotting.plots import tsne
 
@@ -33,8 +33,8 @@ def run_iter(
 def run(args: argparse.Namespace) -> argparse.Namespace:
     print("Running plotting module...")
 
-    set_seed(args.seed)
-    dir_experiment = experiment_io(args.experiment_name)
+    common.set_seed(args.seed)
+    dir_experiment = common.experiment_io(args.experiment_name)
 
     fn_dataset, real_data, evaluations = load_required_data(args, dir_experiment)
 

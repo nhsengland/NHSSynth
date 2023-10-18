@@ -1,8 +1,4 @@
 {
-    "nbqa": {
-        "repo": "https://github.com/nbQA-dev/nbQA",
-        "rev": "${rev}"
-    },
     "nbstripout": {
         "repo": "https://github.com/kynan/nbstripout",
         "rev": "${rev}"
@@ -13,6 +9,10 @@
     },
     "pre-commit-hooks": {
         "repo": "https://github.com/pre-commit/pre-commit-hooks",
+        "rev": "v${rev}"
+    },
+    "ruff": {
+        "repo": "https://github.com/astral-sh/ruff-pre-commit",
         "rev": "v${rev}"
     }
 }

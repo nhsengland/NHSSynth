@@ -6,7 +6,7 @@ Functions to define the CLI's "common" arguments, i.e. those that can be applied
 import argparse
 from typing import Final
 
-from nhssynth.common.constants import *
+from nhssynth.common.constants import TIME
 
 
 def get_core_parser(overrides=False) -> argparse.ArgumentParser:
@@ -35,7 +35,7 @@ def get_core_parser(overrides=False) -> argparse.ArgumentParser:
         "--experiment-name",
         type=str,
         default=TIME,
-        help=f"name the experiment run to affect logging, config, and default-behaviour i/o",
+        help="name the experiment run to affect logging, config, and default-behaviour i/o",
     )
     core_grp.add_argument(
         "--save-config",

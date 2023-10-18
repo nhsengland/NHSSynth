@@ -3,7 +3,7 @@ import subprocess
 import time
 
 import nhssynth
-from nhssynth.common import *
+import nhssynth.common as common
 from nhssynth.common.constants import TIME
 from nhssynth.modules.dashboard.io import check_input_paths
 
@@ -12,7 +12,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     print("Running dashboard module...")
 
     if args.experiment_name != TIME:
-        dir_experiment = experiment_io(args.experiment_name)
+        dir_experiment = common.experiment_io(args.experiment_name)
     command = [
         "streamlit",
         "run",

@@ -2,8 +2,8 @@ import argparse
 
 import pandas as pd
 
-from nhssynth.common import *
-from nhssynth.modules.dataloader.io import *
+import nhssynth.common as common
+from nhssynth.modules.dataloader.io import check_input_paths, write_data_outputs
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
@@ -11,8 +11,8 @@ from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 def run(args: argparse.Namespace) -> argparse.Namespace:
     print("Running dataloader module...\033[35m")
 
-    set_seed(args.seed)
-    dir_experiment = experiment_io(args.experiment_name)
+    common.set_seed(args.seed)
+    dir_experiment = common.experiment_io(args.experiment_name)
 
     dir_input, fn_dataset, fn_metadata = check_input_paths(args.dataset, args.metadata, args.data_dir)
 

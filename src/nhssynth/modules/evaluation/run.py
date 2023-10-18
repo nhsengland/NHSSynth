@@ -1,6 +1,6 @@
 import argparse
 
-from nhssynth.common import *
+import nhssynth.common as common
 from nhssynth.modules.evaluation.io import load_required_data, output_eval
 from nhssynth.modules.evaluation.utils import EvalFrame, validate_metric_args
 
@@ -8,8 +8,8 @@ from nhssynth.modules.evaluation.utils import EvalFrame, validate_metric_args
 def run(args: argparse.Namespace) -> argparse.Namespace:
     print("Running evaluation module...\n\033[32m")
 
-    set_seed(args.seed)
-    dir_experiment = experiment_io(args.experiment_name)
+    common.set_seed(args.seed)
+    dir_experiment = common.experiment_io(args.experiment_name)
 
     fn_dataset, real_dataset, synthetic_datasets, sdv_metadata = load_required_data(args, dir_experiment)
 

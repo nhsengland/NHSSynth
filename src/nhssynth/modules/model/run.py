@@ -3,7 +3,7 @@ from typing import Any
 
 import pandas as pd
 
-from nhssynth.common import *
+import nhssynth.common as common
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 from nhssynth.modules.model.io import load_required_data, write_data_outputs
 from nhssynth.modules.model.models import MODELS
@@ -18,7 +18,7 @@ def run_iter(
     displayed_metrics: list[str],
     num_samples: int,
 ) -> pd.DataFrame:
-    set_seed(experiment["seed"])
+    common.set_seed(experiment["seed"])
     model = MODELS[architecture](real_dataset, metatransformer, **experiment["model_config"])
     _, _ = model.train(
         **experiment["train_config"],
@@ -31,8 +31,8 @@ def run_iter(
 def run(args: argparse.Namespace) -> argparse.Namespace:
     print("Running model architecture module...")
 
-    set_seed(args.seed)
-    dir_experiment = experiment_io(args.experiment_name)
+    common.set_seed(args.seed)
+    dir_experiment = common.experiment_io(args.experiment_name)
 
     fn_dataset, real_dataset, metatransformer = load_required_data(args, dir_experiment)
     experiments = get_experiments(args)

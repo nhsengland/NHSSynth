@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from nhssynth.common.io import *
+import nhssynth.common.io as io
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
@@ -35,11 +35,11 @@ def check_input_paths(
         UserWarning: When the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.
         UserWarning: When the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.
     """
-    fn_input, fn_metadata = consistent_endings([(fn_input, ".csv"), (fn_metadata, ".yaml")])
+    fn_input, fn_metadata = io.consistent_endings([(fn_input, ".csv"), (fn_metadata, ".yaml")])
     dir_data = Path(dir_data)
-    fn_metadata = potential_suffix(fn_metadata, fn_input)
-    warn_if_path_supplied([fn_input, fn_metadata], dir_data)
-    check_exists([fn_input], dir_data)
+    fn_metadata = io.potential_suffix(fn_metadata, fn_input)
+    io.warn_if_path_supplied([fn_input, fn_metadata], dir_data)
+    io.check_exists([fn_input], dir_data)
     return dir_data, fn_input, fn_metadata
 
 
@@ -71,13 +71,13 @@ def check_output_paths(
         UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = consistent_endings(
+    fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = io.consistent_endings(
         [fn_typed, fn_transformed, fn_metatransformer, (fn_constraint_graph, ".html"), fn_sdv_metadata]
     )
-    fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = potential_suffixes(
+    fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata = io.potential_suffixes(
         [fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata], fn_dataset
     )
-    warn_if_path_supplied(
+    io.warn_if_path_supplied(
         [fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata], dir_experiment
     )
     return fn_dataset, fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata

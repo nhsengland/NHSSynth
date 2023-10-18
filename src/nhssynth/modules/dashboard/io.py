@@ -1,4 +1,6 @@
-from nhssynth.common.io import *
+from pathlib import Path
+
+import nhssynth.common.io as io
 
 
 def check_input_paths(
@@ -23,14 +25,14 @@ def check_input_paths(
         The paths
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = consistent_endings(
+    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = io.consistent_endings(
         [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations]
     )
-    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = potential_suffixes(
+    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = io.potential_suffixes(
         [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], fn_dataset
     )
-    warn_if_path_supplied([fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], dir_experiment)
-    check_exists([fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], dir_experiment)
+    io.warn_if_path_supplied([fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], dir_experiment)
+    io.check_exists([fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], dir_experiment)
     return (
         dir_experiment / fn_typed,
         dir_experiment / fn_experiments,

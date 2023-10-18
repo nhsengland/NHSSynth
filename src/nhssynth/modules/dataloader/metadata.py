@@ -13,7 +13,11 @@ from nhssynth.modules.dataloader.missingness import (
     MISSINGNESS_STRATEGIES,
     GenericMissingnessStrategy,
 )
-from nhssynth.modules.dataloader.transformers import *
+from nhssynth.modules.dataloader.transformers import (
+    ClusterContinuousTransformer,
+    DatetimeTransformer,
+    OHECategoricalTransformer,
+)
 from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
 
 
@@ -136,7 +140,7 @@ class MetaData:
             else:
                 try:
                     return eval(self.transformer_name)(**self.transformer_config)
-                except:
+                except NameError:
                     warnings.warn(
                         f"Invalid transformer '{self.transformer_name}' or config '{self.transformer_config}' for column '{self.name}', ignoring transformer for this column"
                     )

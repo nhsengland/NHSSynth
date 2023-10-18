@@ -96,7 +96,7 @@ class ConstraintGraph:
         return ("fixcombo", elements[1:])
 
     def _column_exists(self, column: str) -> None:
-        if not column in self._columns:
+        if column not in self._columns:
             raise ValueError(f"Constraint refers to a column that does not exist ('{column}').")
 
     def _validate_positivity(self, positivity: str) -> None:
@@ -141,7 +141,7 @@ class ConstraintGraph:
         elif self._metadata[base].dtype.kind == "M":
             try:
                 pd.to_datetime(reference)
-            except ValueError:
+            except (ValueError, pd.DateParseError):
                 raise ValueError(
                     f"The reference ('{reference}') is not a valid datetime to match the dtype of the constraint's base column ('{base}': '{self._metadata[base].dtype}')."
                 )
@@ -227,7 +227,7 @@ class ConstraintGraph:
             if subgraph.nodes[node]["color"] == "red":
                 try:
                     new = float(node)
-                except:
+                except ValueError:
                     new = pd.to_datetime(node)
                 if prev is not None and prev < new:
                     raise ValueError(

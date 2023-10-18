@@ -2,7 +2,7 @@
 import argparse
 
 from nhssynth.cli.model_arguments import add_model_specific_args
-from nhssynth.common.constants import *
+from nhssynth.common.constants import METRIC_CHOICES, TRACKED_METRICS
 from nhssynth.modules.dataloader.metadata import MISSINGNESS_STRATEGIES
 from nhssynth.modules.model import MODELS
 

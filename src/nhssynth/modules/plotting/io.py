@@ -5,7 +5,7 @@ from typing import Any
 
 import pandas as pd
 
-from nhssynth.common.io import *
+import nhssynth.common.io as io
 
 
 def check_input_paths(fn_dataset: str, fn_typed: str, fn_evaluations: str, dir_experiment: Path) -> tuple[str, str]:
@@ -21,10 +21,10 @@ def check_input_paths(fn_dataset: str, fn_typed: str, fn_evaluations: str, dir_e
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_dataset, fn_typed, fn_evaluations = consistent_endings([fn_dataset, fn_typed, fn_evaluations])
-    fn_typed, fn_evaluations = potential_suffixes([fn_typed, fn_evaluations], fn_dataset)
-    warn_if_path_supplied([fn_dataset, fn_typed, fn_evaluations], dir_experiment)
-    check_exists([fn_typed], dir_experiment)
+    fn_dataset, fn_typed, fn_evaluations = io.consistent_endings([fn_dataset, fn_typed, fn_evaluations])
+    fn_typed, fn_evaluations = io.potential_suffixes([fn_typed, fn_evaluations], fn_dataset)
+    io.warn_if_path_supplied([fn_dataset, fn_typed, fn_evaluations], dir_experiment)
+    io.check_exists([fn_typed], dir_experiment)
     return fn_dataset, fn_typed, fn_evaluations
 
 

@@ -78,5 +78,5 @@ def flatten_dict(d: dict[str, Any]) -> dict[str, Any]:
         else:
             items.append((k, v))
     if len(set([p[0] for p in items])) != len(items):
-        raise ValueError(f"Duplicate keys found in flattened dictionary")
+        raise ValueError("Duplicate keys found in flattened dictionary")
     return dict(items)

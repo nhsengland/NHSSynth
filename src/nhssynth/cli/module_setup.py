@@ -2,16 +2,9 @@
 import argparse
 from typing import Callable, Final, Optional
 
+import nhssynth.cli.module_arguments as ma
+import nhssynth.modules as m
 from nhssynth.cli.common_arguments import COMMON_PARSERS
-from nhssynth.cli.module_arguments import *
-from nhssynth.modules import (
-    dashboard,
-    dataloader,
-    evaluation,
-    model,
-    plotting,
-    structure,
-)
 
 
 class ModuleConfig:
@@ -97,42 +90,42 @@ PIPELINE: Final = [
 
 MODULE_MAP: Final = {
     "dataloader": ModuleConfig(
-        func=dataloader.run,
-        add_args=add_dataloader_args,
+        func=m.dataloader.run,
+        add_args=ma.add_dataloader_args,
         description="run the data loader module, to prepare the chosen dataset for use in other modules",
         help="prepare the dataset",
         common_parsers=["metadata", "typed", "transformed", "metatransformer", "sdv_metadata"],
     ),
     "structure": ModuleConfig(
-        func=structure.run,
-        add_args=add_structure_args,
+        func=m.structure.run,
+        add_args=ma.add_structure_args,
         description="run the structural discovery module, to learn a structural model for use in training and evaluation",
         help="discover structure",
     ),
     "model": ModuleConfig(
-        func=model.run,
-        add_args=add_model_args,
+        func=m.model.run,
+        add_args=ma.add_model_args,
         description="run the model architecture module, to train a synthetic data generator",
         help="train a model",
         common_parsers=["transformed", "metatransformer", "experiments", "synthetic_datasets", "model"],
     ),
     "evaluation": ModuleConfig(
-        func=evaluation.run,
-        add_args=add_evaluation_args,
+        func=m.evaluation.run,
+        add_args=ma.add_evaluation_args,
         description="run the evaluation module, to evaluate an experiment",
         help="evaluate an experiment",
         common_parsers=["sdv_metadata", "typed", "experiments", "synthetic_datasets", "evaluations"],
     ),
     "plotting": ModuleConfig(
-        func=plotting.run,
-        add_args=add_plotting_args,
+        func=m.plotting.run,
+        add_args=ma.add_plotting_args,
         description="run the plotting module, to generate plots for a given model and / or evaluation",
         help="generate plots",
         common_parsers=["typed", "evaluations"],
     ),
     "dashboard": ModuleConfig(
-        func=dashboard.run,
-        add_args=add_dashboard_args,
+        func=m.dashboard.run,
+        add_args=ma.add_dashboard_args,
         description="run the dashboard module, to produce a streamlit dashboard",
         help="start up a streamlit dashboard to view the results of an evaluation",
         common_parsers=["typed", "experiments", "synthetic_datasets", "evaluations"],

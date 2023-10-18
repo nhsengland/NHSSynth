@@ -62,7 +62,7 @@ python setup.py install
 
 ### Style
 
-We use [`black`](https://black.readthedocs.io/en/stable/) for code formatting. This is a fairly opinionated formatter, but it is widely used and has a good reputation. We also use [`isort`](https://pycqa.github.io/isort/) to manage imports. Both of these tools are run automatically via a [`pre-commit`](https://pre-commit.com) hook. Ensure you have installed the package with the `dev` group of dependencies and then run the following command to install the hooks:
+We use [`black`](https://black.readthedocs.io/en/stable/) for code formatting. This is a fairly opinionated formatter, but it is widely used and has a good reputation. We also use [`ruff`](https://docs.astral.sh/ruff/) to manage imports and lint the code. Both of these tools are run automatically via [`pre-commit`](https://pre-commit.com) hooks. Ensure you have installed the package with the `dev` group of dependencies and then run the following command to install the hooks:
 
 ```bash
 pre-commit install
@@ -70,7 +70,7 @@ pre-commit install
 
 *Note that you may need to pre-pend this command with `poetry run` if you are not using your own virtual environment.*
 
-This will ensure that your code conforms to the two formatters' requirements each time you commit to a branch. `black` and `isort` are also run as part of the CI workflow discussed below, such that even without these hooks, the code will be checked and raise an error on GitHub if it is not formatted consistently.
+This will ensure that your code conforms to the two formatters' / linters' requirements each time you commit to a branch. `black` and `ruff` are also run as part of the CI workflow discussed below, such that even without these hooks, the code will be checked and raise an error on GitHub if it is not formatted consistently.
 
 Configuration for both packages can be found in the [`pyproject.toml`](https://github.com/nhsengland/NHSSynth/blob/main/pyproject.toml), this configuration should be picked up automatically by both the pre-commit hooks and your IDE / running them manually in the command line. The main configuration is as follows:
 
@@ -78,9 +78,15 @@ Configuration for both packages can be found in the [`pyproject.toml`](https://g
 [tool.black]
 line-length = 120
 
-[tool.isort]
-profile = "black"
-known_first_party = "nhssynth"
+[tool.ruff]
+include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+select = ["E4", "E7", "E9", "F", "C90", "I"]
+
+[tool.ruff.per-file-ignores]
+"src/nhssynth/common/constants.py" = ["F403", "F405"]
+
+[tool.ruff.isort]
+known-first-party = ["nhssynth"]
 ```
 
 This ensure that absolute imports from `NHSSynth` are sorted separately from the rest of the imports in a file.
@@ -196,7 +202,7 @@ This will prompt for PyPI credentials, and then publish the package. *Note that 
 
 ### Continuous Integration
 
-We use GitHub Actions for continuous integration. The different workflows comprising this can be found in the [`.github/workflows`](https://github.com/nhsengland/NHSSynth/blob/main/.github/workflows/) folder. In general, the CI workflow is triggered on every push to the `main` or a feature branch - as appropriate - and runs tests against all supported versions of Python. It also runs `black` and `isort` to check that the code is formatted correctly, and builds the documentation site.
+We use GitHub Actions for continuous integration. The different workflows comprising this can be found in the [`.github/workflows`](https://github.com/nhsengland/NHSSynth/blob/main/.github/workflows/) folder. In general, the CI workflow is triggered on every push to the `main` or a feature branch - as appropriate - and runs tests against all supported versions of Python. It also runs `black` and `ruff` to check that the code is formatted correctly, and builds the documentation site.
 
 There are also scripts to update the [dynamic badges](https://github.com/marketplace/actions/dynamic-badges) in the [`README`](https://github.com/nhsengland/NHSSynth/blob/main/README.md). These work via a gist associated with the repository. It is not easy to transfer ownership of this process, so if they break please feel free to [contact me](mailto:h.wilde@ucl.ac.uk).
 

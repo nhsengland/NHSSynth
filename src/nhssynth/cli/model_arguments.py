@@ -1,7 +1,7 @@
 """Define arguments for each of the model classes."""
 import argparse
 
-from nhssynth.common.constants import *
+from nhssynth.common.constants import ACTIVATION_FUNCTIONS
 
 
 def add_model_specific_args(group: argparse._ArgumentGroup, name: str, overrides: bool = False) -> None:

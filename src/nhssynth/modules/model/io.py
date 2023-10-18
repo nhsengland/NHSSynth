@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from nhssynth.common.io import *
+import nhssynth.common.io as io
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
 
@@ -34,10 +34,10 @@ def check_input_paths(
         The paths to the data, metadata and metatransformer files.
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_transformed, fn_metatransformer = consistent_endings([fn_transformed, fn_metatransformer])
-    fn_transformed, fn_metatransformer = potential_suffixes([fn_transformed, fn_metatransformer], fn_dataset)
-    warn_if_path_supplied([fn_transformed, fn_metatransformer], dir_experiment)
-    check_exists([fn_transformed, fn_metatransformer], dir_experiment)
+    fn_transformed, fn_metatransformer = io.consistent_endings([fn_transformed, fn_metatransformer])
+    fn_transformed, fn_metatransformer = io.potential_suffixes([fn_transformed, fn_metatransformer], fn_dataset)
+    io.warn_if_path_supplied([fn_transformed, fn_metatransformer], dir_experiment)
+    io.check_exists([fn_transformed, fn_metatransformer], dir_experiment)
     return fn_dataset, fn_transformed, fn_metatransformer
 
 
@@ -56,9 +56,9 @@ def write_data_outputs(
         pd.DataFrame(experiments.pop("model_config").values.tolist(), index=experiments.index)
     )
 
-    fn_experiments, fn_synthetic_datasets = consistent_endings([args.experiments, args.synthetic_datasets])
-    fn_experiments, fn_synthetic_datasets = potential_suffixes([fn_experiments, fn_synthetic_datasets], fn_dataset)
-    warn_if_path_supplied([fn_experiments, fn_synthetic_datasets], dir_experiment)
+    fn_experiments, fn_synthetic_datasets = io.consistent_endings([args.experiments, args.synthetic_datasets])
+    fn_experiments, fn_synthetic_datasets = io.potential_suffixes([fn_experiments, fn_synthetic_datasets], fn_dataset)
+    io.warn_if_path_supplied([fn_experiments, fn_synthetic_datasets], dir_experiment)
 
     with open(dir_experiment / fn_experiments, "wb") as f:
         pickle.dump(Experiments(experiments), f)
@@ -66,8 +66,8 @@ def write_data_outputs(
         pickle.dump(SyntheticDatasets(synthetic_datasets), f)
     (dir_experiment / "models").mkdir(parents=True, exist_ok=True)
     for i, model in models.iterrows():
-        fn_model = consistent_ending(args.model, ending=".pt", suffix=f"{i[0]}_repeat_{i[1]}_config_{i[2]}")
-        fn_model = potential_suffix(fn_model, fn_dataset)
+        fn_model = io.consistent_ending(args.model, ending=".pt", suffix=f"{i[0]}_repeat_{i[1]}_config_{i[2]}")
+        fn_model = io.potential_suffix(fn_model, fn_dataset)
         model["model"].save(dir_experiment / "models" / fn_model)
 
 

@@ -5,7 +5,7 @@ from typing import Any
 
 import pandas as pd
 
-from nhssynth.common.io import *
+import nhssynth.common.io as io
 
 
 class Evaluations:
@@ -30,14 +30,14 @@ def check_input_paths(
         The paths to the data, metadata and metatransformer files.
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_typed, fn_synthetic_datasets, fn_sdv_metadata = consistent_endings(
+    fn_typed, fn_synthetic_datasets, fn_sdv_metadata = io.consistent_endings(
         [fn_typed, fn_synthetic_datasets, fn_sdv_metadata]
     )
-    fn_typed, fn_synthetic_datasets, fn_sdv_metadata = potential_suffixes(
+    fn_typed, fn_synthetic_datasets, fn_sdv_metadata = io.potential_suffixes(
         [fn_typed, fn_synthetic_datasets, fn_sdv_metadata], fn_dataset
     )
-    warn_if_path_supplied([fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment)
-    check_exists([fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment)
+    io.warn_if_path_supplied([fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment)
+    io.check_exists([fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment)
     return fn_dataset, fn_typed, fn_synthetic_datasets, fn_sdv_metadata
 
 
@@ -59,9 +59,9 @@ def output_eval(
     Returns:
         The path to output the model.
     """
-    fn_evaluations = consistent_ending(fn_evaluations)
-    fn_evaluations = potential_suffix(fn_evaluations, fn_dataset)
-    warn_if_path_supplied([fn_evaluations], dir_experiment)
+    fn_evaluations = io.consistent_ending(fn_evaluations)
+    fn_evaluations = io.potential_suffix(fn_evaluations, fn_dataset)
+    io.warn_if_path_supplied([fn_evaluations], dir_experiment)
     with open(dir_experiment / fn_evaluations, "wb") as f:
         pickle.dump(Evaluations(evaluations), f)
 
