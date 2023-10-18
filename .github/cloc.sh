@@ -30,7 +30,7 @@ LINES_OF_CODE=${TOKENS[4]}
 # To make the estimate of commented lines more accurate, we have to
 # subtract any copyright header which is included in each file.
 # For Fly-Pie, this header has the length of five lines.
-# All dumb comments like those /////////// or those // ------------ 
+# All dumb comments like those /////////// or those // ------------
 # are also subtracted. As cloc does not count inline comments,
 # the overall estimate should be rather conservative.
 # Change the lines below according to your project.

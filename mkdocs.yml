@@ -42,7 +42,7 @@ theme:
     - navigation.tracking
     - navigation.tabs
     - navigation.tabs.sticky
-    - toc.integrate 
+    - toc.integrate
     - navigation.top
     - search.suggest
     - search.highlight
@@ -52,7 +52,7 @@ theme:
     - content.action.edit
     - content.code.copy
   icon:
-    edit: material/pencil 
+    edit: material/pencil
     view: material/eye
 
 extra_css:

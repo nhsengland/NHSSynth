@@ -17,7 +17,7 @@ Once Poetry is installed (in your preferred way per the instructions [on their w
 1. Allow `poetry` to control virtual environments in their [proprietary way](https://python-poetry.org/docs/managing-environments/)), such that when you install and develop the package poetry will automatically create a virtual environment for you.
 
 2. Change `poetry`'s configuration to manage your own virtual environments:
-      
+
     ```bash
     poetry config virtualenvs.create false
     poetry config virtualenvs.in-project false
@@ -38,11 +38,11 @@ At this point, the project dependencies can be installed via `poetry install --w
 You can then interact with the package in one of two ways:
 
 1. Via the [CLI](src/nhssynth/cli/) module, which is accessed using the `nhssynth` command, e.g.
-    
+
     ```bash
     poetry run nhssynth ...
     ```
-    
+
     *Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
 2. Through directly importing parts of the package to use in an existing project (`from nhssynth.modules... import ...`).
 
@@ -84,6 +84,8 @@ known_first_party = "nhssynth"
 ```
 
 This ensure that absolute imports from `NHSSynth` are sorted separately from the rest of the imports in a file.
+
+There are a number of other hooks used as part of this repositories pre-commit, including one that automatically mirrors the poetry version of these packages in the `dev` per the list of supported packages and [.poetry-sync-db.json](https://github.com/nhsengland/NHSSynth/blob/main/.poetry-sync-db.json). Roughly, these other hooks ensure correct formatting of `.yaml` and `.toml` files, checks for large files being added to a commit, strips notebook output from the files, and fixes whitespace and end-of-file issues. These are mostly consistent with the [NHSx analytics project template's hooks](https://github.com/nhsx/analyticsunit-template/blob/hooks/.pre-commit-config.yaml)
 
 ### Documentation
 

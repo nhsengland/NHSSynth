@@ -72,9 +72,9 @@ jobs:
           minColorRange: 0
           maxColorRange: ${{ env.COLLECTED }}
   update-badges:
-    
+
     name: Update CLOC Badges
-    
+
     runs-on: ubuntu-latest
 
     steps:

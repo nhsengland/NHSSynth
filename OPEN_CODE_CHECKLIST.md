@@ -1,8 +1,9 @@
 # Open Code Checklist
-To ensure that the code we publish is appropraite, clear and reusable we require a set way of working when pushing code to private and public repoistories.  It is difficult to set any precise but generic standards and so we ask that the following checklist is considered with mandatroy items filled out. 
+
+To ensure that the code we publish is appropraite, clear and reusable we require a set way of working when pushing code to private and public repoistories.  It is difficult to set any precise but generic standards and so we ask that the following checklist is considered with mandatroy items filled out.
 
 ## When publishing your code you need to make sure:
-  
+
 ### you’re clear about who owns the code and how others can use it
 
 - [x] Does your code have an appropriate licence and copyright notice?  (**Mandatory**)
@@ -12,10 +13,10 @@ To ensure that the code we publish is appropraite, clear and reusable we require
 - [x] Who has responsibility for ongoing support and communications for the code? (**Optional** Best practice to assign, else state the code is not maintained and when the last update was)
 - [x] Has a responsible disclosure process for security issues been defined? (**Mandatory** - could use github issues)
 - [x] Who will address identified issues and security concerns? (**Mandatory**. - assign monitoring of above disclosure process)
-- [x] Has semantic versioning been used? (**Optional**) 
+- [x] Has semantic versioning been used? (**Optional**)
 - [x] Have [contribution guidelines](https://github.com/alphagov/govuk-frontend/blob/master/CONTRIBUTING.md) or [PR style guides](https://github.com/alphagov/styleguides/blob/master/pull-requests.md) been included? (**Optional**)
 - [x] Are package dependencies and libaries documented with versions? (**Optional**)
-- [x] Has the code been linked to any published outputs so others can easily link to the code? (**Optional**) 
+- [x] Has the code been linked to any published outputs so others can easily link to the code? (**Optional**)
 
 ### You do not release information that should remain closed
 
@@ -28,11 +29,11 @@ To ensure that the code we publish is appropraite, clear and reusable we require
 - [x] Are any credentials contained in the source code? (**Mandatory** - check in both current version and git history)
 - [x] Are any secret keys contained in the source code? (**Mandatory** - check in both current version and git history)
 - [x] Are any SQL server addresses or connection strings in the source code? (**Mandatory** - check in both current version and git history)
-- [x] Are the commit messages informative? (**Optional**) 
+- [x] Are the commit messages informative? (**Optional**)
 - [x] Do the commit messages include any sensitive information (e.g. names)? (**Mandatory**)
 - [x] Does the git history contain any sensitive information (e.g. at one time real data or credentials were in the code but have since been removed) (**Mandatory**)
 - [x] Have notebook outputs been removed/checked for sensitive information? (**Mandatory** - check but some appropriate outputs maybe useful: [Example]( https://github.com/best-practice-and-impact/govcookiecutter/blob/main/%7B%7B%20cookiecutter.repo_name%20%7D%7D/.pre-commit-config.yaml))
-- [x] Is configuration written as code and separated from analytical code? (**Optional**) 
+- [x] Is configuration written as code and separated from analytical code? (**Optional**)
 - [x] have you checked any screenshots or figures in your outputs and documentation for information that shouldn't be released? (**Mandatory**)
 
 ### You store it in a repository managed by your department (to make licensing/copyright clear)

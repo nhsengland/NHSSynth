@@ -63,4 +63,3 @@ The following instructions specify how to extend this package with a new module:
     ```
 
 6. Congrats, your module is implemented!
-

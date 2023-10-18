@@ -75,7 +75,7 @@ If you intend on contributing or working with the codebase directly, or if you w
 3. Install [`poetry`](https://python-poetry.org/docs/#installation) and either:
     - Skip to step four (and have `poetry` control the installation's virtual environment in their [proprietary way](https://python-poetry.org/docs/managing-environments/))
     - Change `poetry`'s configuration to manage your own virtual environments:
-      
+
       ```bash
       poetry config virtualenvs.create false
       poetry config virtualenvs.in-project false
@@ -86,13 +86,13 @@ If you intend on contributing or working with the codebase directly, or if you w
 4. Install the project dependencies with `poetry install` (add optional flags: `--with dev` when developing and [testing](tests/) the package, `--with aux` to work with the [auxiliary notebooks](auxiliary/), `--with docs` to work with the [documentation](docs/))
 5. You can then interact with the package in one of two ways:
     - Via the [CLI](src/nhssynth/cli/) module, which is accessed using the `nhssynth` command, e.g.
-      
+
       ```bash
       poetry run nhssynth ...
       ```
-      
+
       *Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
-    
+
     - Through directly importing parts of the package to use in an existing project (`from nhssynth.modules... import ...`).
 
 ### Usage

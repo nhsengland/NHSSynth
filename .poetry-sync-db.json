@@ -1,0 +1,18 @@
+{
+    "nbqa": {
+        "repo": "https://github.com/nbQA-dev/nbQA",
+        "rev": "${rev}"
+    },
+    "nbstripout": {
+        "repo": "https://github.com/kynan/nbstripout",
+        "rev": "${rev}"
+    },
+    "black": {
+        "repo": "https://github.com/psf/black-pre-commit-mirror",
+        "rev": "${rev}"
+    },
+    "pre-commit-hooks": {
+        "repo": "https://github.com/pre-commit/pre-commit-hooks",
+        "rev": "v${rev}"
+    }
+}
