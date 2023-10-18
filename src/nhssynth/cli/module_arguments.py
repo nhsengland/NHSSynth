@@ -40,8 +40,8 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
     group.add_argument(
         "--index-col",
         default=None,
-        choices=[None, 0],
-        help="indicate whether the csv file's 0th column is an index column, such that pandas can ignore it",
+        nargs="*",
+        help="indicate the name of the index column(s) in the csv file, such that pandas can index by it",
     )
     group.add_argument(
         "--constraint-graph",
