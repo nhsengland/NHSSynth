@@ -1,4 +1,4 @@
-name: Run `black` and `ruff` to ensure correct formatting and that there are no linting errors in the code
+name: Run `black` and `ruff`
 
 on: [push, pull_request]
 
