@@ -35,7 +35,7 @@ venv.bak/
 # Auxiliary
 .DS_Store
 site/
-.ruff_cache
+.ruff_cache/
 
 # Tests
 .coverage
