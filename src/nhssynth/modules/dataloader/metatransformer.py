@@ -1,16 +1,13 @@
 import pathlib
 import sys
-from typing import Any, Callable, Optional, Self, Union
+from typing import Any, Optional, Self, Union
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 from nhssynth.modules.dataloader.metadata import MetaData
-from nhssynth.modules.dataloader.missingness import (
-    MISSINGNESS_STRATEGIES,
-    ImputeMissingnessStrategy,
-)
+from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
 
 
 class MetaTransformer:
@@ -59,26 +56,9 @@ class MetaTransformer:
         if missingness_strategy == "impute":
             assert (
                 impute_value is not None
-            ), "`impute_value` must be specified when using the imputation missingness strategy"
-            self._missingness_strategy = self._impute_missingness_strategy_generator(impute_value)
-        else:
-            self._missingness_strategy = MISSINGNESS_STRATEGIES[missingness_strategy]
-
-    def _impute_missingness_strategy_generator(self, impute_value: Any) -> Callable[[], ImputeMissingnessStrategy]:
-        """
-        Create a function to return a new instance of the impute missingness strategy with the given impute value.
-
-        Args:
-            impute_value: The value to use when imputing missing values in the data.
-
-        Returns:
-            A function that returns a new instance of the impute missingness strategy with the given impute value.
-        """
-
-        def _impute_missingness_strategy() -> ImputeMissingnessStrategy:
-            return ImputeMissingnessStrategy(impute_value)
-
-        return _impute_missingness_strategy
+            ), "`impute_value` of the `MetaTransformer` must be specified (via the --impute flag) when using the imputation missingness strategy"
+            self._impute_value = impute_value
+        self._missingness_strategy = MISSINGNESS_STRATEGIES[missingness_strategy]
 
     @classmethod
     def from_path(cls, dataset: pd.DataFrame, metadata_path: str, **kwargs) -> Self:
@@ -193,7 +173,11 @@ class MetaTransformer:
         working_data = self.typed_dataset.copy()
         for column_metadata in self._metadata:
             if not column_metadata.missingness_strategy:
-                column_metadata.missingness_strategy = self._missingness_strategy()
+                column_metadata.missingness_strategy = (
+                    self._missingness_strategy(self._impute_value)
+                    if hasattr(self, "_impute_value")
+                    else self._missingness_strategy()
+                )
             if not working_data[column_metadata.name].isnull().any():
                 continue
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)

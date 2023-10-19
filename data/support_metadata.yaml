@@ -9,7 +9,6 @@ columns:
   x2:
     categorical: true
     dtype: int64
-    missingness: drop
   x3:
     categorical: true
   x4:

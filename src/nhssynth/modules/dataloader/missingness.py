@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Final
 
@@ -73,7 +74,10 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
         Returns:
             The dataset with missing values in the appropriate column replaced with imputed ones.
         """
-        if self.impute == "mean":
+        if (self.impute == "mean" or self.impute == "median") and column_metadata.categorical:
+            warnings.warn("Cannot impute mean or median for categorical data, using mode instead.")
+            self.imputation_value = data[column_metadata.name].mode()[0]
+        elif self.impute == "mean":
             self.imputation_value = data[column_metadata.name].mean()
         elif self.impute == "median":
             self.imputation_value = data[column_metadata.name].median()
@@ -81,7 +85,11 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
             self.imputation_value = data[column_metadata.name].mode()[0]
         else:
             self.imputation_value = self.impute
-        data[column_metadata.name].fillna(self.imputation_value, inplace=True)
+        self.imputation_value = column_metadata.dtype.type(self.imputation_value)
+        try:
+            data[column_metadata.name].fillna(self.imputation_value, inplace=True)
+        except AssertionError:
+            raise ValueError(f"Could not impute '{self.imputation_value}' into column: '{column_metadata.name}'.")
         return data
 
 
@@ -112,7 +120,7 @@ class AugmentMissingnessStrategy(GenericMissingnessStrategy):
 
 
 MISSINGNESS_STRATEGIES: Final = {
-    "none": NullMissingnessStrategy,
+    # "none": NullMissingnessStrategy,
     "impute": ImputeMissingnessStrategy,
     "augment": AugmentMissingnessStrategy,
     "drop": DropMissingnessStrategy,
