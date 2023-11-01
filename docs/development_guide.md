@@ -1,8 +1,8 @@
-# Development Guide
+# Development guide
 
 *This document aims to provide a comprehensive set of instructions for continuing development of this package. Good knowledge of Python development is assumed. Some ways of working are subjective and preferential; as such we try to be as minimal in our proscription of other methods as possible.*
 
-## Development Environment Setup
+## Development environment setup
 
 ### Python
 
@@ -31,7 +31,7 @@ Once Poetry is installed (in your preferred way per the instructions [on their w
     ```
 
 
-### Package Installation
+### Package installation
 
 At this point, the project dependencies can be installed via `poetry install --with dev` (add optional flags: `--with aux` to work with the [auxiliary notebooks](https://github.com/nhsengland/NHSSynth/blob/main/auxiliary/), `--with docs` to work with the [documentation](https://github.com/nhsengland/NHSSynth/blob/main/docs/)). This will install the package in editable mode, meaning that changes to the source code will be reflected in the installed package without needing to reinstall it. *Note that if you are using your own virtual environment, you will need to activate it before running this command.*
 
@@ -46,7 +46,7 @@ You can then interact with the package in one of two ways:
     *Note that you can omit the `poetry run` part and just type `nhssynth` if you followed the optional steps above to manage and activate your own virtual environment, or if you have executed `poetry shell` beforehand.*
 2. Through directly importing parts of the package to use in an existing project (`from nhssynth.modules... import ...`).
 
-#### Secure Mode
+#### Secure mode
 
 Note that in order to train a generator in *secure mode* (see the [documentation](https://nhsengland.github.io/NHSSynth/secure_mode/) for details) the PyTorch extension package [`csprng`](https://github.com/pytorch/csprng) must be installed separately. Currently this package's dependencies are not compatible with recent versions of PyTorch (the author's plan on rectifying this - watch this space), so you will need to install it manually, you can do this in your environment by running:
 
@@ -58,7 +58,7 @@ git checkout release
 python setup.py install
 ```
 
-## Coding Practices
+## Coding practices
 
 ### Style
 
@@ -152,7 +152,7 @@ We use the [`pytest`](https://docs.pytest.org/) framework for testing. The testi
 
 ## Releases
 
-### Version Management
+### Version management
 
 The package's version should be updated following the [semantic versioning](https://semver.org/spec/v2.0.0.html) framework. The package is currently in a *pre-release* state, such that major version 1.0.0 should only be tagged once the package is functionally complete and stable.
 
@@ -178,7 +178,7 @@ gh release create <version> --generate-notes
 
 This will create a new release on GitHub, and will automatically generate a changelog based on the commit messages and PR's closed since the last release. This changelog can then be edited to add more detail if necessary.
 
-### Building and Publishing to PyPI
+### Building and publishing to PyPI
 
 Poetry offers not only dependency management, but also a simple way to build and distribute the package.
 
@@ -200,7 +200,7 @@ This will prompt for PyPI credentials, and then publish the package. *Note that 
 
 ## GitHub
 
-### Continuous Integration
+### Continuous integration
 
 We use GitHub Actions for continuous integration. The different workflows comprising this can be found in the [`.github/workflows`](https://github.com/nhsengland/NHSSynth/blob/main/.github/workflows/) folder. In general, the CI workflow is triggered on every push to the `main` or a feature branch - as appropriate - and runs tests against all supported versions of Python. It also runs `black` and `ruff` to check that the code is formatted correctly, and builds the documentation site.
 
@@ -212,6 +212,6 @@ We encourage the use of the [Gitflow](https://www.atlassian.com/git/tutorials/co
 
 At minimum, the `main` branches protection should be maintained, and roughly one branch per issue should be used. Ensure that all of the CI checks pass before merging.
 
-### Security and Vulnerability Management
+### Security and vulnerability management
 
 The GitHub repository for the package has Dependabot, code scanning, and other security features enabled. These should be monitored continuously and any issues resolved as soon as possible. When issues of this type require a specific version of a dependency to be specified (and it is one that is not already amongst the dependency groups of the package), the version should be referenced as part of the `security` group of dependencies (i.e. with `poetry add <package> --group security`) and a new release created (see above).

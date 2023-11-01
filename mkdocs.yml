@@ -7,10 +7,13 @@ edit_uri: edit/main/docs/
 nav:
     - Home: index.md
     - User Guide:
-        - Modules: modules.md
-        - Model Card: model_card.md
+        - Running an Experiment: running_an_experiment.md
         - Secure Mode: secure_mode.md
-    - Development Guide: development_guide.md
+        - VAE Model Card: model_card.md
+    - Development Guide:
+        - Overview: development_guide.md
+        - Adding New Modules: modules.md
+        - Adding New Models: models.md
     - Code Reference: reference/
 
 theme:

@@ -1,4 +1,4 @@
-# Opacus' Secure Mode
+# Opacus' secure mode
 
 Part of the process for achieving a differential privacy guarantee under Opacus involves generating noise according to a Gaussian distribution with mean 0 in Opacus' `_generate_noise()` function.
 
