@@ -2555,7 +2555,7 @@
 <li><code>fixcombo</code> for categorical columns</li>
 <li><code>&lt;</code> and <code>&lt;</code> for non-categorical columns</li>
 <li><code>&gt;=</code> and <code>&lt;=</code> for non-categorical columns</li>
-<li><code>in</code> for non-categorical columns, which is effectively two of the above constraints combined. I.e. <code>x in [a, b)</code> is equivalent to <code>x &gt;= a and x &lt; b</code>.</li>
+<li><code>in</code> for non-categorical columns, which is effectively two of the above constraints combined. I.e. <code>x in [a, b)</code> is equivalent to <code>x &gt;= a and x &lt; b</code>. This is purely a UX feature and is treated as two separate constraints internally.</li>
 </ul>
 <p>Once this metadata is setup, you are ready to run your experiment.</p>
 <h2 id="evaluation">Evaluation</h2>
