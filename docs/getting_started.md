@@ -180,7 +180,7 @@ In conclusion then, we support the following constraint types:
 - `fixcombo` for categorical columns
 - `<` and `<` for non-categorical columns
 - `>=` and `<=` for non-categorical columns
-- `in` for non-categorical columns, which is effectively two of the above constraints combined. I.e. `x in [a, b)` is equivalent to `x >= a and x < b`.
+- `in` for non-categorical columns, which is effectively two of the above constraints combined. I.e. `x in [a, b)` is equivalent to `x >= a and x < b`. This is purely a UX feature and is treated as two separate constraints internally.
 
 Once this metadata is setup, you are ready to run your experiment.
 
