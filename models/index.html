@@ -627,6 +627,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#implementing-a-new-model" class="md-nav__link">
+    Implementing a new model
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-model-to-the-cli" class="md-nav__link">
+    Adding a new model to the CLI
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2360,7 +2374,22 @@
 <p>The <code>model</code> module contains all of the architectures implemented as part of this package. We offer GAN and VAE based architectures with a number of adjustments to achieve privacy and other augmented functionalities. The module handles the training and generation of synthetic data using these architectures, per a user's choice of model(s) and configuration.</p>
 <p>It is likely that as the literature matures, more effective architectures will present themselves as promising for application to the type of tabular data <code>NHSSynth</code> is designed for. Below we discuss how to add new models to the package.</p>
 <h2 id="model-design">Model design</h2>
-<p>In general, we view the VAE and (Tabular)GAN implementations in this package as the foundations for other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private and so on architectures. Each model inherits from either the <code>GAN</code> or <code>VAE</code> class (<a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models">in files of the same name</a>)</p>
+<p>The models in this package are built entirely in <a href="https://pytorch.org">PyTorch</a> and use <a href="https://opacus.ai">Opacus</a> for differential privacy.</p>
+<p>We have built the VAE and (Tabular)GAN implementations in this package to serve as the foundations for a number of other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private (or otherwise augmented) architectures. Each model inherits from either the <code>GAN</code> or <code>VAE</code> class (<a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models">in files of the same name</a>) which in turn inherit from a generic <code>Model</code> class found in the <a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/common"><code>common</code></a> folder. This folder contains components of models which are not to be instantiated themselves, e.g. a mixin class for differential privacy, the MLP underlying the <code>GAN</code> and so on.</p>
+<p>The <code>Model</code> class from which all of the models derive handles all of the general attributes. Roughly, these are the specifics of the dataset the instance of the model is relative to, the device that training is to be carried out upon, and other training parameters such as the total number of epochs to execute.</p>
+<p>We define these things at the model level, as when using differential privacy or other privacy accountant methods, we must know ahead of time the data and length of training exposure in order to calculate the levels of noise required to reach a certain privacy guarantee and so on.</p>
+<h2 id="implementing-a-new-model">Implementing a new model</h2>
+<p>In order to add a new architecture then, it is important to first investigate the modular parts already implemented to ensure that what you want to build is not already possible through the composition of these existing parts. Then you must ensure that your architecture either inherits from the <code>GAN</code> or <code>VAE</code>, or <code>Model</code> if you wish to implement a different type of generative model.</p>
+<p>In all of these cases, the interface expects for the implementation to have the following methods:</p>
+<ul>
+<li><code>get_args</code>: a class method that lists the architecture specific arguments that the model requires. This is used to facilitate default arguments in the python API whilst still allowing for arguments in the CLI to be propagated and recorded automatically in the experiment output. This should be a list of variable names equal to the concatenation of all of the non-<code>Model</code> parent classes (e.g. <code>DPVAE</code> has <code>DP</code> and <code>VAE</code> args) plus any architecture specific arguments in the <code>__init__</code> method of the model in question.</li>
+<li><code>get_metrics</code>: another class method that behaves similarly to the above, should return a list of valid metrics to track during training for this model</li>
+<li><code>train</code>: a method handling the training loop for the model. This should take <code>num_epochs</code>, <code>patience</code> and <code>displayed_metrics</code> as arguments and return a tuple containing the number of epochs that were executed plus a bundle of training metrics (the values over time returned by <code>get_metrics</code> on the class). In the execution of this method, the utility methods defined in <code>Model</code> should be called in order, <code>_start_training</code> at the beginning, then <code>_record_metrics</code> at each training step of the data loader, and finally <code>_finish_training</code> to clean up progress bars and so on. <code>displayed_metrics</code> determines which metrics are actively displayed during training.</li>
+<li><code>generate</code>: a method to call on the trained model which generates <code>N</code> samples of data, and calls the model's associated <code>MetaTransformer</code> to return a valid pandas DataFrame of synthetic data ready to output.</li>
+</ul>
+<h2 id="adding-a-new-model-to-the-cli">Adding a new model to the CLI</h2>
+<p>Once you have implemented your new model, you must add it to the CLI. To do this, we must first export the model's class into the <code>MODELS</code> constant in the <code>__init__</code> file <a href="https://github.com/nhsengland/NHSSynth/blob/main/src/nhssynth/modules/model/models/__init__.py">in the <code>models</code> subfolder</a>. We can then add a new function and option in <a href="https://github.com/nhsengland/NHSSynth/blob/main/src/nhssynth/cli/model_arguments.py"><code>module_arguments.py</code></a> to list the arguments and their types unique to this type of architecture.</p>
+<p><em>Note that you should not duplicate arguments that are already defined in the <code>Model</code> class or foundational model architectures such as the <code>GAN</code> if you are implementing an extension to it. If you have setup <code>get_args</code> correctly all of this will be propagated automatically.</em></p>
 
   <hr>
 <div class="md-source-file">
