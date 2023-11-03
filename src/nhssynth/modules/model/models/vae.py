@@ -18,24 +18,24 @@ class Encoder(nn.Module):
     def __init__(
         self,
         input_dim: int,
-        encoder_latent_dim: int,
-        encoder_hidden_dim: int,
-        encoder_activation: str,
-        encoder_learning_rate: float,
+        latent_dim: int,
+        hidden_dim: int,
+        activation: str,
+        learning_rate: float,
         shared_optimizer: bool,
     ) -> None:
         super().__init__()
-        activation = ACTIVATION_FUNCTIONS[encoder_activation]
-        self.latent_dim = encoder_latent_dim
+        activation = ACTIVATION_FUNCTIONS[activation]
+        self.latent_dim = latent_dim
         self.net = nn.Sequential(
-            nn.Linear(input_dim, encoder_hidden_dim),
+            nn.Linear(input_dim, hidden_dim),
             activation(),
-            nn.Linear(encoder_hidden_dim, encoder_hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim),
             activation(),
-            nn.Linear(encoder_hidden_dim, 2 * encoder_latent_dim),
+            nn.Linear(hidden_dim, 2 * latent_dim),
         )
         if not shared_optimizer:
-            self.optim = torch.optim.Adam(self.parameters(), lr=encoder_learning_rate)
+            self.optim = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
     def forward(self, x):
         outs = self.net(x)
@@ -50,23 +50,23 @@ class Decoder(nn.Module):
     def __init__(
         self,
         output_dim: int,
-        decoder_latent_dim: int,
-        decoder_hidden_dim: int,
-        decoder_activation: str,
-        decoder_learning_rate: float,
+        latent_dim: int,
+        hidden_dim: int,
+        activation: str,
+        learning_rate: float,
         shared_optimizer: bool,
     ) -> None:
         super().__init__()
-        activation = ACTIVATION_FUNCTIONS[decoder_activation]
+        activation = ACTIVATION_FUNCTIONS[activation]
         self.net = nn.Sequential(
-            nn.Linear(decoder_latent_dim, decoder_hidden_dim),
+            nn.Linear(latent_dim, hidden_dim),
             activation(),
-            nn.Linear(decoder_hidden_dim, decoder_hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim),
             activation(),
-            nn.Linear(decoder_hidden_dim, output_dim),
+            nn.Linear(hidden_dim, output_dim),
         )
         if not shared_optimizer:
-            self.optim = torch.optim.Adam(self.parameters(), lr=decoder_learning_rate)
+            self.optim = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
     def forward(self, z):
         return self.net(z)
@@ -121,20 +121,20 @@ class VAE(Model):
 
         self.shared_optimizer = shared_optimizer
         self.encoder = Encoder(
-            self.ncols,
-            encoder_latent_dim,
-            encoder_hidden_dim,
-            encoder_activation,
-            encoder_learning_rate,
-            self.shared_optimizer,
+            input_dim=self.ncols,
+            latent_dim=encoder_latent_dim,
+            hidden_dim=encoder_hidden_dim,
+            activation=encoder_activation,
+            learning_rate=encoder_learning_rate,
+            shared_optimizer=self.shared_optimizer,
         ).to(self.device)
         self.decoder = Decoder(
-            self.ncols,
-            decoder_latent_dim,
-            decoder_hidden_dim,
-            decoder_activation,
-            decoder_learning_rate,
-            self.shared_optimizer,
+            output_dim=self.ncols,
+            latent_dim=decoder_latent_dim,
+            hidden_dim=decoder_hidden_dim,
+            activation=decoder_activation,
+            learning_rate=decoder_learning_rate,
+            shared_optimizer=self.shared_optimizer,
         ).to(self.device)
         self.noiser = Noiser(
             len(self.single_column_indices),
@@ -165,6 +165,16 @@ class VAE(Model):
             "decoder_activation",
             "decoder_learning_rate",
             "shared_optimizer",
+        ]
+
+    @classmethod
+    def get_metrics(cls) -> list[str]:
+        return [
+            "ELBO",
+            "KLD",
+            "ReconstructionLoss",
+            "CategoricalLoss",
+            "NumericalLoss",
         ]
 
     def reconstruct(self, X):
@@ -255,7 +265,6 @@ class VAE(Model):
         Returns:
             The number of epochs trained for and a dictionary of the tracked metrics.
         """
-        print("")
         self._start_training(num_epochs, patience, displayed_metrics)
 
         self.encoder.train()

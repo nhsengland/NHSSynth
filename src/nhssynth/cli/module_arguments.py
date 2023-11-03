@@ -2,7 +2,7 @@
 import argparse
 
 from nhssynth.cli.model_arguments import add_model_specific_args
-from nhssynth.common.constants import METRIC_CHOICES, TRACKED_METRICS
+from nhssynth.common.constants import METRIC_CHOICES
 from nhssynth.modules.dataloader.metadata import MISSINGNESS_STRATEGIES
 from nhssynth.modules.model import MODELS
 
@@ -120,9 +120,8 @@ def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides:
         "--displayed-metrics",
         type=str,
         nargs="+",
-        default=TRACKED_METRICS,
-        help="metrics to display during training of the model",
-        choices=TRACKED_METRICS,
+        default=[],
+        help="metrics to display during training of the model, when set to `None`, all metrics are displayed",
     )
     group.add_argument(
         "--use-gpu",

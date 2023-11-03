@@ -89,8 +89,13 @@ class DPMixin(ABC):
         else:
             return super()._generate_metric_str(key)
 
-    def get_args() -> list[str]:
+    @classmethod
+    def get_args(cls) -> list[str]:
         return ["target_epsilon", "target_delta", "max_grad_norm", "secure_mode"]
+
+    @classmethod
+    def get_metrics(cls) -> list[str]:
+        return ["Privacy"]
 
     def _start_training(self, num_epochs, patience, displayed_metrics):
         self.make_private(num_epochs)

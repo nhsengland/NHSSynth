@@ -7,16 +7,8 @@ from sdmetrics.single_table import *
 
 TIME: Final = strftime("%Y_%m_%d___%H_%M_%S")
 
-TRACKED_METRICS: Final = [
-    "ELBO",
-    "KLD",
-    "ReconstructionLoss",
-    "CategoricalLoss",
-    "NumericalLoss",
-    "Privacy",
-]
-
 ACTIVATION_FUNCTIONS: Final = {
+    "none": nn.Identity,
     "elu": nn.ELU,
     "relu": nn.ReLU,
     "selu": nn.SELU,

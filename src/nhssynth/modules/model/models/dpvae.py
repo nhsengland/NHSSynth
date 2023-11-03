@@ -49,3 +49,7 @@ class DPVAE(DPMixin, VAE):
     @classmethod
     def get_args(cls) -> list[str]:
         return VAE.get_args() + DPMixin.get_args()
+
+    @classmethod
+    def get_metrics(cls) -> list[str]:
+        return VAE.get_metrics() + DPMixin.get_metrics()

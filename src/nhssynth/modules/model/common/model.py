@@ -1,15 +1,16 @@
 import time
 import warnings
 from abc import ABC, abstractmethod
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from sklearn.preprocessing import OneHotEncoder
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
-from nhssynth.common.constants import TRACKED_METRICS
 from nhssynth.common.strings import add_spaces_before_caps
 from nhssynth.modules.dataloader.metatransformer import MetaTransformer
 
@@ -45,6 +46,7 @@ class Model(nn.Module, ABC):
         self,
         data: pd.DataFrame,
         metatransformer: MetaTransformer,
+        cond: Optional[Union[pd.DataFrame, pd.Series, np.ndarray]] = None,
         batch_size: int = 32,
         use_gpu: bool = False,
     ) -> None:
@@ -55,18 +57,32 @@ class Model(nn.Module, ABC):
         self.nrows, self.ncols = data.shape
         self.columns: pd.Index = data.columns
 
+        self.batch_size = batch_size
+
         self.metatransformer = metatransformer
         self.multi_column_indices: list[list[int]] = metatransformer.multi_column_indices
         self.single_column_indices: list[int] = metatransformer.single_column_indices
         assert len(self.single_column_indices) + sum([len(x) for x in self.multi_column_indices]) == self.ncols
 
-        self.data_loader: DataLoader = DataLoader(
-            # TODO Should the data also all be turned into floats?
-            TensorDataset(torch.Tensor(data.to_numpy())),
-            pin_memory=True,
-            batch_size=batch_size,
-        )
+        tensor_data = torch.Tensor(data.to_numpy())
+        self.cond_encoder: Optional[OneHotEncoder] = None
+        if cond is not None:
+            cond = np.asarray(cond)
+            if len(cond.shape) == 1:
+                cond = cond.reshape(-1, 1)
+            self.cond_encoder = OneHotEncoder(handle_unknown="ignore").fit(cond)
+            cond = self.cond_encoder.transform(cond).toarray()
+            self.n_units_conditional = cond.shape[-1]
+            dataset = TensorDataset(tensor_data, cond)
+        else:
+            self.n_units_conditional = 0
+            dataset = TensorDataset(tensor_data)
 
+        self.data_loader: DataLoader = DataLoader(
+            dataset,
+            pin_memory=True,
+            batch_size=self.batch_size,
+        )
         self.setup_device(use_gpu)
 
     def setup_device(self, use_gpu: bool) -> None:
@@ -92,6 +108,12 @@ class Model(nn.Module, ABC):
         """Returns the list of arguments to look for in an `argparse.Namespace`, these must map to the arguments of the inheritor."""
         raise NotImplementedError
 
+    @classmethod
+    @abstractmethod
+    def get_metrics() -> list[str]:
+        """Returns the list of metrics to track during training."""
+        raise NotImplementedError
+
     def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str]) -> None:
         """
         Initialises the training process.
@@ -110,11 +132,8 @@ class Model(nn.Module, ABC):
         """
         self.num_epochs = num_epochs
         self.patience = patience
-        self.metrics = {metric: np.empty(0, dtype=float) for metric in TRACKED_METRICS}
-        if not hasattr(self, "target_epsilon"):
-            self.metrics.pop("Privacy", None)
-            if "Privacy" in displayed_metrics:
-                displayed_metrics.remove("Privacy")
+        self.metrics = {metric: np.empty(0, dtype=float) for metric in self.get_metrics()}
+        displayed_metrics = displayed_metrics or self.get_metrics()
         self.stats_bars = {
             metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
             for i, metric in enumerate(displayed_metrics)
@@ -131,7 +150,9 @@ class Model(nn.Module, ABC):
         for key in self.metrics.keys():
             if key in losses:
                 if losses[key]:
-                    self.metrics[key] = np.append(self.metrics[key], losses[key].item())
+                    self.metrics[key] = np.append(
+                        self.metrics[key], losses[key].item() if isinstance(losses[key], torch.Tensor) else losses[key]
+                    )
         if time.time() - self.update_time > 0.5:
             for key, stats_bar in self.stats_bars.items():
                 stats_bar.set_description_str(self._generate_metric_str(key))
