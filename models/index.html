@@ -242,7 +242,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../running_an_experiment/" class="md-tabs__link">
+        <a href="../getting_started/" class="md-tabs__link">
           
   
   User Guide
@@ -407,11 +407,31 @@
   
   
     <li class="md-nav__item">
-      <a href="../running_an_experiment/" class="md-nav__link">
+      <a href="../getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Running an Experiment
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../downstream_tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Downstream Tasks
   </span>
   
 
@@ -564,6 +584,17 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Adding New Models
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -573,6 +604,32 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#model-design" class="md-nav__link">
+    Model design
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -2260,14 +2317,17 @@
 
 
 <h1 id="adding-new-models">Adding new models</h1>
-<p>The <code>model</code> module contains all of the architectures.</p>
+<p>The <code>model</code> module contains all of the architectures implemented as part of this package. We offer GAN and VAE based architectures with a number of adjustments to achieve privacy and other augmented functionalities. The module handles the training and generation of synthetic data using these architectures, per a user's choice of model(s) and configuration.</p>
+<p>It is likely that as the literature matures, more effective architectures will present themselves as promising for application to the type of tabular data <code>NHSSynth</code> is designed for. Below we discuss how to add new models to the package.</p>
+<h2 id="model-design">Model design</h2>
+<p>In general, we view the VAE and (Tabular)GAN implementations in this package as the foundations for other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private and so on architectures. Each model inherits from either the <code>GAN</code> or <code>VAE</code> class (<a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models">in files of the same name</a>)</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 1, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 3, 2023</span>
       
     
   </small>

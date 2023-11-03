@@ -14,7 +14,7 @@
         <link rel="prev" href="..">
       
       
-        <link rel="next" href="../secure_mode/">
+        <link rel="next" href="../downstream_tasks/">
       
       
       <link rel="icon" href="../assets/NHS.svg">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Running an Experiment - Generating Useful Synthetic Data</title>
+        <title>Getting Started - Generating Useful Synthetic Data</title>
       
     
     
@@ -83,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#running-an-experiment" class="md-skip">
+        <a href="#getting-started" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Running an Experiment
+              Getting Started
             
           </span>
         </div>
@@ -422,7 +422,7 @@
           
   
   <span class="md-ellipsis">
-    Running an Experiment
+    Getting Started
   </span>
   
 
@@ -433,7 +433,7 @@
         
   
   <span class="md-ellipsis">
-    Running an Experiment
+    Getting Started
   </span>
   
 
@@ -455,15 +455,62 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#running-an-experiment" class="md-nav__link">
+    Running an experiment
+  </a>
+  
+    <nav class="md-nav" aria-label="Running an experiment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#via-the-cli" class="md-nav__link">
     Via the CLI
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#via-a-configuration-file" class="md-nav__link">
     Via a configuration file
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-a-datasets-metadata" class="md-nav__link">
+    Setting up a dataset's metadata
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting up a dataset's metadata">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#column-metadata" class="md-nav__link">
+    Column metadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    Constraints
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation" class="md-nav__link">
+    Evaluation
   </a>
   
 </li>
@@ -472,6 +519,26 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../downstream_tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Downstream Tasks
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -2287,7 +2354,7 @@
                   
 
   
-    <a href="https://github.com/nhsengland/NHSSynth/edit/main/docs/running_an_experiment.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsengland/NHSSynth/edit/main/docs/getting_started.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
     </a>
@@ -2296,16 +2363,17 @@
     
       
     
-    <a href="https://github.com/nhsengland/NHSSynth/raw/main/docs/running_an_experiment.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/nhsengland/NHSSynth/raw/main/docs/getting_started.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5Z"/></svg>
     </a>
   
 
 
-<h1 id="running-an-experiment">Running an experiment</h1>
+<h1 id="getting-started">Getting Started</h1>
+<h2 id="running-an-experiment">Running an experiment</h2>
 <p>This package offers two easy ways to run reproducible and highly-configurable experiments. The following sections describe how to use each of these two methods.</p>
-<h2 id="via-the-cli">Via the CLI</h2>
+<h3 id="via-the-cli">Via the CLI</h3>
 <p>The CLI is the easiest way to quickly run an experiment. It is designed to be as simple as possible, whilst still offering a high degree of configurability. An example command to run a full pipeline experiment is:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nhssynth<span class="w"> </span>pipeline<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--experiment-name<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="se">\</span>
@@ -2320,15 +2388,15 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span>--synthesis-metrics<span class="w"> </span>NewRowSynthesis<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span>--divergence-metrics<span class="w"> </span>ContinuousKLDivergence<span class="w"> </span>DiscreteKLDivergence
 </span></code></pre></div>
-<p>This will run a full pipeline experiment on the <code>support</code> dataset in the <code>datasets</code> directory. The outputs of the experiment will be recorded in a folder named <code>test</code> (corresponding to the experiment name) in the <code>experiments</code> directory.</p>
-<p>In total, three different model architectures will be trained three times each with their default configurations. The resulting generated synthetic datasets will be evaluated via the downstream tasks in <code>tasks/support</code> alongside the metrics specified in the command. A dashboard will then automatically be generated exhibiting these results.</p>
-<p>Suppose you have already run this experiment and want to add some new evaluations. You do not have to re-run the entire experiment, you can simply run:</p>
+<p>This will run a full pipeline experiment on the <code>support</code> dataset in the <code>data</code> directory. The outputs of the experiment will be recorded in a folder named <code>test</code> (corresponding to the experiment name) in the <code>experiments</code> directory.</p>
+<p>In total, three different model architectures will be trained three times each with their default configurations. The resulting generated synthetic datasets will be evaluated via the downstream tasks in <code>tasks/support</code> alongside the metrics specified in the command. A dashboard will then be built automatically to exhibit the results.</p>
+<p>The components of the run are persistent to the experiment's folder. Suppose you have already run this experiment and want to add some new evaluations. You do not have to re-run the entire experiment, you can simply run:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nhssynth<span class="w"> </span>evaluation<span class="w"> </span>-e<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>support<span class="w"> </span>-s<span class="w"> </span><span class="m">123</span><span class="w"> </span>--coverage-metrics<span class="w"> </span>RangeCoverage<span class="w"> </span>CategoryCoverage
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>nhssynth<span class="w"> </span>dashboard<span class="w"> </span>-e<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>support
 </span></code></pre></div>
 <p>This will regenerate the dashboard with a different set of metrics corresponding to the arguments passed to <code>evaluation</code>. Note that the <code>--experiment-name</code> and <code>--dataset</code> arguments are required for all commands, as they are used to identify the experiment and ensure reproducibility.</p>
-<h2 id="via-a-configuration-file">Via a configuration file</h2>
-<p>A <code>yaml</code> configuration file can be used to get the same result as the above:</p>
+<h3 id="via-a-configuration-file">Via a configuration file</h3>
+<p>A <code>yaml</code> configuration file placed in the <code>config</code> folder can be used to get the same result as the above:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">123</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">experiment_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">run_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pipeline</span>
@@ -2356,17 +2424,110 @@
 </span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ContinuousKLDivergence</span>
 </span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DiscreteKLDivergence</span>
 </span></code></pre></div>
-<p>Once saved as <code>run_pipeline.yaml</code> in the <code>config</code> directory, this configuration file can be run via:</p>
+<p>Once saved as <code>run_pipeline.yaml</code> in the <code>config</code> directory, the package can be run under the configuration laid out in the file via:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>nhssynth<span class="w"> </span>config<span class="w"> </span>-c<span class="w"> </span>run_pipeline
 </span></code></pre></div>
-<p>Note that if you run via the <a href="#via-cli">CLI</a>, you can add the <code>--save-config</code> flag to your command to save the configuration file in the <code>experiments/test</code> (or whatever the experiment name is) directory. That way you can reproduce the experiment easily and share its full configuration with others.</p>
+<p>Note that if you run via the <a href="#via-cli">CLI</a>, you can add the <code>--save-config</code> flag to your command to save the configuration file in the <code>experiments/test</code> (or whatever the <code>--experiment-name</code> has been set to) directory. This allows for easy reproduction of an experiment at a later date or on someone else's computer through sharing the configuration file with them.</p>
+<h2 id="setting-up-a-datasets-metadata">Setting up a dataset's metadata</h2>
+<p>For each dataset you wish to work with, it is advisable to setup a corresponding metadata file. The package will infer this when information is missing (and you can then tweak it). The reason we suggest specifying metadata in this way is because Pandas / Python are in general bad at interpreting CSV files, particularly the specifics of datatypes, date objects and so on.</p>
+<p>To do this, we must create a metadata <code>yaml</code> file in the dataset's directory. For example, for the <code>support</code> dataset, this file is located at <code>data/support_metadata.yaml</code>. By default, the package will look for a file with the same name as the dataset in the dataset's directory, but with <code>_metadata</code> appended to the end. <em>This is configurable like most other filenaming conventions via the CLI.</em></p>
+<p>The metadata file is split into two sections: <code>columns</code> and <code>constraints</code>. The former specifies the nature of each column in the dataset, whilst the latter specifies any constraints that should be enforced on the dataset.</p>
+<h3 id="column-metadata">Column metadata</h3>
+<p>Again, we refer to the <code>support</code> dataset's metadata file as an example:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">columns</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">dob</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">datetime64</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">floor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">S</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">x1</span><span class="p">:</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="nt">x2</span><span class="p">:</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="nt">x3</span><span class="p">:</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="nt">x4</span><span class="p">:</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="nt">x5</span><span class="p">:</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span><span class="nt">x6</span><span class="p">:</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">  </span><span class="nt">x7</span><span class="p">:</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">  </span><span class="nt">x8</span><span class="p">:</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float64</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">    </span><span class="nt">missingness</span><span class="p">:</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">      </span><span class="nt">impute</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mean</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">  </span><span class="nt">x9</span><span class="p">:</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="w">  </span><span class="nt">x10</span><span class="p">:</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float64</span>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="w">      </span><span class="nt">rounding_scheme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="w">  </span><span class="nt">x11</span><span class="p">:</span>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-37"><a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="w">  </span><span class="nt">x12</span><span class="p">:</span>
+</span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float64</span>
+</span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="w">  </span><span class="nt">x13</span><span class="p">:</span>
+</span><span id="__span-4-40"><a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float64</span>
+</span><span id="__span-4-41"><a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="w">  </span><span class="nt">x14</span><span class="p">:</span>
+</span><span id="__span-4-42"><a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float64</span>
+</span><span id="__span-4-43"><a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a><span class="w">  </span><span class="nt">duration</span><span class="p">:</span>
+</span><span id="__span-4-44"><a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span><span id="__span-4-45"><a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a><span class="w">  </span><span class="nt">event</span><span class="p">:</span>
+</span><span id="__span-4-46"><a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="w">    </span><span class="nt">categorical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-47"><a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a><span class="w">    </span><span class="nt">dtype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int64</span>
+</span></code></pre></div>
+<p>For each column in the dataset, we specify the following:</p>
+<ul>
+<li>It's <code>dtype</code>, this can be any <code>numpy</code> data type or a datetime type.</li>
+<li>In the case of a datetime type, we also specify the <code>floor</code> (i.e. the smallest unit of time that we care about). In general this should be set to match the smallest unit of time in the dataset.</li>
+<li>In the case of a <code>float</code> type, we can also specify a <code>rounding_scheme</code> to round the values to a certain number of decimal places, again this should be set according to the rounding applied to the column in the real data, or if you want to round the values for some other reason.</li>
+<li>Whether it is <code>categorical</code> or not. If a column is not categorical, you don't need to specify this. A column is inferred as <code>categorical</code> if it has less than 10 unique values or is a string type.</li>
+<li>If the column has missing values, we can specify how to deal with them by specifying a <code>missingness</code> strategy. In the case of the <code>x8</code> column, we <code>impute</code> the missing values with the column's <code>mean</code>. If you don't specify this, the CLI or configuration file's specified global missingness strategy will be applied instead (this defaults to the augment strategy which model's the missingness as a separate level in the case of categorical features, or as a separate cluster in the case of continuous features).</li>
+</ul>
+<h3 id="constraints">Constraints</h3>
+<p>The second part of the metadata file specifies any constraints that should be enforced on the dataset. These can be a relative constraint between two columns, or a fixed one via a constant on a single column. For example, the <code>support</code> dataset's constraints are as follows (note that these are arbitrarily defined and do not necessarily reflect the real data):</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">constraints</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x10</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">(0,100)&quot;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x12</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">(0,100)&quot;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x13</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">(0,100)&quot;</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x10</span><span class="nv"> </span><span class="s">&lt;=</span><span class="nv"> </span><span class="s">x12&quot;</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x12</span><span class="nv"> </span><span class="s">&lt;</span><span class="nv"> </span><span class="s">x13&quot;</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x10</span><span class="nv"> </span><span class="s">&lt;</span><span class="nv"> </span><span class="s">x13&quot;</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x8</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">x10&quot;</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x8</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">x12&quot;</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x8</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">x13&quot;</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x11</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">100&quot;</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;x12</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">10&quot;</span>
+</span></code></pre></div>
+<p>The function of these constraints is fairly self-explanatory: The package ensures the constraints are feasible and minimises them before applying transformations to ensure that they will be satisfied in the synthetic data as well. When a column does not meet a feasible constraint in the real data, we assume that this is intentional and use the violation as a feature upon which to generate synthetic data that also violates the constraint.</p>
+<p>There is a further constraint <code>fixcombo</code> that only applies to categorical columns. This suggests that only existing combinations of two or more categorical columns should be generated, i.e. the columns can be collapsed into a single composite feature. I.e. if we have a column for pregnancy, and another for sex, we may only want to allow three categories, 'male:not-pregnant', 'female:pregnant', 'female:not-pregnant'. This is specified as follows:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">constraints</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;pregnancy</span><span class="nv"> </span><span class="s">fixcombo</span><span class="nv"> </span><span class="s">sex&quot;</span>
+</span></code></pre></div>
+<p>In conclusion then, we support the following constraint types:</p>
+<ul>
+<li><code>fixcombo</code> for categorical columns</li>
+<li><code>&lt;</code> and <code>&lt;</code> for non-categorical columns</li>
+<li><code>&gt;=</code> and <code>&lt;=</code> for non-categorical columns</li>
+<li><code>in</code> for non-categorical columns, which is effectively two of the above constraints combined. I.e. <code>x in [a, b)</code> is equivalent to <code>x &gt;= a and x &lt; b</code>.</li>
+</ul>
+<p>Once this metadata is setup, you are ready to run your experiment.</p>
+<h2 id="evaluation">Evaluation</h2>
+<p>Once models have been trained and synthetic datasets generated, we leverage evaluations from <a href="https://docs.sdv.dev/sdmetrics">SDMetrics</a>, <a href="http://aequitas.dssg.io">Aequitas</a>, the NHS' internal <a href="https://github.com/nhsengland/SynAdvSuite">SynAdvSuite</a> (at current time you must request access to this repository to use the privacy-related attacks it implements), and also offer a facility for the <a href="../downstream_tasks/">custom specification of downstream tasks</a>. These evaluations are then aggregated into a dashboard for ease of comparison and analysis.</p>
+<p>See the relevant documentation for each of these packages for more information on the metrics they offer.</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 1, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 3, 2023</span>
       
     
   </small>
@@ -2415,13 +2576,13 @@
         
         
           
-          <a href="../secure_mode/" class="md-footer__link md-footer__link--next" aria-label="Next: Secure Mode">
+          <a href="../downstream_tasks/" class="md-footer__link md-footer__link--next" aria-label="Next: Downstream Tasks">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Secure Mode
+                Downstream Tasks
               </div>
             </div>
             <div class="md-footer__button md-icon">
