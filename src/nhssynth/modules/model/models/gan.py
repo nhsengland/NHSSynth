@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -70,6 +70,7 @@ class GAN(Model):
         generator_n_layers_hidden: int = 2,
         generator_n_units_hidden: int = 250,
         generator_activation: str = "leaky_relu",
+        generator_activation_out: Optional[list[tuple[str, int]]] = None,
         generator_batch_norm: bool = False,
         generator_dropout: float = 0,
         generator_lr: float = 2e-4,
@@ -97,7 +98,7 @@ class GAN(Model):
             n_layers_hidden=generator_n_layers_hidden,
             n_units_hidden=generator_n_units_hidden,
             activation=generator_activation,
-            # nonlin_out=generator_activation_out,
+            activation_out=generator_activation_out,
             batch_norm=generator_batch_norm,
             dropout=generator_dropout,
             lr=generator_lr,
@@ -137,6 +138,7 @@ class GAN(Model):
             "generator_n_layers_hidden",
             "generator_n_units_hidden",
             "generator_activation",
+            "generator_activation_out",
             "generator_batch_norm",
             "generator_dropout",
             "generator_lr",
@@ -311,7 +313,7 @@ class GAN(Model):
 
         return np.mean(errors)
 
-    def _train_epoch(self) -> Tuple[float, float]:
+    def _train_epoch(self) -> tuple[float, float]:
         for data in tqdm(self.data_loader, desc="Batches", position=len(self.stats_bars) + 1, leave=False):
             cond: Optional[torch.Tensor] = None
             if self.n_units_conditional > 0:
