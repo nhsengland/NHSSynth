@@ -1,4 +1,5 @@
 """String manipulation functions."""
+
 import datetime
 import re
 

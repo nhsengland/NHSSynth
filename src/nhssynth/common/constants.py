@@ -1,4 +1,5 @@
 """Define all of the common constants used throughout the project."""
+
 from time import strftime
 from typing import Final
 

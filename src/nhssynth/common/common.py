@@ -1,4 +1,5 @@
 """Common functions for all modules."""
+
 import random
 from typing import Optional
 

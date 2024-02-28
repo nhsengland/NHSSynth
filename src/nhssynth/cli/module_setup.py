@@ -1,4 +1,5 @@
 """Specify all CLI-accessible modules and their configurations, the pipeline to run by default, and define special functions for the `config` and `pipeline` CLI option trees."""
+
 import argparse
 from typing import Callable, Final, Optional
 

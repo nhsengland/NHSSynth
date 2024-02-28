@@ -1,4 +1,5 @@
 """Read, write and process config files, including handling of module-specific / common config overrides."""
+
 import argparse
 import warnings
 from importlib.metadata import version as ver

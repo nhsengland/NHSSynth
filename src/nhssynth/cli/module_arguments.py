@@ -1,4 +1,5 @@
 """Define arguments for each of the modules' CLI sub-parsers."""
+
 import argparse
 
 from nhssynth.cli.model_arguments import add_model_specific_args

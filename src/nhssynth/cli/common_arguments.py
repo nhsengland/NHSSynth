@@ -3,6 +3,7 @@ Functions to define the CLI's "common" arguments, i.e. those that can be applied
  - All module argument lists, e.g. --dataset, --seed, etc.
  - A subset of module(s) argument lists, e.g. --synthetic, --typed, etc.
 """
+
 import argparse
 from typing import Final
 
@@ -67,7 +68,9 @@ def get_seed_parser(overrides=False) -> argparse.ArgumentParser:
     return parser
 
 
-COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `<DATASET>_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
+COMMON_TITLE: Final = (
+    "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `<DATASET>_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
+)
 
 
 def suffix_parser_generator(name: str, help: str, required: bool = False) -> argparse.ArgumentParser:

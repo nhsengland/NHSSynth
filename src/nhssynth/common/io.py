@@ -1,4 +1,5 @@
 """Common building-block functions for handling module input and output."""
+
 import warnings
 from pathlib import Path
 from typing import Union

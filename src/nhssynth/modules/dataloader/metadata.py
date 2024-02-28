@@ -250,9 +250,11 @@ class MetaData:
         assembled_metadata = {
             "columns": {
                 cn: {
-                    "dtype": cmd.dtype.name
-                    if not hasattr(cmd, "datetime_config")
-                    else {"name": cmd.dtype.name, **cmd.datetime_config},
+                    "dtype": (
+                        cmd.dtype.name
+                        if not hasattr(cmd, "datetime_config")
+                        else {"name": cmd.dtype.name, **cmd.datetime_config}
+                    ),
                     "categorical": cmd.categorical,
                 }
                 for cn, cmd in self._metadata.items()
@@ -316,13 +318,11 @@ class MetaData:
         sdv_metadata = {
             "columns": {
                 cn: {
-                    "sdtype": "boolean"
-                    if cmd.boolean
-                    else "categorical"
-                    if cmd.categorical
-                    else "datetime"
-                    if cmd.dtype.kind == "M"
-                    else "numerical",
+                    "sdtype": (
+                        "boolean"
+                        if cmd.boolean
+                        else "categorical" if cmd.categorical else "datetime" if cmd.dtype.kind == "M" else "numerical"
+                    ),
                 }
                 for cn, cmd in self._metadata.items()
             }
