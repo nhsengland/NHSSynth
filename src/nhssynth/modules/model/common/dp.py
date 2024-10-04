@@ -97,6 +97,6 @@ class DPMixin(ABC):
     def get_metrics(cls) -> list[str]:
         return ["Privacy"]
 
-    def _start_training(self, num_epochs, patience, displayed_metrics):
+    def _start_training(self, num_epochs, patience, displayed_metrics, notebook_run):
         self.make_private(num_epochs)
-        super()._start_training(num_epochs, patience, displayed_metrics)
+        super()._start_training(num_epochs, patience, displayed_metrics, notebook_run)

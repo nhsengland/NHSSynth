@@ -114,7 +114,7 @@ class Model(nn.Module, ABC):
         """Returns the list of metrics to track during training."""
         raise NotImplementedError
 
-    def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str]) -> None:
+    def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str], notebook_run: bool) -> None:
         """
         Initialises the training process.
 
@@ -134,10 +134,14 @@ class Model(nn.Module, ABC):
         self.patience = patience
         self.metrics = {metric: np.empty(0, dtype=float) for metric in self.get_metrics()}
         displayed_metrics = displayed_metrics or self.get_metrics()
-        self.stats_bars = {
-            metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
-            for i, metric in enumerate(displayed_metrics)
-        }
+        self.stats_bars = (
+            {
+                metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
+                for i, metric in enumerate(displayed_metrics)
+            }
+            if not notebook_run
+            else {}
+        )
         self.max_length = max([len(add_spaces_before_caps(s)) + 5 for s in displayed_metrics] + [20])
         self.start_time = self.update_time = time.time()
 

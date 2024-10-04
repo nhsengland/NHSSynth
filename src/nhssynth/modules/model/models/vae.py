@@ -253,6 +253,7 @@ class VAE(Model):
         num_epochs: int = 100,
         patience: int = 5,
         displayed_metrics: list[str] = ["ELBO"],
+        notebook_run: bool = False,
     ) -> tuple[int, dict[str, list[float]]]:
         """
         Train the model.
@@ -265,14 +266,20 @@ class VAE(Model):
         Returns:
             The number of epochs trained for and a dictionary of the tracked metrics.
         """
-        self._start_training(num_epochs, patience, displayed_metrics)
+        self._start_training(num_epochs, patience, displayed_metrics, notebook_run)
 
         self.encoder.train()
         self.decoder.train()
         self.noiser.train()
 
-        for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(self.stats_bars), leave=False):
-            for (Y_subset,) in tqdm(self.data_loader, desc="Batches", position=len(self.stats_bars) + 1, leave=False):
+        for epoch in tqdm(
+            range(num_epochs), desc="Epochs", position=len(self.stats_bars) if not notebook_run else 0, leave=False
+        ):
+            if not notebook_run:
+                epoch_progress = tqdm(self.data_loader, desc="Batches", position=len(self.stats_bars) + 1, leave=False)
+            else:
+                epoch_progress = self.data_loader
+            for (Y_subset,) in epoch_progress:
                 self.zero_grad()
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", message="Using a non-full backward hook")
