@@ -2,7 +2,7 @@ columns:
   dob:
     dtype:
       name: datetime64
-      floor: S
+      floor: s
   x1:
     categorical: true
     dtype: int64

@@ -78,7 +78,9 @@ class ConstraintGraph:
         self.validated_constraint_strings = self.validate_constraint_strings()
         self.graph = self.build_graph(self.validated_constraint_strings)
         self.minimal_constraints = self.determine_minimal_constraints()
+        print("Minimal constraints resolved to:")
         print(self.minimal_constraints)
+        print()
         self.minimal_graph = self.build_graph(
             [str(c).split(" ") for c in self.minimal_constraints if isinstance(c, self.Constraint)]
             + [
