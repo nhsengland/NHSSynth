@@ -5,24 +5,23 @@ repo_name: nhsengland/NHSSynth
 edit_uri: edit/main/docs/
 
 nav:
-    - Home: index.md
-    - User Guide:
-        - Getting Started: getting_started.md
-        - Downstream Tasks: downstream_tasks.md
-        - Secure Mode: secure_mode.md
-        - VAE Model Card: model_card.md
-    - Development Guide:
-        - Overview: development_guide.md
-        - Adding New Modules: modules.md
-        - Adding New Models: models.md
-    - Code Reference: reference/
+  - Home: index.md
+  - User Guide:
+      - Getting Started: getting_started.md
+      - Downstream Tasks: downstream_tasks.md
+      - Secure Mode: secure_mode.md
+      - VAE Model Card: model_card.md
+  - Development Guide:
+      - Overview: development_guide.md
+      - Adding New Modules: modules.md
+      - Adding New Models: models.md
+  - Code Reference: reference/
 
 theme:
   logo: assets/NHS.svg
   favicon: assets/NHS.svg
   name: material
   palette:
-
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -71,7 +70,9 @@ plugins:
   - literate-nav:
       nav_file: SUMMARY.md
   - section-index
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python: {}
   - git-revision-date-localized:
       fallback_to_build_date: true
 
