@@ -59,7 +59,10 @@ class ClusterContinuousTransformer(ColumnTransformer):
         self.clip_output = clip_output
 
     def apply(
-        self, data: pd.Series, constraint_adherence: Optional[pd.Series], missingness_column: Optional[pd.Series] = None
+        self,
+        data: pd.Series,
+        constraint_adherence: Optional[pd.Series],
+        missingness_column: Optional[pd.Series] = None,
     ) -> pd.DataFrame:
         """
         Apply the transformation to a given data column using the `BayesianGaussianMixture` model from scikit-learn.
@@ -116,7 +119,9 @@ class ClusterContinuousTransformer(ColumnTransformer):
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)
 
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
-        normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
+        normalised_values = (data - self.means.reshape(1, -1)) / (
+            self._std_multiplier * self.stds.reshape(1, -1)
+        )
         print(normalised_values)
         normalised = normalised_values[np.arange(len(data)), components]
         if self.clip_output:
@@ -128,7 +133,10 @@ class ClusterContinuousTransformer(ColumnTransformer):
             np.hstack([normalised.reshape(-1, 1), components]),
             index=index,
             columns=[f"{self.original_column_name}_normalised"]
-            + [f"{self.original_column_name}_c{i + 1}" for i in range(self._n_components)],
+            + [
+                f"{self.original_column_name}_c{i + 1}"
+                for i in range(self._n_components)
+            ],
         )
         print(transformed_data)
         # EXPERIMENTAL feature, removing components from the column matrix that have no data assigned to them
@@ -141,17 +149,27 @@ class ClusterContinuousTransformer(ColumnTransformer):
             transformed_data.drop(unused_components, axis=1, inplace=True)
         """
 
-        transformed_data = pd.concat([transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence], axis=1)
+        transformed_data = pd.concat(
+            [transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence],
+            axis=1,
+        )
 
         if missingness_column is not None:
-            transformed_data = pd.concat([transformed_data.reindex(full_index).fillna(0.0), missingness_column], axis=1)
+            transformed_data = pd.concat(
+                [transformed_data.reindex(full_index).fillna(0.0), missingness_column],
+                axis=1,
+            )
 
         if 0 in transformed_data.columns:
             transformed_data = transformed_data.drop(columns=[0])
 
         self.new_column_names = transformed_data.columns
         return transformed_data.astype(
-            {col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)}
+            {
+                col_name: int
+                for col_name in transformed_data.columns
+                if re.search(r"_c\d+", col_name)
+            }
         )
 
     def revert(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -169,7 +187,9 @@ class ClusterContinuousTransformer(ColumnTransformer):
         working_data = data[self.new_column_names]
         full_index = working_data.index
         if self._missingness_column_name is not None:
-            working_data = working_data[working_data[self._missingness_column_name] == 0]
+            working_data = working_data[
+                working_data[self._missingness_column_name] == 0
+            ]
             working_data = working_data.drop(self._missingness_column_name, axis=1)
         index = working_data.index
 
@@ -181,7 +201,9 @@ class ClusterContinuousTransformer(ColumnTransformer):
         mean_t = self.means[components]
         std_t = self.stds[components]
         data[self.original_column_name] = pd.Series(
-            working_data * self._std_multiplier * std_t + mean_t, index=index, name=self.original_column_name
+            working_data * self._std_multiplier * std_t + mean_t,
+            index=index,
+            name=self.original_column_name,
         ).reindex(full_index)
         data.drop(self.new_column_names, axis=1, inplace=True)
         return data

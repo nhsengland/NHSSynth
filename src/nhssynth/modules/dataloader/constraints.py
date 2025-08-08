@@ -7,15 +7,35 @@ from pyvis.network import Network
 
 class ConstraintGraph:
     VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-    POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+    POSITIVITY_TO_OPERATOR: Final = {
+        "positive": ">",
+        "nonnegative": ">=",
+        "negative": "<",
+        "nonpositive": "<=",
+    }
     BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
-    OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
+    OPERATOR_TO_PANDAS: Final = {
+        "<": pd.Series.lt,
+        "<=": pd.Series.le,
+        ">": pd.Series.gt,
+        ">=": pd.Series.ge,
+    }
 
     class Constraint:
         VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-        POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+        POSITIVITY_TO_OPERATOR: Final = {
+            "positive": ">",
+            "nonnegative": ">=",
+            "negative": "<",
+            "nonpositive": "<=",
+        }
         BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
-        OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
+        OPERATOR_TO_PANDAS: Final = {
+            "<": pd.Series.lt,
+            "<=": pd.Series.le,
+            ">": pd.Series.gt,
+            ">=": pd.Series.ge,
+        }
 
         def __init__(
             self,
@@ -51,14 +71,20 @@ class ConstraintGraph:
             # Handle float-based constraints (e.g., columnA > 10)
             if not self.reference_is_column:
                 reference = float(self.reference)
-                adherence = self.OPERATOR_TO_PANDAS[self.operator](df[self.base], reference)
+                adherence = self.OPERATOR_TO_PANDAS[self.operator](
+                    df[self.base], reference
+                )
             else:
                 # Handle column-to-column constraints (e.g., columnB <= columnC)
                 reference = df[self.reference]
-                adherence = self.OPERATOR_TO_PANDAS[self.operator](df[self.base], reference)
+                adherence = self.OPERATOR_TO_PANDAS[self.operator](
+                    df[self.base], reference
+                )
             adherence = adherence.fillna(False)
             # Create a new column for adherence (boolean series)
-            df[self.base + "_adherence"] = adherence.astype(int)  # Store adherence as 0 (False) or 1 (True)
+            df[self.base + "_adherence"] = adherence.astype(
+                int
+            )  # Store adherence as 0 (False) or 1 (True)
 
             # Optionally calculate and store the difference for rows that don't meet the constraint
             # This is useful for identifying the "degree" to which the constraint is violated
@@ -84,7 +110,9 @@ class ConstraintGraph:
         def transform(self, df):
             return df
 
-    def __init__(self, constraint_strings: Optional[list[str]], columns: pd.Index, metadata: dict):
+    def __init__(
+        self, constraint_strings: Optional[list[str]], columns: pd.Index, metadata: dict
+    ):
         self._columns = columns
         self._metadata = metadata
         self.raw_constraint_strings = constraint_strings
@@ -95,7 +123,11 @@ class ConstraintGraph:
         print(self.minimal_constraints)
         print()
         self.minimal_graph = self.build_graph(
-            [str(c).split(" ") for c in self.minimal_constraints if isinstance(c, self.Constraint)]
+            [
+                str(c).split(" ")
+                for c in self.minimal_constraints
+                if isinstance(c, self.Constraint)
+            ]
             + [
                 ("fixcombo", str(c).split(" ")[1:])
                 for c in self.minimal_constraints
@@ -107,18 +139,26 @@ class ConstraintGraph:
         for column in elements[1:]:
             self._column_exists(column)
             if not self._metadata[column].categorical:
-                raise ValueError(f"'{column}' must be categorical to use the 'fixcombo' operator.")
+                raise ValueError(
+                    f"'{column}' must be categorical to use the 'fixcombo' operator."
+                )
         return ("fixcombo", elements[1:])
 
     def _column_exists(self, column: str) -> None:
         if column not in self._columns:
-            raise ValueError(f"Constraint refers to a column that does not exist ('{column}').")
+            raise ValueError(
+                f"Constraint refers to a column that does not exist ('{column}')."
+            )
 
     def _validate_positivity(self, positivity: str) -> None:
         if positivity not in self.POSITIVITY_TO_OPERATOR:
-            raise ValueError(f"Constraint has an invalid positivity specification ('{positivity}').")
+            raise ValueError(
+                f"Constraint has an invalid positivity specification ('{positivity}')."
+            )
 
-    def _validate_simple_constraint(self, base: str, positivity: str) -> tuple[str, str, str]:
+    def _validate_simple_constraint(
+        self, base: str, positivity: str
+    ) -> tuple[str, str, str]:
         self._column_exists(base)
         self._validate_positivity(positivity)
         return (base, self.POSITIVITY_TO_OPERATOR[positivity], "0")
@@ -146,7 +186,9 @@ class ConstraintGraph:
             raise ValueError(
                 f"Constraint's reference is not a valid range specification ('{reference}'), it must be of the form '[' or '(' + 'a,b' + ']' or ')'."
             )
-        return self.BRACKET_TO_OPERATOR[reference[0]], self.BRACKET_TO_OPERATOR[reference[-1]]
+        return self.BRACKET_TO_OPERATOR[reference[0]], self.BRACKET_TO_OPERATOR[
+            reference[-1]
+        ]
 
     def _validate_constant_dtype(self, base: str, reference: str) -> None:
         if self._metadata[base].dtype.kind == "O":
@@ -176,7 +218,9 @@ class ConstraintGraph:
             self._validate_constant_dtype(base, component)
         return component
 
-    def _validate_reference_constraint(self, base: str, operator: str, reference: str) -> list[tuple[str, str, str]]:
+    def _validate_reference_constraint(
+        self, base: str, operator: str, reference: str
+    ) -> list[tuple[str, str, str]]:
         self._column_exists(base)
         self._validate_operator(base, operator)
         if reference in self._columns:
@@ -186,7 +230,11 @@ class ConstraintGraph:
             low, high = reference[1:-1].split(",")
             low = self._validate_range_component(base, low)
             high = self._validate_range_component(base, high)
-            if low not in self._columns and high not in self._columns and float(low) >= float(high):
+            if (
+                low not in self._columns
+                and high not in self._columns
+                and float(low) >= float(high)
+            ):
                 raise ValueError(
                     f"Constraint's reference is not a valid range specification ('{reference}'), the lower bound must be strictly less than the upper bound."
                 )
@@ -212,7 +260,9 @@ class ConstraintGraph:
     def build_graph(self, constraint_string_tuples) -> nx.DiGraph:
         graph = nx.DiGraph()
         for col in self._columns:
-            graph.add_node(col, color="purple" if self._metadata[col].categorical else "blue")
+            graph.add_node(
+                col, color="purple" if self._metadata[col].categorical else "blue"
+            )
         for cst in constraint_string_tuples:
             if cst[0] == "fixcombo":
                 cols = cst[1]
@@ -228,15 +278,21 @@ class ConstraintGraph:
                 if item2 not in graph.nodes:
                     graph.add_node(item2)
                     graph.nodes[item2]["color"] = "red"
-                graph.add_edge(item1, item2, color="black" if len(operator) == 1 else "green")
-                graph.add_edge(item1, item2, color="black" if len(operator) == 1 else "green")
+                graph.add_edge(
+                    item1, item2, color="black" if len(operator) == 1 else "green"
+                )
+                graph.add_edge(
+                    item1, item2, color="black" if len(operator) == 1 else "green"
+                )
         if not nx.is_directed_acyclic_graph(graph):
             raise ValueError(
                 f"Constraint graph is not acyclic as required; some constraints involving {[c for c in nx.simple_cycles(graph)]} are invalid."
             )
         return graph
 
-    def _check_constants_are_monotonic(self, longest_path: list[str], subgraph: nx.DiGraph) -> None:
+    def _check_constants_are_monotonic(
+        self, longest_path: list[str], subgraph: nx.DiGraph
+    ) -> None:
         prev = None
         for node in longest_path:
             if subgraph.nodes[node]["color"] == "red":
@@ -262,12 +318,18 @@ class ConstraintGraph:
             ref_is_col, operator = True, ">"
             if subgraph.edges[item1, item2]["color"] == "green":
                 operator += "="
-            if subgraph.nodes[item1]["color"] == "red":  # Note: this breaks if two none col constraints are the same!
+            if (
+                subgraph.nodes[item1]["color"] == "red"
+            ):  # Note: this breaks if two none col constraints are the same!
                 item1, item2 = item2, item1
                 ref_is_col, operator = False, operator.replace(">", "<")
-            if subgraph.nodes[item2]["color"] == "red":  # Note: this breaks if two none col constraints are the same!
+            if (
+                subgraph.nodes[item2]["color"] == "red"
+            ):  # Note: this breaks if two none col constraints are the same!
                 ref_is_col = False
-            constraint = self.Constraint(item1, operator, item2, reference_is_column=ref_is_col)
+            constraint = self.Constraint(
+                item1, operator, item2, reference_is_column=ref_is_col
+            )
             if constraint not in constraints:
                 constraints.append(constraint)
         return constraints
@@ -277,8 +339,16 @@ class ConstraintGraph:
         subgraph: nx.DiGraph,
         constraints: list[Union[Constraint, ComboConstraint]],
     ) -> None:
-        sources = [n for n in subgraph.nodes if subgraph.out_degree(n) == 0 and subgraph.in_degree(n) > 0]
-        sinks = [n for n in subgraph.nodes if subgraph.in_degree(n) == 0 and subgraph.out_degree(n) > 0]
+        sources = [
+            n
+            for n in subgraph.nodes
+            if subgraph.out_degree(n) == 0 and subgraph.in_degree(n) > 0
+        ]
+        sinks = [
+            n
+            for n in subgraph.nodes
+            if subgraph.in_degree(n) == 0 and subgraph.out_degree(n) > 0
+        ]
         for source in sources:
             for sink in sinks:
                 paths = [p for p in nx.all_simple_paths(subgraph, sink, source)]
@@ -287,18 +357,26 @@ class ConstraintGraph:
                     longest_path = max(paths, key=len)
                     paths_nodes -= set(longest_path)
                     paths = [p for p in paths if not set(p).issubset(set(longest_path))]
-                    constraints = self._traverse_longest_path(longest_path, subgraph, constraints)
+                    constraints = self._traverse_longest_path(
+                        longest_path, subgraph, constraints
+                    )
         return constraints
 
     def determine_minimal_constraints(self) -> list[Constraint]:
         combo_constraints = []
         constraints = []
-        all_subgraphs = [self.graph.subgraph(g) for g in nx.weakly_connected_components(self.graph) if len(g) > 1]
+        all_subgraphs = [
+            self.graph.subgraph(g)
+            for g in nx.weakly_connected_components(self.graph)
+            if len(g) > 1
+        ]
         for subgraph in all_subgraphs:
             if all([subgraph.edges[e]["color"] == "purple" for e in subgraph.edges]):
                 combo_constraints.append(self.ComboConstraint(subgraph.nodes))
             else:
-                constraints = self._determine_minimal_subgraph_constraints(subgraph, constraints)
+                constraints = self._determine_minimal_subgraph_constraints(
+                    subgraph, constraints
+                )
         return combo_constraints + constraints
 
     def _output_graphs_html(self, name: str) -> None:

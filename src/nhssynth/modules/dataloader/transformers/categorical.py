@@ -28,11 +28,16 @@ class OHECategoricalTransformer(ColumnTransformer):
     def __init__(self, drop: Optional[Union[list, str]] = None) -> None:
         super().__init__()
         self._drop: Union[list, str] = drop
-        self._transformer: OneHotEncoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False, drop=self._drop)
+        self._transformer: OneHotEncoder = OneHotEncoder(
+            handle_unknown="ignore", sparse_output=False, drop=self._drop
+        )
         self.missing_value: Any = None
 
     def apply(
-        self, data: pd.Series, constraint_adherence: Optional[pd.Series], missing_value: Optional[Any] = None
+        self,
+        data: pd.Series,
+        constraint_adherence: Optional[pd.Series],
+        missing_value: Optional[Any] = None,
     ) -> pd.DataFrame:
         """
         Applies a transformation to the input data using scikit-learn's `OneHotEncoder`'s `fit_transform` method.
@@ -77,7 +82,10 @@ class OHECategoricalTransformer(ColumnTransformer):
             self._transformer.fit_transform(data.values.reshape(-1, 1)),
             columns=self._transformer.get_feature_names_out(input_features=[data.name]),
         )
-        transformed_data = pd.concat([transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence], axis=1)
+        transformed_data = pd.concat(
+            [transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence],
+            axis=1,
+        )
 
         if 0 in transformed_data.columns:
             transformed_data = transformed_data.drop(columns=[0])
@@ -98,10 +106,14 @@ class OHECategoricalTransformer(ColumnTransformer):
             The dataset with a single categorical column that is analogous to the original column, with the same name, and without the generated one-hot columns.
         """
         data[self.original_column_name] = pd.Series(
-            self._transformer.inverse_transform(data[self.new_column_names].values).flatten(),
+            self._transformer.inverse_transform(
+                data[self.new_column_names].values
+            ).flatten(),
             index=data.index,
             name=self.original_column_name,
         )
         if self.missing_value:
-            data[self.original_column_name] = data[self.original_column_name].replace(self.missing_value, np.nan)
+            data[self.original_column_name] = data[self.original_column_name].replace(
+                self.missing_value, np.nan
+            )
         return data.drop(self.new_column_names, axis=1)

@@ -14,7 +14,11 @@ class Evaluations:
 
 
 def check_input_paths(
-    fn_dataset: str, fn_typed: str, fn_synthetic_datasets: str, fn_sdv_metadata: str, dir_experiment: Path
+    fn_dataset: str,
+    fn_typed: str,
+    fn_synthetic_datasets: str,
+    fn_sdv_metadata: str,
+    dir_experiment: Path,
 ) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
@@ -36,7 +40,9 @@ def check_input_paths(
     fn_typed, fn_synthetic_datasets, fn_sdv_metadata = io.potential_suffixes(
         [fn_typed, fn_synthetic_datasets, fn_sdv_metadata], fn_dataset
     )
-    io.warn_if_path_supplied([fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment)
+    io.warn_if_path_supplied(
+        [fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment
+    )
     io.check_exists([fn_typed, fn_synthetic_datasets, fn_sdv_metadata], dir_experiment)
     return fn_dataset, fn_typed, fn_synthetic_datasets, fn_sdv_metadata
 
@@ -79,7 +85,10 @@ def load_required_data(
     Returns:
         The dataset name, the real data, the bundle of synthetic data from the modelling stage, and the SDV metadata.
     """
-    if all(x in args.module_handover for x in ["dataset", "typed", "synthetic_datasets", "sdv_metadata"]):
+    if all(
+        x in args.module_handover
+        for x in ["dataset", "typed", "synthetic_datasets", "sdv_metadata"]
+    ):
         return (
             args.module_handover["dataset"],
             args.module_handover["typed"],
@@ -87,8 +96,14 @@ def load_required_data(
             args.module_handover["sdv_metadata"],
         )
     else:
-        fn_dataset, fn_typed, fn_synthetic_datasets, fn_sdv_metadata = check_input_paths(
-            args.dataset, args.typed, args.synthetic_datasets, args.sdv_metadata, dir_experiment
+        fn_dataset, fn_typed, fn_synthetic_datasets, fn_sdv_metadata = (
+            check_input_paths(
+                args.dataset,
+                args.typed,
+                args.synthetic_datasets,
+                args.sdv_metadata,
+                dir_experiment,
+            )
         )
         with open(dir_experiment / fn_typed, "rb") as f:
             real_data = pickle.load(f).contents

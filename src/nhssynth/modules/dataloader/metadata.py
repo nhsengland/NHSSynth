@@ -26,13 +26,19 @@ class MetaData:
         def __init__(self, name: str, data: pd.Series, raw: dict) -> None:
             self.name = name
             self.dtype: np.dtype = self._validate_dtype(data, raw.get("dtype"))
-            self.categorical: bool = self._validate_categorical(data, raw.get("categorical"))
-            self.missingness_strategy: GenericMissingnessStrategy = self._validate_missingness_strategy(
-                raw.get("missingness")
+            self.categorical: bool = self._validate_categorical(
+                data, raw.get("categorical")
             )
-            self.transformer: ColumnTransformer = self._validate_transformer(raw.get("transformer"))
+            self.missingness_strategy: GenericMissingnessStrategy = (
+                self._validate_missingness_strategy(raw.get("missingness"))
+            )
+            self.transformer: ColumnTransformer = self._validate_transformer(
+                raw.get("transformer")
+            )
 
-        def _validate_dtype(self, data: pd.Series, dtype_raw: Optional[Union[dict, str]] = None) -> np.dtype:
+        def _validate_dtype(
+            self, data: pd.Series, dtype_raw: Optional[Union[dict, str]] = None
+        ) -> np.dtype:
             if isinstance(dtype_raw, dict):
                 dtype_name = dtype_raw.pop("name", None)
             elif isinstance(dtype_raw, str):
@@ -49,16 +55,22 @@ class MetaData:
             if dtype.kind == "M":
                 self._setup_datetime_config(data, dtype_raw)
             elif dtype.kind in ["f", "i", "u"]:
-                self.rounding_scheme = self._validate_rounding_scheme(data, dtype, dtype_raw)
+                self.rounding_scheme = self._validate_rounding_scheme(
+                    data, dtype, dtype_raw
+                )
             return dtype
 
         def _infer_dtype(self, data: pd.Series) -> np.dtype:
             return data.dtype.name
 
         def _infer_datetime_format(self, data: pd.Series) -> str:
-            return _guess_datetime_format_for_array(data[data.notna()].astype(str).to_numpy())
+            return _guess_datetime_format_for_array(
+                data[data.notna()].astype(str).to_numpy()
+            )
 
-        def _setup_datetime_config(self, data: pd.Series, datetime_config: dict) -> dict:
+        def _setup_datetime_config(
+            self, data: pd.Series, datetime_config: dict
+        ) -> dict:
             """
             Add keys to `datetime_config` corresponding to args from the `pd.to_datetime` function
             (see [the docs](https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html))
@@ -66,12 +78,16 @@ class MetaData:
             if not isinstance(datetime_config, dict):
                 datetime_config = {}
             else:
-                datetime_config = filter_dict(datetime_config, {"format", "floor"}, include=True)
+                datetime_config = filter_dict(
+                    datetime_config, {"format", "floor"}, include=True
+                )
             if "format" not in datetime_config:
                 datetime_config["format"] = self._infer_datetime_format(data)
             self.datetime_config = datetime_config
 
-        def _validate_rounding_scheme(self, data: pd.Series, dtype: np.dtype, dtype_dict: dict) -> int:
+        def _validate_rounding_scheme(
+            self, data: pd.Series, dtype: np.dtype, dtype_dict: dict
+        ) -> int:
             if dtype_dict and "rounding_scheme" in dtype_dict:
                 return dtype_dict["rounding_scheme"]
             else:
@@ -83,7 +99,9 @@ class MetaData:
                         return 10**-i
             return None
 
-        def _validate_categorical(self, data: pd.Series, categorical: Optional[bool] = None) -> bool:
+        def _validate_categorical(
+            self, data: pd.Series, categorical: Optional[bool] = None
+        ) -> bool:
             if categorical is None:
                 return self._infer_categorical(data)
             elif not isinstance(categorical, bool):
@@ -99,17 +117,23 @@ class MetaData:
             self.boolean = data.nunique() <= 2
             return data.nunique() <= 10 or self.dtype.kind == "O"
 
-        def _validate_missingness_strategy(self, missingness_strategy: Optional[Union[dict, str]]) -> tuple[str, dict]:
+        def _validate_missingness_strategy(
+            self, missingness_strategy: Optional[Union[dict, str]]
+        ) -> tuple[str, dict]:
             if not missingness_strategy:
                 return None
             if isinstance(missingness_strategy, dict):
                 impute = missingness_strategy.get("impute", None)
-                strategy = "impute" if impute else missingness_strategy.get("strategy", None)
+                strategy = (
+                    "impute" if impute else missingness_strategy.get("strategy", None)
+                )
             else:
                 strategy = missingness_strategy
             if (
                 strategy not in MISSINGNESS_STRATEGIES
-                or (strategy == "impute" and impute == "mean" and self.dtype.kind != "f")
+                or (
+                    strategy == "impute" and impute == "mean" and self.dtype.kind != "f"
+                )
                 or (strategy == "impute" and not impute)
             ):
                 warnings.warn(
@@ -117,10 +141,14 @@ class MetaData:
                 )
                 return None
             return (
-                MISSINGNESS_STRATEGIES[strategy](impute) if strategy == "impute" else MISSINGNESS_STRATEGIES[strategy]()
+                MISSINGNESS_STRATEGIES[strategy](impute)
+                if strategy == "impute"
+                else MISSINGNESS_STRATEGIES[strategy]()
             )
 
-        def _validate_transformer(self, transformer: Optional[Union[dict, str]] = {}) -> tuple[str, dict]:
+        def _validate_transformer(
+            self, transformer: Optional[Union[dict, str]] = {}
+        ) -> tuple[str, dict]:
             # if transformer is neither a dict nor a str statement below will raise a TypeError
             if isinstance(transformer, dict):
                 self.transformer_name = transformer.get("name")
@@ -159,13 +187,24 @@ class MetaData:
         self.columns: pd.Index = data.columns
         self.raw_metadata: dict = metadata
         if set(self.raw_metadata["columns"].keys()) - set(self.columns):
-            raise ValueError("Metadata contains keys that do not appear amongst the columns.")
-        self.dropped_columns = [cn for cn in self.columns if self.raw_metadata["columns"].get(cn, None) == "drop"]
+            raise ValueError(
+                "Metadata contains keys that do not appear amongst the columns."
+            )
+        self.dropped_columns = [
+            cn
+            for cn in self.columns
+            if self.raw_metadata["columns"].get(cn, None) == "drop"
+        ]
         self.columns = self.columns.drop(self.dropped_columns)
         self._metadata = {
-            cn: self.ColumnMetaData(cn, data[cn], self.raw_metadata["columns"].get(cn, {})) for cn in self.columns
+            cn: self.ColumnMetaData(
+                cn, data[cn], self.raw_metadata["columns"].get(cn, {})
+            )
+            for cn in self.columns
         }
-        self.constraints = ConstraintGraph(self.raw_metadata.get("constraints", []), self.columns, self._metadata)
+        self.constraints = ConstraintGraph(
+            self.raw_metadata.get("constraints", []), self.columns, self._metadata
+        )
 
     def __getitem__(self, key: str) -> dict[str, Any]:
         return self._metadata[key]
@@ -235,7 +274,10 @@ class MetaData:
             else:
                 column_types.pop(cix)
 
-        return {"column_types": {i + 1: x for i, x in enumerate(column_types.values())}, **metadata}
+        return {
+            "column_types": {i + 1: x for i, x in enumerate(column_types.values())},
+            **metadata,
+        }
 
     def _assemble(self, collapse_yaml: bool) -> dict[str, dict[str, Any]]:
         """
@@ -266,7 +308,10 @@ class MetaData:
                 assembled_metadata["columns"][cn]["missingness"] = (
                     cmd.missingness_strategy.name
                     if cmd.missingness_strategy.name != "impute"
-                    else {"name": cmd.missingness_strategy.name, "impute": cmd.missingness_strategy.impute}
+                    else {
+                        "name": cmd.missingness_strategy.name,
+                        "impute": cmd.missingness_strategy.impute,
+                    }
                 )
             if cmd.transformer_config:
                 assembled_metadata["columns"][cn]["transformer"] = {
@@ -276,7 +321,9 @@ class MetaData:
 
         # Add back the dropped_columns not present in the metadata
         if self.dropped_columns:
-            assembled_metadata["columns"].update({cn: "drop" for cn in self.dropped_columns})
+            assembled_metadata["columns"].update(
+                {cn: "drop" for cn in self.dropped_columns}
+            )
 
         if collapse_yaml:
             assembled_metadata = self._collapse(assembled_metadata)
@@ -321,7 +368,11 @@ class MetaData:
                     "sdtype": (
                         "boolean"
                         if cmd.boolean
-                        else "categorical" if cmd.categorical else "datetime" if cmd.dtype.kind == "M" else "numerical"
+                        else "categorical"
+                        if cmd.categorical
+                        else "datetime"
+                        if cmd.dtype.kind == "M"
+                        else "numerical"
                     ),
                 }
                 for cn, cmd in self._metadata.items()

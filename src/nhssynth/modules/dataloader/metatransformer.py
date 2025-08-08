@@ -54,9 +54,9 @@ class MetaTransformer:
         self._raw_dataset: pd.DataFrame = dataset
         self._metadata: MetaData = metadata or MetaData(dataset)
         if missingness_strategy == "impute":
-            assert (
-                impute_value is not None
-            ), "`impute_value` of the `MetaTransformer` must be specified (via the --impute flag) when using the imputation missingness strategy"
+            assert impute_value is not None, (
+                "`impute_value` of the `MetaTransformer` must be specified (via the --impute flag) when using the imputation missingness strategy"
+            )
             self._impute_value = impute_value
         self._missingness_strategy = MISSINGNESS_STRATEGIES[missingness_strategy]
 
@@ -94,7 +94,9 @@ class MetaTransformer:
         """
         self._raw_dataset = self._raw_dataset[self._metadata.columns]
 
-    def _apply_rounding_scheme(self, working_column: pd.Series, rounding_scheme: float) -> pd.Series:
+    def _apply_rounding_scheme(
+        self, working_column: pd.Series, rounding_scheme: float
+    ) -> pd.Series:
         """
         A rounding scheme takes the form of the smallest value that should be rounded to 0, i.e. 0.01 for 2dp.
         We first round to the nearest multiple in the standard way, through dividing, rounding and then multiplying.
@@ -134,22 +136,35 @@ class MetaTransformer:
         try:
             if dtype.kind == "M":
                 working_column = pd.to_datetime(
-                    working_column, format=column_metadata.datetime_config.get("format"), errors="coerce"
+                    working_column,
+                    format=column_metadata.datetime_config.get("format"),
+                    errors="coerce",
                 )
                 if column_metadata.datetime_config.get("floor"):
-                    working_column = working_column.dt.floor(column_metadata.datetime_config.get("floor"))
-                    column_metadata.datetime_config["format"] = column_metadata._infer_datetime_format(working_column)
+                    working_column = working_column.dt.floor(
+                        column_metadata.datetime_config.get("floor")
+                    )
+                    column_metadata.datetime_config["format"] = (
+                        column_metadata._infer_datetime_format(working_column)
+                    )
                 return working_column
             else:
-                if hasattr(column_metadata, "rounding_scheme") and column_metadata.rounding_scheme is not None:
-                    working_column = self._apply_rounding_scheme(working_column, column_metadata.rounding_scheme)
+                if (
+                    hasattr(column_metadata, "rounding_scheme")
+                    and column_metadata.rounding_scheme is not None
+                ):
+                    working_column = self._apply_rounding_scheme(
+                        working_column, column_metadata.rounding_scheme
+                    )
                 # If there are missing values in the column, we need to use the pandas equivalent of the dtype to allow for NA values
                 if working_column.isnull().any() and dtype.kind in ["i", "u", "f"]:
                     return working_column.astype(dtype.name.capitalize())
                 else:
                     return working_column.astype(dtype)
         except ValueError:
-            raise ValueError(f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{working_column.name}'")
+            raise ValueError(
+                f"{sys.exc_info()[1]}\nError applying dtype '{dtype}' to column '{working_column.name}'"
+            )
 
     def apply_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -160,7 +175,9 @@ class MetaTransformer:
         """
         working_data = data.copy()
         for column_metadata in self._metadata:
-            working_data[column_metadata.name] = self._apply_dtype(working_data[column_metadata.name], column_metadata)
+            working_data[column_metadata.name] = self._apply_dtype(
+                working_data[column_metadata.name], column_metadata
+            )
         return working_data
 
     def apply_missingness_strategy(self) -> pd.DataFrame:
@@ -182,7 +199,9 @@ class MetaTransformer:
                 )
             if not working_data[column_metadata.name].isnull().any():
                 continue
-            working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
+            working_data = column_metadata.missingness_strategy.remove(
+                working_data, column_metadata
+            )
         return working_data
 
     def apply_constraints(self) -> pd.DataFrame:
@@ -191,7 +210,9 @@ class MetaTransformer:
             working_data = constraint.transform(working_data)
         return working_data
 
-    def _get_missingness_carrier(self, column_metadata: MetaData.ColumnMetaData) -> Union[pd.Series, Any]:
+    def _get_missingness_carrier(
+        self, column_metadata: MetaData.ColumnMetaData
+    ) -> Union[pd.Series, Any]:
         """
         In the case of the `AugmentMissingnessStrategy`, a `missingness_carrier` has been determined for each column.
         For continuous columns this is an indicator column for the presence of NaN values.
@@ -203,14 +224,15 @@ class MetaTransformer:
         Returns:
             The missingness carrier for the column.
         """
-        missingness_carrier = getattr(column_metadata.missingness_strategy, "missingness_carrier", None)
+        missingness_carrier = getattr(
+            column_metadata.missingness_strategy, "missingness_carrier", None
+        )
         if missingness_carrier in self.post_missingness_strategy_dataset.columns:
             return self.post_missingness_strategy_dataset[missingness_carrier]
         else:
             return missingness_carrier
 
     def _get_adherence_constraint(self, df) -> Union[pd.Series, Any]:
-
         adherence_columns = [col for col in df.columns if col.endswith("_adherence")]
         constraint_adherence = df[adherence_columns].prod(axis=1).astype(int)
 
@@ -231,23 +253,33 @@ class MetaTransformer:
 
         # iteratively build the transformed df
         for column_metadata in tqdm(
-            self._metadata, desc="Transforming data", unit="column", total=len(self._metadata.columns)
+            self._metadata,
+            desc="Transforming data",
+            unit="column",
+            total=len(self._metadata.columns),
         ):
             missingness_carrier = self._get_missingness_carrier(column_metadata)
             constraint_adherence = self._get_adherence_constraint(working_data)
             transformed_data = column_metadata.transformer.apply(
-                working_data[column_metadata.name], constraint_adherence, missingness_carrier
+                working_data[column_metadata.name],
+                constraint_adherence,
+                missingness_carrier,
             )
             transformed_columns.append(transformed_data)
 
             # track single and multi column indices to supply to the model
-            if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
+            if (
+                isinstance(transformed_data, pd.DataFrame)
+                and transformed_data.shape[1] > 1
+            ):
                 num_to_add = transformed_data.shape[1]
                 if not column_metadata.categorical:
                     self.single_column_indices.append(col_counter)
                     col_counter += 1
                     num_to_add -= 1
-                self.multi_column_indices.append(list(range(col_counter, col_counter + num_to_add)))
+                self.multi_column_indices.append(
+                    list(range(col_counter, col_counter + num_to_add))
+                )
                 col_counter += num_to_add
             else:
                 self.single_column_indices.append(col_counter)
@@ -282,9 +314,13 @@ class MetaTransformer:
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
         # Enforce constraints on decoded data if available
-        tqdm.write(f"repair before {(dataset['x8']>180).sum()},  violation; max {dataset['x8'].max()}")
+        tqdm.write(
+            f"repair before {(dataset['x8'] > 180).sum()},  violation; max {dataset['x8'].max()}"
+        )
         dataset = self.repair_constraints(dataset)
-        tqdm.write(f"repair after {(dataset['x8']>180).sum()},  violation; max {dataset['x8'].max()}")
+        tqdm.write(
+            f"repair after {(dataset['x8'] > 180).sum()},  violation; max {dataset['x8'].max()}"
+        )
 
         return self.apply_dtypes(dataset)
 
@@ -316,7 +352,9 @@ class MetaTransformer:
         Returns:
             A tuple containing the indices of the single and multi columns.
         """
-        if not hasattr(self, "multi_column_indices") or not hasattr(self, "single_column_indices"):
+        if not hasattr(self, "multi_column_indices") or not hasattr(
+            self, "single_column_indices"
+        ):
             raise ValueError(
                 "The single and multi column indices have not yet been created. Call `mt.apply()` (or `mt.transform()`) first."
             )
@@ -337,7 +375,9 @@ class MetaTransformer:
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
 
-    def repair_constraints(self, df: pd.DataFrame, *, n_retries: int = 0) -> pd.DataFrame:
+    def repair_constraints(
+        self, df: pd.DataFrame, *, n_retries: int = 0
+    ) -> pd.DataFrame:
         """
         Enforce constraints on a *decoded* DataFrame.
 
@@ -386,7 +426,9 @@ class MetaTransformer:
                 "in": "in",
             }.get(op, op)
 
-        def _ensure_binary_or_in(base: str, op: str, reference, reference_is_column: bool):
+        def _ensure_binary_or_in(
+            base: str, op: str, reference, reference_is_column: bool
+        ):
             if base not in repaired.columns:
                 return
 
@@ -406,7 +448,9 @@ class MetaTransformer:
                 mask = ~s.isin(allowed)
                 if mask.any():
                     mode_vals = s[s.isin(allowed)].mode(dropna=True)
-                    fill_val = mode_vals.iloc[0] if len(mode_vals) else next(iter(allowed))
+                    fill_val = (
+                        mode_vals.iloc[0] if len(mode_vals) else next(iter(allowed))
+                    )
                     s.loc[mask] = fill_val
                     repaired[base] = s
                 return
@@ -437,7 +481,11 @@ class MetaTransformer:
 
         # ----------------- apply constraints -----------------
         for c in constraints_iterable:
-            cd = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
+            cd = (
+                c.to_dict()
+                if hasattr(c, "to_dict")
+                else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
+            )
             base = cd.get("base")
             op = _norm_op(cd.get("operator"))
             ref = cd.get("reference")

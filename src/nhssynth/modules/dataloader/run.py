@@ -14,7 +14,9 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     common.set_seed(args.seed)
     dir_experiment = common.experiment_io(args.experiment_name)
 
-    dir_input, fn_dataset, fn_metadata = check_input_paths(args.dataset, args.metadata, args.data_dir)
+    dir_input, fn_dataset, fn_metadata = check_input_paths(
+        args.dataset, args.metadata, args.data_dir
+    )
 
     print()
 

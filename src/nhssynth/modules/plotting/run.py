@@ -15,7 +15,10 @@ def run_iter(
     if args.plot_quality and "quality_report" in bundle:
         figs = [
             bundle["quality_report"].get_visualization(property_name)
-            for property_name in bundle["quality_report"].get_properties()["Property"].unique().tolist()
+            for property_name in bundle["quality_report"]
+            .get_properties()["Property"]
+            .unique()
+            .tolist()
         ]
         for fig in figs:
             fig.show()

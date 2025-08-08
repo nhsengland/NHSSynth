@@ -39,7 +39,9 @@ class MultiActivationHead(nn.Module):
         return out
 
 
-def _forward_skip_connection(self: nn.Module, X: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
+def _forward_skip_connection(
+    self: nn.Module, X: torch.Tensor, *args: Any, **kwargs: Any
+) -> torch.Tensor:
     X = X.float()
     out = self._forward(X, *args, **kwargs)
     return torch.cat([out, X], dim=-1)
@@ -170,7 +172,11 @@ class MLP(nn.Module):
         loss: Optional[Callable] = None,
     ) -> None:
         super(MLP, self).__init__()
-        activation = ACTIVATION_FUNCTIONS[activation] if activation in ACTIVATION_FUNCTIONS else None
+        activation = (
+            ACTIVATION_FUNCTIONS[activation]
+            if activation in ACTIVATION_FUNCTIONS
+            else None
+        )
 
         if n_units_in < 0:
             raise ValueError("n_units_in must be >= 0")
@@ -329,7 +335,9 @@ class MLP(nn.Module):
 
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
-        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+        train_dataset, test_dataset = torch.utils.data.random_split(
+            dataset, [train_size, test_size]
+        )
         loader = DataLoader(train_dataset, batch_size=self.batch_size, pin_memory=False)
 
         # Setup the network and optimizer

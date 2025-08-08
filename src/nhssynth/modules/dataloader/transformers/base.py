@@ -12,7 +12,10 @@ class ColumnTransformer(ABC):
 
     @abstractmethod
     def apply(
-        self, data: pd.DataFrame, missingness_column: Optional[pd.Series], constraint_adherence: Optional[pd.Series]
+        self,
+        data: pd.DataFrame,
+        missingness_column: Optional[pd.Series],
+        constraint_adherence: Optional[pd.Series],
     ) -> None:
         """Apply the transformer to the data."""
         pass
@@ -40,10 +43,12 @@ class TransformerWrapper(ABC):
         data: pd.Series,
         missingness_column: Optional[pd.Series],
         constraint_adherence: Optional[pd.Series],
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
         """Method for applying the wrapped transformer to the data."""
-        return self._wrapped_transformer.apply(data, missingness_column, constraint_adherence, **kwargs)
+        return self._wrapped_transformer.apply(
+            data, missingness_column, constraint_adherence, **kwargs
+        )
 
     def revert(self, data: pd.Series, **kwargs) -> pd.DataFrame:
         """Method for reverting the passed data via the wrapped transformer."""

@@ -68,12 +68,12 @@ def get_seed_parser(overrides=False) -> argparse.ArgumentParser:
     return parser
 
 
-COMMON_TITLE: Final = (
-    "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `<DATASET>_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
-)
+COMMON_TITLE: Final = "starting any of the following args with `_` defaults to a suffix on DATASET (e.g. `_metadata` -> `<DATASET>_metadata`);\nall filenames are relative to `experiments/<EXPERIMENT_NAME>/` unless otherwise stated"
 
 
-def suffix_parser_generator(name: str, help: str, required: bool = False) -> argparse.ArgumentParser:
+def suffix_parser_generator(
+    name: str, help: str, required: bool = False
+) -> argparse.ArgumentParser:
     """Generator function for creating parsers following a common template.
     These parsers are all suffixes to the --dataset / -d / DATASET argument, see `COMMON_TITLE`.
 

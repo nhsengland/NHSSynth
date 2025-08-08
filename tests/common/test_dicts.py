@@ -51,7 +51,9 @@ def test_flatten_dict_nested() -> None:
 
 def test_flatten_dict_duplicate_keys() -> None:
     d = {"a": 1, "b": {"c": 2, "d": {"c": 3}}}
-    with pytest.raises(ValueError, match="Duplicate keys found in flattened dictionary"):
+    with pytest.raises(
+        ValueError, match="Duplicate keys found in flattened dictionary"
+    ):
         flatten_dict(d)
 
 

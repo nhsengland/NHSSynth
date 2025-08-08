@@ -20,7 +20,8 @@ def run(sysargv) -> None:
     # doing a full pipeline run with CLI-specified config
     subparsers = parser.add_subparsers()
     all_subparsers = {
-        name: add_subparser(subparsers, name, option_config) for name, option_config in MODULE_MAP.items()
+        name: add_subparser(subparsers, name, option_config)
+        for name, option_config in MODULE_MAP.items()
     }
 
     args = parser.parse_args(sysargv)
@@ -28,7 +29,9 @@ def run(sysargv) -> None:
     executor = vars(args).get("func", None)
     if executor:
         if hasattr(args, "seed") and not args.seed:
-            warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
+            warnings.warn(
+                "No seed has been specified, meaning the results of this run may not be reproducible."
+            )
         args.modules_to_run = get_modules_to_run(executor)
         args.module_handover = {}
         executor(args)

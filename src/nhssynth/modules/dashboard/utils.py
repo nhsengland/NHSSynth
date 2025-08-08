@@ -26,7 +26,8 @@ def id_selector(df: pd.DataFrame) -> pd.Series:
         The dataset subset to only the row corresponding to the ID.
     """
     architecture = st.sidebar.selectbox(
-        "Select architecture to display", df.index.get_level_values("architecture").unique()
+        "Select architecture to display",
+        df.index.get_level_values("architecture").unique(),
     )
     # Different architectures may have different numbers of repeats and configs
     repeats = df.loc[architecture].index.get_level_values("repeat").astype(int).unique()
@@ -58,6 +59,10 @@ def subset_selector(df: pd.DataFrame) -> pd.DataFrame:
     selected_architectures = st.sidebar.multiselect(
         "Select architectures to display", architectures, default=architectures
     )
-    selected_repeats = st.sidebar.multiselect("Select repeats to display", repeats, default=repeats[0])
-    selected_configs = st.sidebar.multiselect("Select configurations to display", configs, default=configs)
+    selected_repeats = st.sidebar.multiselect(
+        "Select repeats to display", repeats, default=repeats[0]
+    )
+    selected_configs = st.sidebar.multiselect(
+        "Select configurations to display", configs, default=configs
+    )
     return df.loc[(selected_architectures, selected_repeats, selected_configs)]

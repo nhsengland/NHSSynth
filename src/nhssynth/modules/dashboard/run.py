@@ -22,7 +22,11 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     ]
 
     # potentially automatically load the required data from desk when the dashboard server is started
-    if (args.dataset or args.module_handover.get("fn_dataset")) and args.experiment_name != TIME and not args.dont_load:
+    if (
+        (args.dataset or args.module_handover.get("fn_dataset"))
+        and args.experiment_name != TIME
+        and not args.dont_load
+    ):
         paths = check_input_paths(
             dir_experiment,
             args.module_handover.get("fn_dataset") or args.dataset,
@@ -45,7 +49,9 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             ]
         )
 
-    process = subprocess.Popen(command, stderr=subprocess.DEVNULL if not args.debug else None)
+    process = subprocess.Popen(
+        command, stderr=subprocess.DEVNULL if not args.debug else None
+    )
 
     # wrapping the process to enable graceful termination of the server via user input
     time.sleep(1)

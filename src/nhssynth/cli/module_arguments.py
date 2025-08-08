@@ -29,7 +29,9 @@ class AllChoicesDefault(argparse.Action):
             setattr(namespace, self.dest, self.default)
 
 
-def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
+def add_dataloader_args(
+    parser: argparse.ArgumentParser, group_title: str, overrides: bool = False
+) -> None:
     """Adds arguments to an existing dataloader module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
@@ -75,11 +77,15 @@ def add_dataloader_args(parser: argparse.ArgumentParser, group_title: str, overr
     )
 
 
-def add_structure_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
+def add_structure_args(
+    parser: argparse.ArgumentParser, group_title: str, overrides: bool = False
+) -> None:
     pass
 
 
-def add_model_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
+def add_model_args(
+    parser: argparse.ArgumentParser, group_title: str, overrides: bool = False
+) -> None:
     """Adds arguments to an existing model module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
@@ -179,7 +185,9 @@ def generate_evaluation_arg(group, name):
     )
 
 
-def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
+def add_evaluation_args(
+    parser: argparse.ArgumentParser, group_title: str, overrides: bool = False
+) -> None:
     """Adds arguments to an existing evaluation module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
@@ -238,7 +246,9 @@ def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overr
         generate_evaluation_arg(group, name)
 
 
-def add_plotting_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False) -> None:
+def add_plotting_args(
+    parser: argparse.ArgumentParser, group_title: str, overrides: bool = False
+) -> None:
     """Adds arguments to an existing plotting module sub-parser instance."""
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
@@ -263,7 +273,9 @@ def add_plotting_args(parser: argparse.ArgumentParser, group_title: str, overrid
     )
 
 
-def add_dashboard_args(parser: argparse.ArgumentParser, group_title: str, overrides: bool = False):
+def add_dashboard_args(
+    parser: argparse.ArgumentParser, group_title: str, overrides: bool = False
+):
     group = parser.add_argument_group(title=group_title)
     group.add_argument(
         "--file-size-limit",

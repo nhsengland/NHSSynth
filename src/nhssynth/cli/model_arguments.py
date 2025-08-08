@@ -5,7 +5,9 @@ import argparse
 from nhssynth.common.constants import ACTIVATION_FUNCTIONS
 
 
-def add_model_specific_args(group: argparse._ArgumentGroup, name: str, overrides: bool = False) -> None:
+def add_model_specific_args(
+    group: argparse._ArgumentGroup, name: str, overrides: bool = False
+) -> None:
     """Adds arguments to an existing group according to `name`."""
     if name == "VAE":
         add_vae_args(group, overrides)
@@ -172,7 +174,9 @@ def add_gan_args(group: argparse._ArgumentGroup, overrides: bool = False) -> Non
     )
 
 
-def add_tabular_gan_args(group: argparse._ArgumentGroup, overrides: bool = False) -> None:
+def add_tabular_gan_args(
+    group: argparse._ArgumentGroup, overrides: bool = False
+) -> None:
     group.add_argument(
         "--generator-activation-out-discrete",
         type=str,
