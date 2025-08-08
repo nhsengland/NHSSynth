@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import pandas as pd
@@ -57,6 +57,12 @@ class ClusterContinuousTransformer(ColumnTransformer):
         self._max_iter = max_iter
         self.remove_unused_components = remove_unused_components
         self.clip_output = clip_output
+        self.name = (
+            getattr(self, "name", None)
+            or getattr(self, "column", None)
+            or getattr(self, "col", None)
+            or getattr(self, "feature", None)
+        )
 
     def apply(
         self,
@@ -98,7 +104,18 @@ class ClusterContinuousTransformer(ColumnTransformer):
             - If `self.remove_unused_components` is set to `True`, any components that do not have any data assigned to them will be removed from the result.
             - The final output DataFrame will have integer types for the component columns and will fill missing values with 0 where necessary.
         """
+        if not hasattr(self, "name") or self.name is None:
+            # If this transformer handles exactly one original column, we can infer it:
+            if isinstance(data, pd.DataFrame) and len(data.columns) == 1:
+                self.name = data.columns[0]
+            elif isinstance(data, pd.Series):
+                self.name = data.name
+            # else: leave as-is; revert() will infer later
+        
         self.original_column_name = data.name
+        if not hasattr(self, "name") or self.name is None:
+            self.name = self.original_column_name
+    
         if missingness_column is not None:
             self._missingness_column_name = missingness_column.name
             full_index = data.index
@@ -106,7 +123,6 @@ class ClusterContinuousTransformer(ColumnTransformer):
             # Align constraint_adherence with the filtered data
             constraint_adherence = constraint_adherence[missingness_column == 0]
         semi_index = data.index
-        data = data[constraint_adherence == 1]
         index = data.index
         data = data.fillna(0)
         data = np.array(data.values.reshape(-1, 1), dtype=data.dtype.name.lower())
@@ -159,40 +175,138 @@ class ClusterContinuousTransformer(ColumnTransformer):
             transformed_data = transformed_data.drop(columns=[0])
 
         self.new_column_names = transformed_data.columns
-        return transformed_data.astype(
+        
+        out = transformed_data
+
+        # Only DataFrames have .columns
+        if isinstance(out, pd.DataFrame):
+            out = out.loc[:, ~out.columns.str.endswith("_adherence")]
+
+        return out.astype(
             {col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)}
         )
 
-    def revert(self, data: pd.DataFrame) -> pd.DataFrame:
+    def revert(self, data: pd.DataFrame) -> pd.Series:
         """
-        Revert data to pre-transformer state via the means and stds of the BGM. Extract the relevant columns from the data via the `new_column_names` attribute.
-        If `missingness_column` was provided to the `apply` method, drop the missing values from the data before reverting and use the `full_index` to
-        reintroduce missing values when `original_column_name` is constructed.
-
-        Args:
-            data: The full dataset including the column(s) to be reverted to their pre-transformer state.
-
-        Returns:
-            The dataset with a single continuous column that is analogous to the original column, with the same name, and without the generated columns from which it is derived.
+        Decode using name-based selection, tolerant to different suffixes.
+        Expects columns like:
+        - value:       {base}_value  OR {base}_normalized  OR {base}_normalised
+        - components:  {base}_c{idx} for idx in 0..K-1 (or 1..K)
+        Ignores any '*_missing' or '*_adherence' columns.
         """
-        working_data = data[self.new_column_names]
-        full_index = working_data.index
-        if self._missingness_column_name is not None:
-            working_data = working_data[working_data[self._missingness_column_name] == 0]
-            working_data = working_data.drop(self._missingness_column_name, axis=1)
-        index = working_data.index
+        import re
+        import numpy as np
+        import warnings
+        from typing import List
 
-        components = np.argmax(working_data.filter(regex=r".*_c\d+").values, axis=1)
-        working_data = working_data.filter(like="_normalised").values.reshape(-1)
-        if self.clip_output:
-            working_data = np.clip(working_data, -1.0, 1.0)
+        # 1) Work out the base column name
+        base = (
+            getattr(self, "name", None)
+            or getattr(self, "column", None)
+            or getattr(self, "col", None)
+            or getattr(self, "feature", None)
+            or getattr(self, "base", None)
+        )
 
-        mean_t = self.means[components]
-        std_t = self.stds[components]
-        data[self.original_column_name] = pd.Series(
-            working_data * self._std_multiplier * std_t + mean_t,
-            index=index,
-            name=self.original_column_name,
-        ).reindex(full_index)
-        data.drop(self.new_column_names, axis=1, inplace=True)
-        return data
+        # Helper to infer candidate bases from current DataFrame
+        def _infer_bases_from_df(df: pd.DataFrame):
+            value_suffixes = ("_value", "_normalized", "_normalised")
+            bases_from_values = set()
+            for c in df.columns:
+                for sfx in value_suffixes:
+                    if c.endswith(sfx):
+                        bases_from_values.add(c[: -len(sfx)])
+            # components pattern
+            comp_pat = re.compile(rf"^{re.escape(base)}_c(\d+)$")
+            bases_from_comps = set()
+            for c in df.columns:
+                m = comp_pat.match(c)
+                if m:
+                    bases_from_comps.add(m.group(1))
+            # prefer intersection if any; else take union
+            candidates = (bases_from_values & bases_from_comps) or (bases_from_values or bases_from_comps)
+            return candidates
+
+        if base is None:
+            candidates = _infer_bases_from_df(data)
+            if len(candidates) == 1:
+                base = next(iter(candidates))
+                # cache for future calls
+                self.name = base
+            else:
+                raise ValueError(
+                    "ClusterContinuousTransformer missing 'name'/'column' and could not infer a unique base; "
+                    f"candidates from columns: {sorted(list(candidates))[:5]}... "
+                    f"(example columns: {list(data.columns)[:20]})"
+                )
+
+        # 2) Find value column (accept several spellings)
+        value_candidates = [f"{base}_value", f"{base}_normalized", f"{base}_normalised"]
+        value_col = next((c for c in value_candidates if c in data.columns), None)
+        if value_col is None:
+            raise ValueError(f"[revert:{base}] could not find value column; tried {value_candidates}")
+
+        # 3) Find component columns by regex and sort numerically
+        comp_pat = re.compile(rf"^{re.escape(base)}_c(\d+)$")
+        comp_cols: List[str] = [c for c in data.columns if comp_pat.match(c)]
+        comp_cols.sort(key=lambda c: int(comp_pat.match(c).group(1)))
+
+        # Ignore *_missing and *_adherence if they exist (we don't use them here)
+        # (No-op unless present)
+        # data = data.drop(columns=[c for c in data.columns if c.endswith("_adherence") or c.endswith("_missing")], errors="ignore")
+
+        if not hasattr(self, "n_components"):
+            warnings.warn(f"[revert:{base}] transformer missing n_components; proceeding with {len(comp_cols)} comps")
+            expected = len(comp_cols)
+        else:
+            expected = int(self.n_components)
+
+        if len(comp_cols) != expected:
+            warnings.warn(
+                f"[revert:{base}] expected {expected} component cols, found {len(comp_cols)}: {comp_cols}. "
+                "Proceeding with what is available."
+            )
+
+        # 4) Build arrays and decode
+        comps = data[comp_cols].to_numpy() if comp_cols else np.empty((len(data), 0))
+        vals = data[value_col].to_numpy()
+
+        # --- Decode from per-component params ---
+        # Try to find the fitted BayesianGaussianMixture instance on this transformer
+        bgm = getattr(self, "_transformer", None)
+        if bgm is None or not hasattr(bgm, "means_") or not hasattr(bgm, "covariances_"):
+            raise ValueError(
+                f"[revert:{base}] mixture model not fitted on this transformer "
+                "(missing means_/covariances_). Make sure `apply()` was called on the "
+                "training data with THIS instance before decode."
+            )
+
+        means = np.asarray(bgm.means_).reshape(-1)  # shape (K,)
+        cov = np.asarray(bgm.covariances_)          # variety of shapes depending on covariance_type
+
+        # Extract per-component variances for a 1D feature
+        if cov.ndim == 1:
+            vars_ = cov
+        elif cov.ndim == 2:
+            # diagonal or spherical collapsed—take [k,k] if 1x1, else first element
+            vars_ = np.diag(cov) if cov.shape[0] == cov.shape[1] else cov[:, 0]
+        elif cov.ndim == 3:
+            # full/diag covariance -> take [k,0,0] for 1D
+            vars_ = cov[:, 0, 0]
+        else:
+            raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
+
+        sigmas = np.sqrt(vars_ + 1e-12)  # numerical safety
+
+        # Choose component per row (argmax works for logits or probs)
+        if comps.size == 0:
+            # No component columns? fall back to the global mean/std of component 0
+            k_idx = np.zeros(len(vals), dtype=int)
+        else:
+            k_idx = np.argmax(comps, axis=1)
+
+        # Inverse of z = (x - mu_k)/sigma_k  ->  x = z*sigma_k + mu_k
+        decoded = vals * sigmas[k_idx] + means[k_idx]
+        return pd.Series(decoded, name=base)
+
+

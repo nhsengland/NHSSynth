@@ -75,7 +75,6 @@ class OHECategoricalTransformer(ColumnTransformer):
             self.missing_value = missing_value
         semi_index = data.index
 
-        data = data[constraint_adherence == 1]
         transformed_data = pd.DataFrame(
             self._transformer.fit_transform(data.values.reshape(-1, 1)),
             columns=self._transformer.get_feature_names_out(input_features=[data.name]),
@@ -89,6 +88,13 @@ class OHECategoricalTransformer(ColumnTransformer):
             transformed_data = transformed_data.drop(columns=[0])
 
         self.new_column_names = transformed_data.columns
+        
+        out = transformed_data
+
+        # Only DataFrames have .columns
+        if isinstance(out, pd.DataFrame):
+            out = out.loc[:, ~out.columns.str.endswith("_adherence")]
+        
         return transformed_data
 
     def revert(self, data: pd.DataFrame) -> pd.DataFrame:
