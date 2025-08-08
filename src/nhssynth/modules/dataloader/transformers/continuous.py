@@ -119,9 +119,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)
 
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
-        normalised_values = (data - self.means.reshape(1, -1)) / (
-            self._std_multiplier * self.stds.reshape(1, -1)
-        )
+        normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
         print(normalised_values)
         normalised = normalised_values[np.arange(len(data)), components]
         if self.clip_output:
@@ -133,10 +131,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
             np.hstack([normalised.reshape(-1, 1), components]),
             index=index,
             columns=[f"{self.original_column_name}_normalised"]
-            + [
-                f"{self.original_column_name}_c{i + 1}"
-                for i in range(self._n_components)
-            ],
+            + [f"{self.original_column_name}_c{i + 1}" for i in range(self._n_components)],
         )
         print(transformed_data)
         # EXPERIMENTAL feature, removing components from the column matrix that have no data assigned to them
@@ -165,11 +160,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
         self.new_column_names = transformed_data.columns
         return transformed_data.astype(
-            {
-                col_name: int
-                for col_name in transformed_data.columns
-                if re.search(r"_c\d+", col_name)
-            }
+            {col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)}
         )
 
     def revert(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -187,9 +178,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
         working_data = data[self.new_column_names]
         full_index = working_data.index
         if self._missingness_column_name is not None:
-            working_data = working_data[
-                working_data[self._missingness_column_name] == 0
-            ]
+            working_data = working_data[working_data[self._missingness_column_name] == 0]
             working_data = working_data.drop(self._missingness_column_name, axis=1)
         index = working_data.index
 

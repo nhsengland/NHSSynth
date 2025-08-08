@@ -46,9 +46,7 @@ class TransformerWrapper(ABC):
         **kwargs,
     ) -> pd.DataFrame:
         """Method for applying the wrapped transformer to the data."""
-        return self._wrapped_transformer.apply(
-            data, missingness_column, constraint_adherence, **kwargs
-        )
+        return self._wrapped_transformer.apply(data, missingness_column, constraint_adherence, **kwargs)
 
     def revert(self, data: pd.Series, **kwargs) -> pd.DataFrame:
         """Method for reverting the passed data via the wrapped transformer."""

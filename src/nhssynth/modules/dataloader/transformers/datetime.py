@@ -47,15 +47,9 @@ class DatetimeTransformer(TransformerWrapper):
         """
 
         self.original_column_name = data.name
-        floored_data = pd.Series(
-            data.dt.floor("ns").to_numpy().astype(float), name=data.name
-        )
-        nan_corrected_data = floored_data.replace(
-            pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan
-        )
-        return super().apply(
-            nan_corrected_data, constraint_adherence, missingness_column, **kwargs
-        )
+        floored_data = pd.Series(data.dt.floor("ns").to_numpy().astype(float), name=data.name)
+        nan_corrected_data = floored_data.replace(pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan)
+        return super().apply(nan_corrected_data, constraint_adherence, missingness_column, **kwargs)
 
     def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """

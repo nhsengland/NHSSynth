@@ -19,9 +19,7 @@ def run_iter(
     num_samples: int,
 ) -> pd.DataFrame:
     common.set_seed(experiment["seed"])
-    model = MODELS[architecture](
-        real_dataset, metatransformer, **experiment["model_config"]
-    )
+    model = MODELS[architecture](real_dataset, metatransformer, **experiment["model_config"])
     _, _ = model.train(
         **experiment["train_config"],
         displayed_metrics=displayed_metrics.copy(),
@@ -55,15 +53,9 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             args.num_samples,
         )
 
-    write_data_outputs(
-        experiments, synthetic_datasets, models, fn_dataset, dir_experiment, args
-    )
+    write_data_outputs(experiments, synthetic_datasets, models, fn_dataset, dir_experiment, args)
 
-    if (
-        "dashboard" in args.modules_to_run
-        or "evaluation" in args.modules_to_run
-        or "plotting" in args.modules_to_run
-    ):
+    if "dashboard" in args.modules_to_run or "evaluation" in args.modules_to_run or "plotting" in args.modules_to_run:
         args.module_handover.update({"fn_dataset": fn_dataset})
     if "evaluation" in args.modules_to_run or "plotting" in args.modules_to_run:
         args.module_handover.update({"synthetic_datasets": synthetic_datasets})

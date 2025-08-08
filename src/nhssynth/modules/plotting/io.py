@@ -8,9 +8,7 @@ import pandas as pd
 import nhssynth.common.io as io
 
 
-def check_input_paths(
-    fn_dataset: str, fn_typed: str, fn_evaluations: str, dir_experiment: Path
-) -> tuple[str, str]:
+def check_input_paths(fn_dataset: str, fn_typed: str, fn_evaluations: str, dir_experiment: Path) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
 
@@ -23,12 +21,8 @@ def check_input_paths(
     Returns:
         The paths to the data, metadata and metatransformer files.
     """
-    fn_dataset, fn_typed, fn_evaluations = io.consistent_endings(
-        [fn_dataset, fn_typed, fn_evaluations]
-    )
-    fn_typed, fn_evaluations = io.potential_suffixes(
-        [fn_typed, fn_evaluations], fn_dataset
-    )
+    fn_dataset, fn_typed, fn_evaluations = io.consistent_endings([fn_dataset, fn_typed, fn_evaluations])
+    fn_typed, fn_evaluations = io.potential_suffixes([fn_typed, fn_evaluations], fn_dataset)
     io.warn_if_path_supplied([fn_dataset, fn_typed, fn_evaluations], dir_experiment)
     io.check_exists([fn_typed], dir_experiment)
     return fn_dataset, fn_typed, fn_evaluations

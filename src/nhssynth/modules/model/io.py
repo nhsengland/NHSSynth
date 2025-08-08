@@ -34,12 +34,8 @@ def check_input_paths(
         The paths to the data, metadata and metatransformer files.
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_transformed, fn_metatransformer = io.consistent_endings(
-        [fn_transformed, fn_metatransformer]
-    )
-    fn_transformed, fn_metatransformer = io.potential_suffixes(
-        [fn_transformed, fn_metatransformer], fn_dataset
-    )
+    fn_transformed, fn_metatransformer = io.consistent_endings([fn_transformed, fn_metatransformer])
+    fn_transformed, fn_metatransformer = io.potential_suffixes([fn_transformed, fn_metatransformer], fn_dataset)
     io.warn_if_path_supplied([fn_transformed, fn_metatransformer], dir_experiment)
     io.check_exists([fn_transformed, fn_metatransformer], dir_experiment)
     return fn_dataset, fn_transformed, fn_metatransformer
@@ -54,22 +50,14 @@ def write_data_outputs(
     args: argparse.Namespace,
 ) -> None:
     experiments = experiments.join(
-        pd.DataFrame(
-            experiments.pop("train_config").values.tolist(), index=experiments.index
-        )
+        pd.DataFrame(experiments.pop("train_config").values.tolist(), index=experiments.index)
     )
     experiments = experiments.join(
-        pd.DataFrame(
-            experiments.pop("model_config").values.tolist(), index=experiments.index
-        )
+        pd.DataFrame(experiments.pop("model_config").values.tolist(), index=experiments.index)
     )
 
-    fn_experiments, fn_synthetic_datasets = io.consistent_endings(
-        [args.experiments, args.synthetic_datasets]
-    )
-    fn_experiments, fn_synthetic_datasets = io.potential_suffixes(
-        [fn_experiments, fn_synthetic_datasets], fn_dataset
-    )
+    fn_experiments, fn_synthetic_datasets = io.consistent_endings([args.experiments, args.synthetic_datasets])
+    fn_experiments, fn_synthetic_datasets = io.potential_suffixes([fn_experiments, fn_synthetic_datasets], fn_dataset)
     io.warn_if_path_supplied([fn_experiments, fn_synthetic_datasets], dir_experiment)
 
     with open(dir_experiment / fn_experiments, "wb") as f:
@@ -78,9 +66,7 @@ def write_data_outputs(
         pickle.dump(SyntheticDatasets(synthetic_datasets), f)
     (dir_experiment / "models").mkdir(parents=True, exist_ok=True)
     for i, model in models.iterrows():
-        fn_model = io.consistent_ending(
-            args.model, ending=".pt", suffix=f"{i[0]}_repeat_{i[1]}_config_{i[2]}"
-        )
+        fn_model = io.consistent_ending(args.model, ending=".pt", suffix=f"{i[0]}_repeat_{i[1]}_config_{i[2]}")
         fn_model = io.potential_suffix(fn_model, fn_dataset)
         model["model"].save(dir_experiment / "models" / fn_model)
 
@@ -98,9 +84,7 @@ def load_required_data(
     Returns:
         The data, metadata and metatransformer.
     """
-    if all(
-        x in args.module_handover for x in ["dataset", "transformed", "metatransformer"]
-    ):
+    if all(x in args.module_handover for x in ["dataset", "transformed", "metatransformer"]):
         return (
             args.module_handover["dataset"],
             args.module_handover["transformed"],

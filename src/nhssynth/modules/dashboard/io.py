@@ -25,16 +25,12 @@ def check_input_paths(
         The paths
     """
     fn_dataset = Path(fn_dataset).stem
-    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = (
-        io.consistent_endings(
-            [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations]
-        )
+    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = io.consistent_endings(
+        [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations]
     )
-    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = (
-        io.potential_suffixes(
-            [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations],
-            fn_dataset,
-        )
+    fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = io.potential_suffixes(
+        [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations],
+        fn_dataset,
     )
     io.warn_if_path_supplied(
         [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations],

@@ -27,9 +27,7 @@ def get_default_and_required_args(
             - A dictionary containing all arguments and their default values.
             - A list of key-value-pairs of the required arguments and their associated module.
     """
-    all_actions = {"top-level": top_parser._actions} | {
-        m: p._actions for m, p in module_parsers.items()
-    }
+    all_actions = {"top-level": top_parser._actions} | {m: p._actions for m, p in module_parsers.items()}
     defaults = {}
     required_args = []
     for module, actions in all_actions.items():
@@ -86,9 +84,7 @@ def read_config(
     if run_type == "pipeline":
         modules_to_run = PIPELINE
     else:
-        modules_to_run = [
-            x for x in config_dict.keys() | {run_type} if x in valid_run_types
-        ]
+        modules_to_run = [x for x in config_dict.keys() | {run_type} if x in valid_run_types]
         if not args.custom_pipeline:
             modules_to_run = sorted(modules_to_run, key=lambda x: PIPELINE.index(x))
 
@@ -107,8 +103,7 @@ def read_config(
     non_default_passed_args_dict = {
         k: v
         for k, v in vars(args).items()
-        if k in ["input_config", "custom_pipeline"]
-        or (k in args_dict and k != "func" and v != args_dict[k])
+        if k in ["input_config", "custom_pipeline"] or (k in args_dict and k != "func" and v != args_dict[k])
     }
 
     # Overwrite the default arguments with the ones from the yaml file
@@ -119,18 +114,16 @@ def read_config(
 
     # Create a new Namespace using the assembled dictionary
     new_args = argparse.Namespace(**args_dict)
-    assert getattr(new_args, "dataset"), (
-        "No dataset specified in the passed config file, provide one with the `--dataset` argument or add it to the config file"
-    )
-    assert all(getattr(new_args, req_arg["arg"]) for req_arg in required_args), (
-        f"Required arguments are missing from the passed config file: {[ra['module'] + ':' + ra['arg'] for ra in required_args if not getattr(new_args, ra['arg'])]}"
-    )
+    assert getattr(
+        new_args, "dataset"
+    ), "No dataset specified in the passed config file, provide one with the `--dataset` argument or add it to the config file"
+    assert all(
+        getattr(new_args, req_arg["arg"]) for req_arg in required_args
+    ), f"Required arguments are missing from the passed config file: {[ra['module'] + ':' + ra['arg'] for ra in required_args if not getattr(new_args, ra['arg'])]}"
 
     # Run the appropriate execution function(s)
     if not new_args.seed:
-        warnings.warn(
-            "No seed has been specified, meaning the results of this run may not be reproducible."
-        )
+        warnings.warn("No seed has been specified, meaning the results of this run may not be reproducible.")
     new_args.version = version
     new_args.modules_to_run = modules_to_run
     new_args.module_handover = {}
@@ -153,9 +146,7 @@ def get_modules_to_run(executor: Callable) -> list[str]:
     if executor == run_pipeline:
         return PIPELINE
     else:
-        return [
-            get_key_by_value({mn: mc.func for mn, mc in MODULE_MAP.items()}, executor)
-        ]
+        return [get_key_by_value({mn: mc.func for mn, mc in MODULE_MAP.items()}, executor)]
 
 
 def assemble_config(
@@ -203,11 +194,7 @@ def assemble_config(
 
     # Generate a dictionary containing each module's name from the run, with all of its possible corresponding config args
     module_args = {
-        module_name: [
-            action.dest
-            for action in all_subparsers[module_name]._actions
-            if action.dest != "help"
-        ]
+        module_name: [action.dest for action in all_subparsers[module_name]._actions if action.dest != "help"]
         for module_name in modules_to_run
     }
 
@@ -246,7 +233,5 @@ def write_config(
     """
     experiment_name = args.experiment_name
     args_dict = assemble_config(args, all_subparsers)
-    with open(
-        f"experiments/{experiment_name}/config_{experiment_name}.yaml", "w"
-    ) as yaml_file:
+    with open(f"experiments/{experiment_name}/config_{experiment_name}.yaml", "w") as yaml_file:
         yaml.dump(args_dict, yaml_file, default_flow_style=False, sort_keys=False)

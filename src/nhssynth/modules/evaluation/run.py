@@ -11,9 +11,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     common.set_seed(args.seed)
     dir_experiment = common.experiment_io(args.experiment_name)
 
-    fn_dataset, real_dataset, synthetic_datasets, sdv_metadata = load_required_data(
-        args, dir_experiment
-    )
+    fn_dataset, real_dataset, synthetic_datasets, sdv_metadata = load_required_data(args, dir_experiment)
 
     args, tasks, metrics = validate_metric_args(args, fn_dataset, real_dataset.columns)
 
@@ -31,16 +29,12 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
 
     eval_frame.evaluate(real_dataset, synthetic_datasets)
 
-    output_eval(
-        eval_frame.get_evaluations(), fn_dataset, args.evaluations, dir_experiment
-    )
+    output_eval(eval_frame.get_evaluations(), fn_dataset, args.evaluations, dir_experiment)
 
     if "dashboard" in args.modules_to_run or "plotting" in args.modules_to_run:
         args.module_handover.update({"fn_dataset": fn_dataset})
     if "plotting" in args.modules_to_run:
-        args.module_handover.update(
-            {"evaluations": eval_frame, "synthetic_datasets": synthetic_datasets}
-        )
+        args.module_handover.update({"evaluations": eval_frame, "synthetic_datasets": synthetic_datasets})
 
     print("\033[0m")
 

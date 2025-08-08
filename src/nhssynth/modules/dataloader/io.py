@@ -35,9 +35,7 @@ def check_input_paths(
         UserWarning: When the path to `fn_input` includes directory separators, as this is not supported and may not work as intended.
         UserWarning: When the path to `fn_metadata` includes directory separators, as this is not supported and may not work as intended.
     """
-    fn_input, fn_metadata = io.consistent_endings(
-        [(fn_input, ".csv"), (fn_metadata, ".yaml")]
-    )
+    fn_input, fn_metadata = io.consistent_endings([(fn_input, ".csv"), (fn_metadata, ".yaml")])
     dir_data = Path(dir_data)
     fn_metadata = io.potential_suffix(fn_metadata, fn_input)
     io.warn_if_path_supplied([fn_input, fn_metadata], dir_data)
@@ -73,13 +71,7 @@ def check_output_paths(
         UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
     fn_dataset = Path(fn_dataset).stem
-    (
-        fn_typed,
-        fn_transformed,
-        fn_metatransformer,
-        fn_constraint_graph,
-        fn_sdv_metadata,
-    ) = io.consistent_endings(
+    (fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata,) = io.consistent_endings(
         [
             fn_typed,
             fn_transformed,
@@ -88,13 +80,7 @@ def check_output_paths(
             fn_sdv_metadata,
         ]
     )
-    (
-        fn_typed,
-        fn_transformed,
-        fn_metatransformer,
-        fn_constraint_graph,
-        fn_sdv_metadata,
-    ) = io.potential_suffixes(
+    (fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata,) = io.potential_suffixes(
         [
             fn_typed,
             fn_transformed,
@@ -168,9 +154,7 @@ def write_data_outputs(
     transformed_dataset.to_pickle(dir_experiment / fn_transformed)
     if args.write_csv:
         chunks = np.array_split(transformed_dataset.index, 100)
-        for chunk, subset in enumerate(
-            tqdm(chunks, desc="Writing transformed dataset to CSV", unit="chunk")
-        ):
+        for chunk, subset in enumerate(tqdm(chunks, desc="Writing transformed dataset to CSV", unit="chunk")):
             if chunk == 0:
                 transformed_dataset.loc[subset].to_csv(
                     dir_experiment / (fn_transformed[:-3] + "csv"),

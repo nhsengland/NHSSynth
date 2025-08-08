@@ -166,9 +166,7 @@ class GAN(Model):
             condt = self._check_tensor(cond)
         with torch.no_grad():
             return self.metatransformer.inverse_apply(
-                pd.DataFrame(
-                    self(N, condt).detach().cpu().numpy(), columns=self.columns
-                )
+                pd.DataFrame(self(N, condt).detach().cpu().numpy(), columns=self.columns)
             )
 
     def forward(
@@ -207,9 +205,7 @@ class GAN(Model):
         real_X = self._append_optional_cond(real_X_raw, cond)
         batch_size = len(real_X)
 
-        noise = torch.randn(
-            batch_size, self.generator_n_units_hidden, device=self.device
-        )
+        noise = torch.randn(batch_size, self.generator_n_units_hidden, device=self.device)
         noise = self._append_optional_cond(noise, cond)
 
         fake_raw = self.generator(noise)
@@ -231,9 +227,7 @@ class GAN(Model):
 
         # Update G
         if self.clipping_value > 0:
-            torch.nn.utils.clip_grad_norm_(
-                self.generator.parameters(), self.clipping_value
-            )
+            torch.nn.utils.clip_grad_norm_(self.generator.parameters(), self.clipping_value)
         self.generator.optimizer.step()
 
         if torch.isnan(errG):
@@ -262,17 +256,13 @@ class GAN(Model):
         real_output = self.discriminator(real_X).squeeze().float()
 
         # Train with all-fake batch
-        noise = torch.randn(
-            batch_size, self.generator_n_units_hidden, device=self.device
-        )
+        noise = torch.randn(batch_size, self.generator_n_units_hidden, device=self.device)
         noise = self._append_optional_cond(noise, cond)
 
         fake_raw = self.generator(noise)
         fake = self._append_optional_cond(fake_raw, cond)
 
-        fake_labels = (
-            self.fake_labels_generator(fake_raw).to(self.device).squeeze().float()
-        )
+        fake_labels = self.fake_labels_generator(fake_raw).to(self.device).squeeze().float()
         fake_output = self.discriminator(fake.detach()).squeeze()
 
         # Compute errors. Some fake inputs might be marked as real for privacy guarantees.
@@ -311,9 +301,7 @@ class GAN(Model):
 
         # Update D
         if self.clipping_value > 0:
-            torch.nn.utils.clip_grad_norm_(
-                self.discriminator.parameters(), self.clipping_value
-            )
+            torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), self.clipping_value)
         self.discriminator.optimizer.step()
 
         errors.append(errD.item())
@@ -354,13 +342,9 @@ class GAN(Model):
     ) -> tuple[int, dict[str, np.ndarray]]:
         self._start_training(num_epochs, patience, displayed_metrics)
 
-        for epoch in tqdm(
-            range(num_epochs), desc="Epochs", position=len(self.stats_bars), leave=False
-        ):
+        for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(self.stats_bars), leave=False):
             losses = self._train_epoch()
-            if self._check_patience(epoch, losses[0]) and self._check_patience(
-                epoch, losses[1]
-            ):
+            if self._check_patience(epoch, losses[0]) and self._check_patience(epoch, losses[1]):
                 num_epochs = epoch + 1
                 break
 
@@ -383,9 +367,7 @@ class GAN(Model):
         # Random weight term for interpolation between real and fake samples
         alpha = torch.rand([batch_size, 1]).to(self.device)
         # Get random interpolation between real and fake samples
-        interpolated = (
-            alpha * real_samples + ((1 - alpha) * fake_samples)
-        ).requires_grad_(True)
+        interpolated = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
         d_interpolated = self.discriminator(interpolated).squeeze()
         labels = torch.ones((len(interpolated),), device=self.device)
 
@@ -403,9 +385,7 @@ class GAN(Model):
         gradient_penalty = ((gradients.norm(2, dim=-1) - 1) ** 2).mean()
         return self.lambda_gradient_penalty * gradient_penalty
 
-    def _append_optional_cond(
-        self, X: torch.Tensor, cond: Optional[torch.Tensor]
-    ) -> torch.Tensor:
+    def _append_optional_cond(self, X: torch.Tensor, cond: Optional[torch.Tensor]) -> torch.Tensor:
         if cond is None:
             return X
 

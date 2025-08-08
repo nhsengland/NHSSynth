@@ -46,9 +46,7 @@ class DPMixin(ABC):
         self.max_grad_norm: float = max_grad_norm
         self.secure_mode: bool = secure_mode
 
-    def make_private(
-        self, num_epochs: int, module: Optional[nn.Module] = None
-    ) -> GradSampleModule:
+    def make_private(self, num_epochs: int, module: Optional[nn.Module] = None) -> GradSampleModule:
         """
         Make the passed module (or the full model if a module is not passed), and its associated optimizer and data loader private.
 
@@ -62,22 +60,16 @@ class DPMixin(ABC):
         module = module or self
         self.privacy_engine = PrivacyEngine(secure_mode=self.secure_mode)
         with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", message="invalid value encountered in log"
-            )
-            warnings.filterwarnings(
-                "ignore", message="Optimal order is the largest alpha"
-            )
-            module, module.optim, self.data_loader = (
-                self.privacy_engine.make_private_with_epsilon(
-                    module=module,
-                    optimizer=module.optim,
-                    data_loader=self.data_loader,
-                    epochs=num_epochs,
-                    target_epsilon=self.target_epsilon,
-                    target_delta=self.target_delta,
-                    max_grad_norm=self.max_grad_norm,
-                )
+            warnings.filterwarnings("ignore", message="invalid value encountered in log")
+            warnings.filterwarnings("ignore", message="Optimal order is the largest alpha")
+            module, module.optim, self.data_loader = self.privacy_engine.make_private_with_epsilon(
+                module=module,
+                optimizer=module.optim,
+                data_loader=self.data_loader,
+                epochs=num_epochs,
+                target_epsilon=self.target_epsilon,
+                target_delta=self.target_delta,
+                max_grad_norm=self.max_grad_norm,
             )
         print(
             f"Using sigma={module.optim.noise_multiplier} and C={self.max_grad_norm} to target (ε, δ) = ({self.target_epsilon}, {self.target_delta})-differential privacy.".format()
@@ -89,12 +81,8 @@ class DPMixin(ABC):
         """Generates a string to display the current value of the metric `key`."""
         if key == "Privacy":
             with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", message="invalid value encountered in log"
-                )
-                warnings.filterwarnings(
-                    "ignore", message="Optimal order is the largest alpha"
-                )
+                warnings.filterwarnings("ignore", message="invalid value encountered in log")
+                warnings.filterwarnings("ignore", message="Optimal order is the largest alpha")
                 val = self.get_epsilon(self.target_delta)
             self.metrics[key] = np.append(self.metrics[key], val)
             return f"{(key + ' ε Spent:').ljust(self.max_length)}  {val:.4f}"

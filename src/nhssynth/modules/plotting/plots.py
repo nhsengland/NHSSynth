@@ -32,9 +32,7 @@ def tsne(
     proj_real = pd.DataFrame(tsne_real.fit_transform(factorize_all_categoricals(real)))
 
     tsne_synth = TSNE(n_components=2, init="pca")
-    proj_synth = pd.DataFrame(
-        tsne_synth.fit_transform(factorize_all_categoricals(synth))
-    )
+    proj_synth = pd.DataFrame(tsne_synth.fit_transform(factorize_all_categoricals(synth)))
 
     fig = go.Figure()
 

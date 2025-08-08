@@ -20,9 +20,7 @@ class GenericMissingnessStrategy(ABC):
         self.name: str = name
 
     @abstractmethod
-    def remove(
-        self, data: pd.DataFrame, column_metadata: ColumnMetaData
-    ) -> pd.DataFrame:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """Remove missingness."""
         pass
 
@@ -33,9 +31,7 @@ class NullMissingnessStrategy(GenericMissingnessStrategy):
     def __init__(self) -> None:
         super().__init__("none")
 
-    def remove(
-        self, data: pd.DataFrame, column_metadata: ColumnMetaData
-    ) -> pd.DataFrame:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """Do nothing."""
         return data
 
@@ -46,9 +42,7 @@ class DropMissingnessStrategy(GenericMissingnessStrategy):
     def __init__(self) -> None:
         super().__init__("drop")
 
-    def remove(
-        self, data: pd.DataFrame, column_metadata: ColumnMetaData
-    ) -> pd.DataFrame:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """
         Drop rows containing missing values in the appropriate column.
 
@@ -69,9 +63,7 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
         super().__init__("impute")
         self.impute = impute.lower() if isinstance(impute, str) else impute
 
-    def remove(
-        self, data: pd.DataFrame, column_metadata: ColumnMetaData
-    ) -> pd.DataFrame:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """
         Impute missingness in the data via the `impute` strategy. 'Special' values trigger specific behaviour.
 
@@ -82,12 +74,8 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
         Returns:
             The dataset with missing values in the appropriate column replaced with imputed ones.
         """
-        if (
-            self.impute == "mean" or self.impute == "median"
-        ) and column_metadata.categorical:
-            warnings.warn(
-                "Cannot impute mean or median for categorical data, using mode instead."
-            )
+        if (self.impute == "mean" or self.impute == "median") and column_metadata.categorical:
+            warnings.warn("Cannot impute mean or median for categorical data, using mode instead.")
             self.imputation_value = data[column_metadata.name].mode()[0]
         elif self.impute == "mean":
             self.imputation_value = data[column_metadata.name].mean()
@@ -101,9 +89,7 @@ class ImputeMissingnessStrategy(GenericMissingnessStrategy):
         try:
             data[column_metadata.name].fillna(self.imputation_value, inplace=True)
         except AssertionError:
-            raise ValueError(
-                f"Could not impute '{self.imputation_value}' into column: '{column_metadata.name}'."
-            )
+            raise ValueError(f"Could not impute '{self.imputation_value}' into column: '{column_metadata.name}'.")
         return data
 
 
@@ -111,9 +97,7 @@ class AugmentMissingnessStrategy(GenericMissingnessStrategy):
     def __init__(self) -> None:
         super().__init__("augment")
 
-    def remove(
-        self, data: pd.DataFrame, column_metadata: ColumnMetaData
-    ) -> pd.DataFrame:
+    def remove(self, data: pd.DataFrame, column_metadata: ColumnMetaData) -> pd.DataFrame:
         """
         Impute missingness with the model. To do this we create a new column for continuous features and a new category for categorical features.
 
@@ -131,9 +115,7 @@ class AugmentMissingnessStrategy(GenericMissingnessStrategy):
                 self.missingness_carrier = data[column_metadata.name].min() - 1
         else:
             self.missingness_carrier = column_metadata.name + "_missing"
-            data[self.missingness_carrier] = (
-                data[column_metadata.name].isnull().astype(int)
-            )
+            data[self.missingness_carrier] = data[column_metadata.name].isnull().astype(int)
         return data
 
 

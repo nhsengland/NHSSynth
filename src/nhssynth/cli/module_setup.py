@@ -35,13 +35,11 @@ class ModuleConfig:
         self.help = help
         self.common_parsers = ["core", "seed"] if not no_seed else ["core"]
         if common_parsers:
-            assert set(common_parsers) <= COMMON_PARSERS.keys(), (
-                "Invalid common parser(s) specified."
-            )
+            assert set(common_parsers) <= COMMON_PARSERS.keys(), "Invalid common parser(s) specified."
             # merge the below two assert statements
-            assert "core" not in common_parsers and "seed" not in common_parsers, (
-                "The 'seed' and 'core' parser groups are automatically added to all modules, remove the from `ModuleConfig`s."
-            )
+            assert (
+                "core" not in common_parsers and "seed" not in common_parsers
+            ), "The 'seed' and 'core' parser groups are automatically added to all modules, remove the from `ModuleConfig`s."
             self.common_parsers += common_parsers
 
     def __call__(self, args: argparse.Namespace) -> argparse.Namespace:
@@ -77,13 +75,9 @@ def add_config_args(parser: argparse.ArgumentParser) -> None:
         help="infer a custom pipeline running order of modules from the config",
     )
     for module_name in PIPELINE:
-        MODULE_MAP[module_name].add_args(
-            parser, f"{module_name} option overrides", overrides=True
-        )
+        MODULE_MAP[module_name].add_args(parser, f"{module_name} option overrides", overrides=True)
     for module_name in VALID_MODULES - set(PIPELINE):
-        MODULE_MAP[module_name].add_args(
-            parser, f"{module_name} options overrides", overrides=True
-        )
+        MODULE_MAP[module_name].add_args(parser, f"{module_name} options overrides", overrides=True)
 
 
 ### EDIT BELOW HERE TO ADD MODULES / ALTER PIPELINE BEHAVIOUR
@@ -174,14 +168,12 @@ MODULE_MAP: Final = {
 
 VALID_MODULES = {x for x in MODULE_MAP.keys() if x not in {"pipeline", "config"}}
 
-assert set(PIPELINE) <= VALID_MODULES, (
-    f"Invalid `PIPELINE` specification, must only contain valid modules from `MODULE_MAP`: {str(VALID_MODULES)}"
-)
+assert (
+    set(PIPELINE) <= VALID_MODULES
+), f"Invalid `PIPELINE` specification, must only contain valid modules from `MODULE_MAP`: {str(VALID_MODULES)}"
 
 
-def get_parent_parsers(
-    name: str, module_parsers: list[str]
-) -> list[argparse.ArgumentParser]:
+def get_parent_parsers(name: str, module_parsers: list[str]) -> list[argparse.ArgumentParser]:
     """Get a list of parent parsers for a given module, based on the module's `common_parsers` attribute."""
     if name in {"pipeline", "config"}:
         return [p(name == "config") for p in COMMON_PARSERS.values()]

@@ -59,16 +59,12 @@ class EvalFrame:
         self._sensitive_numerical_fields = sensitive_numerical_fields
         self._key_categorical_fields = key_categorical_fields
         self._sensitive_categorical_fields = sensitive_categorical_fields
-        assert all(
-            [metric not in NUMERICAL_PRIVACY_METRICS for metric in self._metrics]
-        ) or (self._key_numerical_fields and self._sensitive_numerical_fields), (
-            "Numerical key and sensitive fields must be provided when an SDV privacy metric is used."
-        )
-        assert all(
-            [metric not in CATEGORICAL_PRIVACY_METRICS for metric in self._metrics]
-        ) or (self._key_categorical_fields and self._sensitive_categorical_fields), (
-            "Categorical key and sensitive fields must be provided when an SDV privacy metric is used."
-        )
+        assert all([metric not in NUMERICAL_PRIVACY_METRICS for metric in self._metrics]) or (
+            self._key_numerical_fields and self._sensitive_numerical_fields
+        ), "Numerical key and sensitive fields must be provided when an SDV privacy metric is used."
+        assert all([metric not in CATEGORICAL_PRIVACY_METRICS for metric in self._metrics]) or (
+            self._key_categorical_fields and self._sensitive_categorical_fields
+        ), "Categorical key and sensitive fields must be provided when an SDV privacy metric is used."
 
         self._metric_groups = self._build_metric_groups()
 
@@ -88,24 +84,15 @@ class EvalFrame:
         for metric in self._metrics:
             if metric in TABLE_METRICS:
                 metric_groups.add("table")
-            if (
-                metric in NUMERICAL_PRIVACY_METRICS
-                or metric in CATEGORICAL_PRIVACY_METRICS
-            ):
+            if metric in NUMERICAL_PRIVACY_METRICS or metric in CATEGORICAL_PRIVACY_METRICS:
                 metric_groups.add("privacy")
-            if metric in TABLE_METRICS and issubclass(
-                TABLE_METRICS[metric], MultiSingleColumnMetric
-            ):
+            if metric in TABLE_METRICS and issubclass(TABLE_METRICS[metric], MultiSingleColumnMetric):
                 metric_groups.add("columnwise")
-            if metric in TABLE_METRICS and issubclass(
-                TABLE_METRICS[metric], MultiColumnPairsMetric
-            ):
+            if metric in TABLE_METRICS and issubclass(TABLE_METRICS[metric], MultiColumnPairsMetric):
                 metric_groups.add("pairwise")
         return list(metric_groups)
 
-    def evaluate(
-        self, real_dataset: pd.DataFrame, synthetic_datasets: list[dict[str, Any]]
-    ) -> None:
+    def evaluate(self, real_dataset: pd.DataFrame, synthetic_datasets: list[dict[str, Any]]) -> None:
         """
         Evaluate a set of synthetic datasets against a real dataset.
 
@@ -113,13 +100,9 @@ class EvalFrame:
             real_dataset: The real dataset to evaluate against.
             synthetic_datasets: The synthetic datasets to evaluate.
         """
-        assert not any("Real" in i for i in synthetic_datasets.index), (
-            "Real is a reserved dataset ID."
-        )
+        assert not any("Real" in i for i in synthetic_datasets.index), "Real is a reserved dataset ID."
         assert synthetic_datasets.index.is_unique, "Dataset IDs must be unique."
-        self._evaluations = pd.DataFrame(
-            index=synthetic_datasets.index, columns=self._metric_groups
-        )
+        self._evaluations = pd.DataFrame(index=synthetic_datasets.index, columns=self._metric_groups)
         self._evaluations.loc[("Real", None, None)] = self._step(real_dataset)
         pbar = tqdm(
             synthetic_datasets.iterrows(),
@@ -137,9 +120,9 @@ class EvalFrame:
         Returns:
             A dict of dataframes, one for each metric group, containing the evaluations.
         """
-        assert hasattr(self, "_evaluations"), (
-            "You must first run `evaluate` on a `real_dataset` and set of `synthetic_datasets`."
-        )
+        assert hasattr(
+            self, "_evaluations"
+        ), "You must first run `evaluate` on a `real_dataset` and set of `synthetic_datasets`."
         return {
             metric_group: pd.DataFrame(
                 self._evaluations[metric_group].values.tolist(),
@@ -163,9 +146,7 @@ class EvalFrame:
             task_pred_column, task_metric_values = task.run(data)
             metric_dict["task"].update(task_metric_values)
             if self._aequitas and task.supports_aequitas:
-                metric_dict["aequitas"].update(
-                    run_aequitas(data[self._aequitas_attributes].join(task_pred_column))
-                )
+                metric_dict["aequitas"].update(run_aequitas(data[self._aequitas_attributes].join(task_pred_column)))
         return metric_dict
 
     def _compute_metric(
@@ -197,17 +178,15 @@ class EvalFrame:
                     real_data, synthetic_data, self._sdv_metadata
                 )
                 if issubclass(TABLE_METRICS[metric], MultiSingleColumnMetric):
-                    metric_dict["columnwise"][metric] = TABLE_METRICS[
-                        metric
-                    ].compute_breakdown(real_data, synthetic_data, self._sdv_metadata)
+                    metric_dict["columnwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
+                        real_data, synthetic_data, self._sdv_metadata
+                    )
                 elif issubclass(TABLE_METRICS[metric], MultiColumnPairsMetric):
-                    metric_dict["pairwise"][metric] = TABLE_METRICS[
-                        metric
-                    ].compute_breakdown(real_data, synthetic_data, self._sdv_metadata)
+                    metric_dict["pairwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
+                        real_data, synthetic_data, self._sdv_metadata
+                    )
             elif metric in NUMERICAL_PRIVACY_METRICS:
-                metric_dict["privacy"][metric] = NUMERICAL_PRIVACY_METRICS[
-                    metric
-                ].compute(
+                metric_dict["privacy"][metric] = NUMERICAL_PRIVACY_METRICS[metric].compute(
                     real_data.dropna(),
                     synthetic_data.dropna(),
                     self._sdv_metadata,
@@ -215,9 +194,7 @@ class EvalFrame:
                     self._sensitive_numerical_fields,
                 )
             elif metric in CATEGORICAL_PRIVACY_METRICS:
-                metric_dict["privacy"][metric] = CATEGORICAL_PRIVACY_METRICS[
-                    metric
-                ].compute(
+                metric_dict["privacy"][metric] = CATEGORICAL_PRIVACY_METRICS[metric].compute(
                     real_data.dropna(),
                     synthetic_data.dropna(),
                     self._sdv_metadata,
@@ -226,9 +203,7 @@ class EvalFrame:
                 )
         return metric_dict
 
-    def _step(
-        self, real_data: pd.DataFrame, synthetic_data: pd.DataFrame = None
-    ) -> dict[str, dict]:
+    def _step(self, real_data: pd.DataFrame, synthetic_data: pd.DataFrame = None) -> dict[str, dict]:
         """
         Run the two functions above (or only the tasks when no synthetic data is provided).
 
@@ -244,9 +219,7 @@ class EvalFrame:
         else:
             metric_dict = self._task_step(synthetic_data)
             for metric in tqdm(self._metrics, desc="Running metrics", leave=False):
-                metric_dict = self._compute_metric(
-                    metric_dict, metric, real_data, synthetic_data
-                )
+                metric_dict = self._compute_metric(metric_dict, metric, real_data, synthetic_data)
         return metric_dict
 
 
@@ -271,29 +244,18 @@ def validate_metric_args(
     else:
         tasks = []
     if args.aequitas:
-        if not args.downstream_tasks or not any(
-            [task.supports_aequitas for task in tasks]
-        ):
+        if not args.downstream_tasks or not any([task.supports_aequitas for task in tasks]):
             warnings.warn(
                 "Aequitas can only work in context of downstream tasks involving binary classification problems."
             )
         if not args.aequitas_attributes:
-            warnings.warn(
-                "No attributes specified for Aequitas analysis, defaulting to all columns in the dataset."
-            )
+            warnings.warn("No attributes specified for Aequitas analysis, defaulting to all columns in the dataset.")
             args.aequitas_attributes = columns.tolist()
-        assert all([attr in columns for attr in args.aequitas_attributes]), (
-            "Invalid attribute(s) specified for Aequitas analysis."
-        )
+        assert all(
+            [attr in columns for attr in args.aequitas_attributes]
+        ), "Invalid attribute(s) specified for Aequitas analysis."
     metrics = {}
     for metric_group in METRIC_CHOICES:
-        selected_metrics = (
-            getattr(args, "_".join(metric_group.split()).lower() + "_metrics") or []
-        )
-        metrics.update(
-            {
-                metric_name: METRIC_CHOICES[metric_group][metric_name]
-                for metric_name in selected_metrics
-            }
-        )
+        selected_metrics = getattr(args, "_".join(metric_group.split()).lower() + "_metrics") or []
+        metrics.update({metric_name: METRIC_CHOICES[metric_group][metric_name] for metric_name in selected_metrics})
     return args, tasks, metrics

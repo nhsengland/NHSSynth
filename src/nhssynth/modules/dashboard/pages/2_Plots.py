@@ -26,18 +26,13 @@ def distribution_plots(real_dataset, synthetic_datasets) -> None:
     fig = px.histogram(
         pd.concat(
             [
-                pd.DataFrame(
-                    {"Data": real_dataset[column], "Type": len(real_dataset) * ["Real"]}
-                ),
+                pd.DataFrame({"Data": real_dataset[column], "Type": len(real_dataset) * ["Real"]}),
                 pd.concat(
                     [
                         pd.DataFrame(
                             {
                                 "Data": sd.iloc[0][column],
-                                "Type": len(sd.iloc[0])
-                                * [
-                                    f"Synthetic: {idx[0]} (Repeat {idx[1]}, Config {idx[2]})"
-                                ],
+                                "Type": len(sd.iloc[0]) * [f"Synthetic: {idx[0]} (Repeat {idx[1]}, Config {idx[2]})"],
                             }
                         )
                         for idx, sd in synthetic_datasets.iterrows()
@@ -64,9 +59,7 @@ def correlation_plots(real_dataset, synthetic_datasets) -> None:
     selection = real_dataset.select_dtypes(exclude=["object"]).columns
     if not show_continuous:
         non_continuous_columns = [c for c in real_dataset.columns if c not in selection]
-        selection = st.sidebar.selectbox(
-            "Select categorical column to display", non_continuous_columns
-        )
+        selection = st.sidebar.selectbox("Select categorical column to display", non_continuous_columns)
         if not non_continuous_columns:
             st.error("No categorical columns found!")
             return go.Figure()
@@ -77,12 +70,8 @@ def correlation_plots(real_dataset, synthetic_datasets) -> None:
         synthetic_dataset = pd.get_dummies(synthetic_dataset)
         real_dataset = pd.get_dummies(real_dataset)
 
-    correlation_type = st.sidebar.selectbox(
-        "Select correlation type", ["Pearson", "Spearman", "Kendall"]
-    ).lower()
-    correlation_to_show = st.sidebar.selectbox(
-        "Select correlation to display", ["Real", "Synthetic", "Difference"]
-    )
+    correlation_type = st.sidebar.selectbox("Select correlation type", ["Pearson", "Spearman", "Kendall"]).lower()
+    correlation_to_show = st.sidebar.selectbox("Select correlation to display", ["Real", "Synthetic", "Difference"])
 
     real_corr_matrix = real_dataset.corr(method=correlation_type)
     synthetic_corr_matrix = synthetic_dataset.corr(method=correlation_type)
@@ -106,9 +95,7 @@ def correlation_plots(real_dataset, synthetic_datasets) -> None:
             zmin=zmin,
             zmax=zmax,
         ),
-        layout=go.Layout(
-            xaxis_showgrid=False, yaxis_showgrid=False, yaxis_autorange="reversed"
-        ),
+        layout=go.Layout(xaxis_showgrid=False, yaxis_showgrid=False, yaxis_autorange="reversed"),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -155,25 +142,17 @@ def plot_reducer(
     return fig
 
 
-def dimensionality_plots(
-    real_dataset: pd.DataFrame, synthetic_datasets: pd.DataFrame
-) -> None:
-    synthetic_dataset = prepare_for_dimensionality(
-        id_selector(synthetic_datasets).iloc[0].copy()
-    )
+def dimensionality_plots(real_dataset: pd.DataFrame, synthetic_datasets: pd.DataFrame) -> None:
+    synthetic_dataset = prepare_for_dimensionality(id_selector(synthetic_datasets).iloc[0].copy())
     real_dataset = prepare_for_dimensionality(real_dataset.copy())
-    dimensionality_method = st.sidebar.selectbox(
-        "Select dimensionality reduction method", ["UMAP", "t-SNE"]
-    )
+    dimensionality_method = st.sidebar.selectbox("Select dimensionality reduction method", ["UMAP", "t-SNE"])
     run = st.sidebar.button("Run dimensionality reduction")
     if run:
         if dimensionality_method == "UMAP":
             reducer = umap.UMAP()
         if dimensionality_method == "t-SNE":
             reducer = TSNE(n_components=2, init="pca")
-        fig = plot_reducer(
-            real_dataset, synthetic_dataset, reducer, dimensionality_method
-        )
+        fig = plot_reducer(real_dataset, synthetic_dataset, reducer, dimensionality_method)
         st.plotly_chart(fig, use_container_width=True)
 
 

@@ -78,9 +78,7 @@ class Noiser(nn.Module):
         num_single_column_indices: list[int],
     ) -> None:
         super().__init__()
-        self.output_logsigma_fn = nn.Linear(
-            num_single_column_indices, num_single_column_indices, bias=True
-        )
+        self.output_logsigma_fn = nn.Linear(num_single_column_indices, num_single_column_indices, bias=True)
         torch.nn.init.zeros_(self.output_logsigma_fn.weight)
         torch.nn.init.zeros_(self.output_logsigma_fn.bias)
         self.output_logsigma_fn.weight.requires_grad = False
@@ -142,9 +140,9 @@ class VAE(Model):
             len(self.single_column_indices),
         ).to(self.device)
         if self.shared_optimizer:
-            assert encoder_learning_rate == decoder_learning_rate, (
-                "If `shared_optimizer` is True, `encoder_learning_rate` must equal `decoder_learning_rate`"
-            )
+            assert (
+                encoder_learning_rate == decoder_learning_rate
+            ), "If `shared_optimizer` is True, `encoder_learning_rate` must equal `decoder_learning_rate`"
             self.optim = torch.optim.Adam(
                 list(self.encoder.parameters()) + list(self.decoder.parameters()),
                 lr=encoder_learning_rate,
@@ -189,9 +187,7 @@ class VAE(Model):
 
     def generate(self, N: Optional[int] = None) -> pd.DataFrame:
         N = N or self.nrows
-        z_samples = torch.randn_like(
-            torch.ones((N, self.encoder.latent_dim)), device=self.device
-        )
+        z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim)), device=self.device)
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="Using a non-full backward hook")
             x_gen = self.decoder(z_samples)
@@ -199,22 +195,16 @@ class VAE(Model):
 
         if self.multi_column_indices != [[]]:
             for cat_idxs in self.multi_column_indices:
-                x_gen_[:, cat_idxs] = (
-                    torch.distributions.one_hot_categorical.OneHotCategorical(
-                        logits=x_gen[:, cat_idxs]
-                    ).sample()
-                )
+                x_gen_[:, cat_idxs] = torch.distributions.one_hot_categorical.OneHotCategorical(
+                    logits=x_gen[:, cat_idxs]
+                ).sample()
 
-        x_gen_[:, self.single_column_indices] = x_gen[
-            :, self.single_column_indices
-        ] + torch.exp(
+        x_gen_[:, self.single_column_indices] = x_gen[:, self.single_column_indices] + torch.exp(
             self.noiser(x_gen[:, self.single_column_indices])
         ) * torch.randn_like(x_gen[:, self.single_column_indices])
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
-        return self.metatransformer.inverse_apply(
-            pd.DataFrame(x_gen_.detach(), columns=self.columns)
-        )
+        return self.metatransformer.inverse_apply(pd.DataFrame(x_gen_.detach(), columns=self.columns))
 
     def loss(self, X):
         mu_z, logsigma_z = self.encoder(X)
@@ -243,9 +233,7 @@ class VAE(Model):
             gauss_loglik = (
                 Normal(
                     loc=x_recon[:, self.single_column_indices],
-                    scale=torch.exp(
-                        self.noiser(x_recon[:, self.single_column_indices])
-                    ),
+                    scale=torch.exp(self.noiser(x_recon[:, self.single_column_indices])),
                 )
                 .log_prob(X[:, self.single_column_indices])
                 .sum()
@@ -305,9 +293,7 @@ class VAE(Model):
             for (Y_subset,) in epoch_progress:
                 self.zero_grad()
                 with warnings.catch_warnings():
-                    warnings.filterwarnings(
-                        "ignore", message="Using a non-full backward hook"
-                    )
+                    warnings.filterwarnings("ignore", message="Using a non-full backward hook")
                     losses = self.loss(Y_subset.to(self.device))
                 losses["ELBO"].backward()
                 self.step()

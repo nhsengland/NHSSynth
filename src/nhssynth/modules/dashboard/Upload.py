@@ -21,16 +21,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="NHSSynth Evaluation Dashboard")
     parser.add_argument("--evaluations", type=str, help="Path to a set of evaluations.")
     parser.add_argument("--experiments", type=str, help="Path to a set of experiments.")
-    parser.add_argument(
-        "--synthetic-datasets", type=str, help="Path to a set of synthetic datasets."
-    )
+    parser.add_argument("--synthetic-datasets", type=str, help="Path to a set of synthetic datasets.")
     parser.add_argument("--typed", type=str, help="Path to a typed real dataset.")
     return parser.parse_args()
 
 
-def get_component(
-    args: argparse.Namespace, name: str, component_type: Any, text: str
-) -> None:
+def get_component(args: argparse.Namespace, name: str, component_type: Any, text: str) -> None:
     """
     Generate an upload field and its functionality for a given component of the evaluations.
 
@@ -46,9 +42,7 @@ def get_component(
     if uploaded is not None:
         loaded = pickle.load(uploaded)
     if loaded is not None:
-        assert isinstance(loaded, component_type), (
-            f"Uploaded file does not contain a {text}!"
-        )
+        assert isinstance(loaded, component_type), f"Uploaded file does not contain a {text}!"
         st.session_state[name] = loaded.contents
         st.success(f"Loaded {text}!")
 
@@ -65,7 +59,5 @@ if __name__ == "__main__":
 
     get_component(args, "evaluations", Evaluations, "bundle of evaluations")
     get_component(args, "experiments", Experiments, "bundle of experiments")
-    get_component(
-        args, "synthetic_datasets", SyntheticDatasets, "bundle of synthetic datasets"
-    )
+    get_component(args, "synthetic_datasets", SyntheticDatasets, "bundle of synthetic datasets")
     get_component(args, "typed", TypedDataset, "typed real dataset")

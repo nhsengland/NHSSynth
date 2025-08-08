@@ -60,15 +60,9 @@ class Model(nn.Module, ABC):
         self.batch_size = batch_size
 
         self.metatransformer = metatransformer
-        self.multi_column_indices: list[list[int]] = (
-            metatransformer.multi_column_indices
-        )
+        self.multi_column_indices: list[list[int]] = metatransformer.multi_column_indices
         self.single_column_indices: list[int] = metatransformer.single_column_indices
-        assert (
-            len(self.single_column_indices)
-            + sum([len(x) for x in self.multi_column_indices])
-            == self.ncols
-        )
+        assert len(self.single_column_indices) + sum([len(x) for x in self.multi_column_indices]) == self.ncols
 
         tensor_data = torch.Tensor(data.to_numpy())
         self.cond_encoder: Optional[OneHotEncoder] = None
@@ -97,9 +91,7 @@ class Model(nn.Module, ABC):
             if torch.cuda.is_available():
                 self.device: torch.device = torch.device("cuda:0")
             else:
-                warnings.warn(
-                    "`use_gpu` was provided but no GPU is available, using CPU"
-                )
+                warnings.warn("`use_gpu` was provided but no GPU is available, using CPU")
         self.device: torch.device = torch.device("cpu")
 
     def save(self, filename: str) -> None:
@@ -146,23 +138,17 @@ class Model(nn.Module, ABC):
         """
         self.num_epochs = num_epochs
         self.patience = patience
-        self.metrics = {
-            metric: np.empty(0, dtype=float) for metric in self.get_metrics()
-        }
+        self.metrics = {metric: np.empty(0, dtype=float) for metric in self.get_metrics()}
         displayed_metrics = displayed_metrics or self.get_metrics()
         self.stats_bars = (
             {
-                metric: tqdm(
-                    total=0, desc="", position=i, bar_format="{desc}", leave=True
-                )
+                metric: tqdm(total=0, desc="", position=i, bar_format="{desc}", leave=True)
                 for i, metric in enumerate(displayed_metrics)
             }
             if not notebook_run
             else {}
         )
-        self.max_length = max(
-            [len(add_spaces_before_caps(s)) + 5 for s in displayed_metrics] + [20]
-        )
+        self.max_length = max([len(add_spaces_before_caps(s)) + 5 for s in displayed_metrics] + [20])
         self.start_time = self.update_time = time.time()
 
     def _generate_metric_str(self, key) -> str:
@@ -176,9 +162,7 @@ class Model(nn.Module, ABC):
                 if losses[key]:
                     self.metrics[key] = np.append(
                         self.metrics[key],
-                        losses[key].item()
-                        if isinstance(losses[key], torch.Tensor)
-                        else losses[key],
+                        losses[key].item() if isinstance(losses[key], torch.Tensor) else losses[key],
                     )
         if time.time() - self.update_time > 0.5:
             for key, stats_bar in self.stats_bars.items():
@@ -202,6 +186,4 @@ class Model(nn.Module, ABC):
         """Closes each of the tqdm status bars and prints the time taken to do `num_epochs`."""
         for stats_bar in self.stats_bars.values():
             stats_bar.close()
-        tqdm.write(
-            f"Completed {num_epochs} epochs in {time.time() - self.start_time:.2f} seconds.\033[0m"
-        )
+        tqdm.write(f"Completed {num_epochs} epochs in {time.time() - self.start_time:.2f} seconds.\033[0m")
