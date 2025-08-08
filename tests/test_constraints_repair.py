@@ -11,9 +11,7 @@ def test_unary_bounds_repair(meta):
 
 
 def test_binary_relation_repair(meta):
-    df = pd.DataFrame(
-        {"a": np.random.normal(0, 1, 5000), "b": np.random.normal(0, 1, 5000)}
-    )
+    df = pd.DataFrame({"a": np.random.normal(0, 1, 5000), "b": np.random.normal(0, 1, 5000)})
     # meta.constraints includes a <= b
     out = meta.repair_constraints(df)
     assert (out["a"] <= out["b"]).all()
