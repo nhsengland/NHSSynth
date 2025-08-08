@@ -1,6 +1,6 @@
 import pathlib
 import sys
-from typing import Any, Optional, Self, Union
+from typing import Any, Iterable, Optional, Dict, Self, Union
 
 import numpy as np
 import pandas as pd
@@ -281,6 +281,9 @@ class MetaTransformer:
         """
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
+        # Enforce constraints on decoded data if available
+        dataset = self.repair_constraints(dataset)
+
         return self.apply_dtypes(dataset)
 
     def get_typed_dataset(self) -> pd.DataFrame:
@@ -331,3 +334,149 @@ class MetaTransformer:
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
+    
+    def repair_constraints(self, df: pd.DataFrame, *, constraints=None, n_retries: int = 0) -> pd.DataFrame:
+        """
+        Enforce constraints on a *decoded* dataframe.
+
+        Supported:
+        - Unary bounds:  min <= col <= max         (clip)
+        - Binary rels:   A <= B, <, >=, >, =       (project)
+        - Sum rels:      A+B+... <= C / >= C       (proportional scale)
+        - Categorical:   col in {allowed}          (snap to mode)
+        """
+
+        if constraints is None:
+            constraints = getattr(self._metadata, "constraints", None)
+
+        if constraints is None:
+            return df
+        
+        # If it's a graph-like wrapper, try to get the iterable out
+        # (be tolerant to different shapes)
+        if hasattr(constraints, "constraints"):
+            iterable = constraints.constraints
+        elif hasattr(constraints, "__iter__"):
+            iterable = constraints
+        elif hasattr(constraints, "to_list"):
+            iterable = constraints.to_list()
+        else:
+            # Nothing usable
+            return df
+
+        repaired = df.copy()
+
+        def _clip_bounds(col: str, lo: Optional[float], hi: Optional[float]):
+            if col in repaired.columns:
+                s = repaired[col].to_numpy()
+                if lo is not None:
+                    s = np.maximum(s, lo)
+                if hi is not None:
+                    s = np.minimum(s, hi)
+                repaired[col] = s
+                
+        def _as_number(x):
+            try:
+                if x is None: return None
+                if isinstance(x, (int, float)) and not isinstance(x, bool):
+                    return float(x)
+                # if it's "180" in YAML, it may arrive as str
+                return float(str(x))
+            except Exception:
+                return None
+
+        def _ensure_binary(lhs: str, op: str, rhs: str):
+            """Enforce lhs <op> rhs where rhs may be a column name OR a numeric constant."""
+            if lhs not in repaired.columns:
+                return
+            a = repaired[lhs].to_numpy(dtype=float)
+
+            # Decide: rhs column vs constant
+            rhs_is_col = isinstance(rhs, str) and rhs in repaired.columns
+            rhs_num = None if rhs_is_col else _as_number(rhs)
+
+            if rhs_is_col:
+                b = repaired[rhs].to_numpy(dtype=float)
+            elif rhs_num is not None:
+                b = np.full_like(a, rhs_num, dtype=float)
+            else:
+                # Unknown RHS; nothing to do
+                return
+
+            if op in ("<=", "<"):
+                mask = a > b if op == "<=" else a >= b
+                eps = 1e-8 if op == "<" else 0.0
+                a[mask] = b[mask] - eps
+            elif op in (">=", ">"):
+                mask = a < b if op == ">=" else a <= b
+                eps = 1e-8 if op == ">" else 0.0
+                a[mask] = b[mask] + eps
+            elif op in ("=", "=="):
+                a = b
+            repaired[lhs] = a
+
+        def _ensure_sum(lhs_cols, op: str, rhs):
+            """Enforce sum(lhs_cols) <op> rhs; rhs may be a column or a numeric constant."""
+            cols = [c for c in lhs_cols if c in repaired.columns]
+            if not cols:
+                return
+            L = repaired[cols].to_numpy(dtype=float)
+
+            rhs_is_col = isinstance(rhs, str) and rhs in repaired.columns
+            rhs_num = None if rhs_is_col else _as_number(rhs)
+            if rhs_is_col:
+                R = repaired[rhs].to_numpy(dtype=float)
+            elif rhs_num is not None:
+                R = np.full(L.shape[0], rhs_num, dtype=float)
+            else:
+                return
+
+            s = L.sum(axis=1)
+            if op in ("<=", "<"):
+                mask = s > R if op == "<=" else s >= R
+                scale = np.ones_like(s)
+                scale[mask] = np.where(s[mask] > 0, R[mask] / s[mask], 0.0)
+                L[mask] = (L[mask].T * scale[mask]).T
+            elif op in (">=", ">"):
+                mask = s < R if op == ">=" else s <= R
+                scale = np.ones_like(s)
+                scale[mask] = np.where(s[mask] != 0, R[mask] / s[mask], 1.0)
+                L[mask] = (L[mask].T * scale[mask]).T
+
+            repaired[cols] = L
+
+        def _snap_categorical(col: str, allowed: Iterable[Any]):
+            if col not in repaired.columns:
+                return
+            allowed = list(allowed)
+            s = repaired[col].astype(object)
+            mask = ~s.isin(allowed)
+            if mask.any():
+                mode_vals = s[s.isin(allowed)].mode(dropna=True)
+                fill_val = mode_vals.iloc[0] if len(mode_vals) else (allowed[0] if allowed else None)
+                if fill_val is not None:
+                    s.loc[mask] = fill_val
+                    repaired[col] = s
+
+        for c in iterable:
+            cdict = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
+            ctype = cdict.get("type") or cdict.get("kind")
+            keys = set(cdict)
+
+            # unary bounds
+            if ctype in ("UnaryBounds","Bounds","Range") or {"column","min","max"} <= keys:
+                _clip_bounds(cdict.get("column"), cdict.get("min"), cdict.get("max")); continue
+
+            # binary rel (supports RHS column OR constant)
+            if ctype in ("BinaryRelation","BinaryRel") or {"lhs","op","rhs"} <= keys:
+                _ensure_binary(cdict["lhs"], cdict["op"], cdict["rhs"]); continue
+
+            # sum rel (RHS column OR constant)
+            if ctype in ("SumRelation","SumRel") or {"lhs_cols","op","rhs"} <= keys:
+                _ensure_sum(cdict.get("lhs_cols") or cdict.get("lhs") or [], cdict["op"], cdict["rhs"]); continue
+
+            # categorical inclusion
+            if ctype in ("InSet","CategoryInclusion") or {"column","allowed"} <= keys:
+                _snap_categorical(cdict["column"], cdict["allowed"]); continue
+
+        return repaired
