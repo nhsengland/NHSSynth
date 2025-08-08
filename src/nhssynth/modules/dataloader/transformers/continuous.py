@@ -49,7 +49,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
             n_init=n_init,
             init_params=init_params,
             max_iter=max_iter,
-            weight_concentration_prior=1e-3,
+            weight_concentration_prior=1.0, #1e-3,
         )
         self._n_components = n_components
         self._std_multiplier = 4
@@ -119,7 +119,8 @@ class ClusterContinuousTransformer(ColumnTransformer):
         normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
         print(normalised_values)
         normalised = normalised_values[np.arange(len(data)), components]
-        normalised = np.clip(normalised, -1.0, 1.0)
+        if self.clip_output:
+            normalised = np.clip(normalised, -1.0, 1.0)
         print(normalised)
         components = np.eye(self._n_components, dtype=int)[components]
 
