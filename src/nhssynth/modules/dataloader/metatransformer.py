@@ -288,9 +288,7 @@ class MetaTransformer:
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
         # Enforce constraints on decoded data if available
-        tqdm.write(f"repair before {(dataset['x8'] > 180).sum()},  violation; max {dataset['x8'].max()}")
-        dataset = self.repair_constraints(dataset)
-        tqdm.write(f"repair after {(dataset['x8'] > 180).sum()},  violation; max {dataset['x8'].max()}")
+        dataset = self.repair_constraints(dataset, mode="reflect")
 
         return self.apply_dtypes(dataset)
 
@@ -343,7 +341,7 @@ class MetaTransformer:
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
 
-    def repair_constraints(self, df: pd.DataFrame, *, n_retries: int = 0) -> pd.DataFrame:
+    def repair_constraints(self, df: pd.DataFrame, *, mode="reflect", rng=None, n_retries: int = 0) -> pd.DataFrame:
         """
         Enforce constraints on a *decoded* DataFrame.
 
@@ -353,6 +351,10 @@ class MetaTransformer:
         - Numeric bounds via <, <=, >, >=, =  (column vs. constant or column)
         - Categorical membership via 'in'
         """
+    
+        if rng is None:
+            rng = np.random.default_rng()    
+    
         constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
         if constraints is None:
             return df
@@ -431,15 +433,63 @@ class MetaTransformer:
 
             if op in ("<", "<="):
                 mask = a >= b if op == "<" else a > b
-                eps = 1e-8 if op == "<" else 0.0
-                a[mask] = b[mask] - eps
+                if not mask.any():
+                    repaired[base] = a; return
+                if mode == "clip":
+                    eps = 1e-8 if op == "<" else 0.0
+                    a[mask] = b[mask] - eps
+                elif mode == "reflect":
+                    # reflect over the boundary then clip just in case
+                    a[mask] = 2.0 * b[mask] - a[mask]
+                    # ensure strictness
+                    eps = 1e-8 if op == "<" else 0.0
+                    a[mask] = np.minimum(a[mask], b[mask] - eps)
+                elif mode == "uniform":
+                    # sample uniformly just below the bound within window w
+                    w = np.clip(0.05 * np.nanstd(a), 1e-6, np.inf)  # 5% of std as window
+                    eps = 1e-8 if op == "<" else 0.0
+                    a[mask] = rng.uniform(b[mask] - w, b[mask] - eps)
+                elif mode == "resample":
+                    # bootstrap from in-bounds upper tail (e.g., above q=0.95)
+                    inb = a[~mask]
+                    if inb.size:
+                        q = np.quantile(inb, 0.95)
+                        tail = inb[inb >= q]
+                        if tail.size == 0:
+                            tail = inb
+                        a[mask] = rng.choice(tail, size=mask.sum(), replace=True)
+                    else:
+                        # fallback to uniform if everything violated
+                        eps = 1e-8 if op == "<" else 0.0
+                        a[mask] = b[mask] - eps
+                repaired[base] = a
             elif op in (">", ">="):
                 mask = a <= b if op == ">" else a < b
-                eps = 1e-8 if op == ">" else 0.0
-                a[mask] = b[mask] + eps
-            elif op == "=":
-                a = b
-            repaired[base] = a
+                if not mask.any():
+                    repaired[base] = a; return
+                if mode == "clip":
+                    eps = 1e-8 if op == ">" else 0.0
+                    a[mask] = b[mask] + eps
+                elif mode == "reflect":
+                    a[mask] = 2.0 * b[mask] - a[mask]
+                    eps = 1e-8 if op == ">" else 0.0
+                    a[mask] = np.maximum(a[mask], b[mask] + eps)
+                elif mode == "uniform":
+                    w = np.clip(0.05 * np.nanstd(a), 1e-6, np.inf)
+                    eps = 1e-8 if op == ">" else 0.0
+                    a[mask] = rng.uniform(b[mask] + eps, b[mask] + w)
+                elif mode == "resample":
+                    inb = a[~mask]
+                    if inb.size:
+                        q = np.quantile(inb, 0.05)
+                        tail = inb[inb <= q]
+                        if tail.size == 0:
+                            tail = inb
+                        a[mask] = rng.choice(tail, size=mask.sum(), replace=True)
+                    else:
+                        eps = 1e-8 if op == ">" else 0.0
+                        a[mask] = b[mask] + eps
+                repaired[base] = a
 
         # ----------------- apply constraints -----------------
         for c in constraints_iterable:

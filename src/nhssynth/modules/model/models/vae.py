@@ -117,7 +117,7 @@ class VAE(Model):
         shared_optimizer: bool = True,
         **kwargs,
     ) -> None:
-        super(VAE, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.shared_optimizer = shared_optimizer
         self.encoder = Encoder(
