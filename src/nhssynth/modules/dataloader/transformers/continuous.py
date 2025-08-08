@@ -49,7 +49,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
             n_init=n_init,
             init_params=init_params,
             max_iter=max_iter,
-            weight_concentration_prior=1.0, #1e-3,
+            weight_concentration_prior=1.0,  # 1e-3,
         )
         self._n_components = n_components
         self._std_multiplier = 4
