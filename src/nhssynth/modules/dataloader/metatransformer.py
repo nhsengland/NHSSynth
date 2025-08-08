@@ -336,7 +336,7 @@ class MetaTransformer:
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
-    
+
     def repair_constraints(self, df: pd.DataFrame, *, n_retries: int = 0) -> pd.DataFrame:
         """
         Enforce constraints on a *decoded* DataFrame.
@@ -372,12 +372,18 @@ class MetaTransformer:
                 return None
             op = str(op).strip().lower()
             return {
-                "<": "<", "lt": "<",
-                "<=": "<=", "lte": "<=",
-                ">": ">", "gt": ">",
-                ">=": ">=", "gte": ">=",
-                "=": "=", "==": "=", "eq": "=",
-                "in": "in"
+                "<": "<",
+                "lt": "<",
+                "<=": "<=",
+                "lte": "<=",
+                ">": ">",
+                "gt": ">",
+                ">=": ">=",
+                "gte": ">=",
+                "=": "=",
+                "==": "=",
+                "eq": "=",
+                "in": "in",
             }.get(op, op)
 
         def _ensure_binary_or_in(base: str, op: str, reference, reference_is_column: bool):
@@ -443,4 +449,3 @@ class MetaTransformer:
                 # print(f"[repair] applied: {base} {op} {ref} (col? {ref_is_col})")
 
         return repaired
-
