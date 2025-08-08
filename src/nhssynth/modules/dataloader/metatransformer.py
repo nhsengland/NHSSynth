@@ -1,6 +1,6 @@
 import pathlib
 import sys
-from typing import Any, Optional, Self, Union
+from typing import Any, Iterable, Optional, Dict, Self, Union
 
 import numpy as np
 import pandas as pd
@@ -134,7 +134,9 @@ class MetaTransformer:
         try:
             if dtype.kind == "M":
                 working_column = pd.to_datetime(
-                    working_column, format=column_metadata.datetime_config.get("format"), errors="coerce"
+                    working_column,
+                    format=column_metadata.datetime_config.get("format"),
+                    errors="coerce",
                 )
                 if column_metadata.datetime_config.get("floor"):
                     working_column = working_column.dt.floor(column_metadata.datetime_config.get("floor"))
@@ -210,7 +212,6 @@ class MetaTransformer:
             return missingness_carrier
 
     def _get_adherence_constraint(self, df) -> Union[pd.Series, Any]:
-
         adherence_columns = [col for col in df.columns if col.endswith("_adherence")]
         constraint_adherence = df[adherence_columns].prod(axis=1).astype(int)
 
@@ -231,12 +232,17 @@ class MetaTransformer:
 
         # iteratively build the transformed df
         for column_metadata in tqdm(
-            self._metadata, desc="Transforming data", unit="column", total=len(self._metadata.columns)
+            self._metadata,
+            desc="Transforming data",
+            unit="column",
+            total=len(self._metadata.columns),
         ):
             missingness_carrier = self._get_missingness_carrier(column_metadata)
             constraint_adherence = self._get_adherence_constraint(working_data)
             transformed_data = column_metadata.transformer.apply(
-                working_data[column_metadata.name], constraint_adherence, missingness_carrier
+                working_data[column_metadata.name],
+                constraint_adherence,
+                missingness_carrier,
             )
             transformed_columns.append(transformed_data)
 
@@ -281,6 +287,11 @@ class MetaTransformer:
         """
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
+        # Enforce constraints on decoded data if available
+        tqdm.write(f"repair before {(dataset['x8'] > 180).sum()},  violation; max {dataset['x8'].max()}")
+        dataset = self.repair_constraints(dataset)
+        tqdm.write(f"repair after {(dataset['x8'] > 180).sum()},  violation; max {dataset['x8'].max()}")
+
         return self.apply_dtypes(dataset)
 
     def get_typed_dataset(self) -> pd.DataFrame:
@@ -331,3 +342,116 @@ class MetaTransformer:
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
+
+    def repair_constraints(self, df: pd.DataFrame, *, n_retries: int = 0) -> pd.DataFrame:
+        """
+        Enforce constraints on a *decoded* DataFrame.
+
+        Reads constraints from self._metadata.constraints.minimal_constraints.
+
+        Supports:
+        - Numeric bounds via <, <=, >, >=, =  (column vs. constant or column)
+        - Categorical membership via 'in'
+        """
+        constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
+        if constraints is None:
+            return df
+        constraints_iterable = getattr(constraints, "minimal_constraints", None)
+        if constraints_iterable is None:
+            return df
+
+        repaired = df.copy()
+
+        # ----------------- helpers -----------------
+        def _as_number(x):
+            try:
+                if x is None:
+                    return None
+                if isinstance(x, (int, float)) and not isinstance(x, bool):
+                    return float(x)
+                return float(str(x))
+            except Exception:
+                return None
+
+        def _norm_op(op):
+            if op is None:
+                return None
+            op = str(op).strip().lower()
+            return {
+                "<": "<",
+                "lt": "<",
+                "<=": "<=",
+                "lte": "<=",
+                ">": ">",
+                "gt": ">",
+                ">=": ">=",
+                "gte": ">=",
+                "=": "=",
+                "==": "=",
+                "eq": "=",
+                "in": "in",
+            }.get(op, op)
+
+        def _ensure_binary_or_in(base: str, op: str, reference, reference_is_column: bool):
+            if base not in repaired.columns:
+                return
+
+            if op == "in":
+                # categorical inclusion
+                if reference_is_column:
+                    if isinstance(reference, str) and reference in repaired.columns:
+                        allowed = set(repaired[reference].dropna().unique().tolist())
+                    else:
+                        return
+                else:
+                    if isinstance(reference, (list, tuple, set)):
+                        allowed = set(reference)
+                    else:
+                        allowed = set(str(reference).split(","))
+                s = repaired[base].astype(object)
+                mask = ~s.isin(allowed)
+                if mask.any():
+                    mode_vals = s[s.isin(allowed)].mode(dropna=True)
+                    fill_val = mode_vals.iloc[0] if len(mode_vals) else next(iter(allowed))
+                    s.loc[mask] = fill_val
+                    repaired[base] = s
+                return
+
+            # numeric comparisons
+            a = repaired[base].to_numpy(dtype=float)
+            if reference_is_column:
+                if not (isinstance(reference, str) and reference in repaired.columns):
+                    return
+                b = repaired[reference].to_numpy(dtype=float)
+            else:
+                ref_num = _as_number(reference)
+                if ref_num is None:
+                    return
+                b = np.full_like(a, ref_num, dtype=float)
+
+            if op in ("<", "<="):
+                mask = a >= b if op == "<" else a > b
+                eps = 1e-8 if op == "<" else 0.0
+                a[mask] = b[mask] - eps
+            elif op in (">", ">="):
+                mask = a <= b if op == ">" else a < b
+                eps = 1e-8 if op == ">" else 0.0
+                a[mask] = b[mask] + eps
+            elif op == "=":
+                a = b
+            repaired[base] = a
+
+        # ----------------- apply constraints -----------------
+        for c in constraints_iterable:
+            cd = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
+            base = cd.get("base")
+            op = _norm_op(cd.get("operator"))
+            ref = cd.get("reference")
+            ref_is_col = bool(cd.get("reference_is_column", False))
+
+            if base and op:
+                _ensure_binary_or_in(base, op, ref, ref_is_col)
+                # Optional: debug print
+                # print(f"[repair] applied: {base} {op} {ref} (col? {ref_is_col})")
+
+        return repaired

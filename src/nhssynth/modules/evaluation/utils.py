@@ -104,7 +104,11 @@ class EvalFrame:
         assert synthetic_datasets.index.is_unique, "Dataset IDs must be unique."
         self._evaluations = pd.DataFrame(index=synthetic_datasets.index, columns=self._metric_groups)
         self._evaluations.loc[("Real", None, None)] = self._step(real_dataset)
-        pbar = tqdm(synthetic_datasets.iterrows(), desc="Evaluating", total=len(synthetic_datasets))
+        pbar = tqdm(
+            synthetic_datasets.iterrows(),
+            desc="Evaluating",
+            total=len(synthetic_datasets),
+        )
         for i, dataset in pbar:
             pbar.set_description(f"Evaluating {i[0]}, repeat {i[1]}, config {i[2]}")
             self._evaluations.loc[i] = self._step(real_dataset, dataset.values[0])
@@ -121,7 +125,8 @@ class EvalFrame:
         ), "You must first run `evaluate` on a `real_dataset` and set of `synthetic_datasets`."
         return {
             metric_group: pd.DataFrame(
-                self._evaluations[metric_group].values.tolist(), index=self._evaluations.index
+                self._evaluations[metric_group].values.tolist(),
+                index=self._evaluations.index,
             ).dropna(how="all")
             for metric_group in self._metric_groups
         }
@@ -145,7 +150,11 @@ class EvalFrame:
         return metric_dict
 
     def _compute_metric(
-        self, metric_dict: dict, metric: str, real_data: pd.DataFrame, synthetic_data: pd.DataFrame
+        self,
+        metric_dict: dict,
+        metric: str,
+        real_data: pd.DataFrame,
+        synthetic_data: pd.DataFrame,
     ) -> dict[str, dict]:
         """
         Given a metric, determine the correct way to evaluate it via the lists defined in `nhssynth.common.constants`.
@@ -159,7 +168,10 @@ class EvalFrame:
         Returns:
             The metric_dict updated with the value of the metric.
         """
-        with pd.option_context("mode.chained_assignment", None), warnings.catch_warnings():
+        with (
+            pd.option_context("mode.chained_assignment", None),
+            warnings.catch_warnings(),
+        ):
             warnings.filterwarnings("ignore", message="ConvergenceWarning")
             if metric in TABLE_METRICS:
                 metric_dict["table"][metric] = TABLE_METRICS[metric].compute(

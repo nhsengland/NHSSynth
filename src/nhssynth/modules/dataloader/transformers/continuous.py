@@ -49,7 +49,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
             n_init=n_init,
             init_params=init_params,
             max_iter=max_iter,
-            weight_concentration_prior=1.0, #1e-3,
+            weight_concentration_prior=1.0,  # 1e-3,
         )
         self._n_components = n_components
         self._std_multiplier = 4
@@ -59,7 +59,10 @@ class ClusterContinuousTransformer(ColumnTransformer):
         self.clip_output = clip_output
 
     def apply(
-        self, data: pd.Series, constraint_adherence: Optional[pd.Series], missingness_column: Optional[pd.Series] = None
+        self,
+        data: pd.Series,
+        constraint_adherence: Optional[pd.Series],
+        missingness_column: Optional[pd.Series] = None,
     ) -> pd.DataFrame:
         """
         Apply the transformation to a given data column using the `BayesianGaussianMixture` model from scikit-learn.
@@ -141,10 +144,16 @@ class ClusterContinuousTransformer(ColumnTransformer):
             transformed_data.drop(unused_components, axis=1, inplace=True)
         """
 
-        transformed_data = pd.concat([transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence], axis=1)
+        transformed_data = pd.concat(
+            [transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence],
+            axis=1,
+        )
 
         if missingness_column is not None:
-            transformed_data = pd.concat([transformed_data.reindex(full_index).fillna(0.0), missingness_column], axis=1)
+            transformed_data = pd.concat(
+                [transformed_data.reindex(full_index).fillna(0.0), missingness_column],
+                axis=1,
+            )
 
         if 0 in transformed_data.columns:
             transformed_data = transformed_data.drop(columns=[0])
@@ -181,7 +190,9 @@ class ClusterContinuousTransformer(ColumnTransformer):
         mean_t = self.means[components]
         std_t = self.stds[components]
         data[self.original_column_name] = pd.Series(
-            working_data * self._std_multiplier * std_t + mean_t, index=index, name=self.original_column_name
+            working_data * self._std_multiplier * std_t + mean_t,
+            index=index,
+            name=self.original_column_name,
         ).reindex(full_index)
         data.drop(self.new_column_names, axis=1, inplace=True)
         return data

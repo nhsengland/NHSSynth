@@ -32,7 +32,10 @@ class OHECategoricalTransformer(ColumnTransformer):
         self.missing_value: Any = None
 
     def apply(
-        self, data: pd.Series, constraint_adherence: Optional[pd.Series], missing_value: Optional[Any] = None
+        self,
+        data: pd.Series,
+        constraint_adherence: Optional[pd.Series],
+        missing_value: Optional[Any] = None,
     ) -> pd.DataFrame:
         """
         Applies a transformation to the input data using scikit-learn's `OneHotEncoder`'s `fit_transform` method.
@@ -77,7 +80,10 @@ class OHECategoricalTransformer(ColumnTransformer):
             self._transformer.fit_transform(data.values.reshape(-1, 1)),
             columns=self._transformer.get_feature_names_out(input_features=[data.name]),
         )
-        transformed_data = pd.concat([transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence], axis=1)
+        transformed_data = pd.concat(
+            [transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence],
+            axis=1,
+        )
 
         if 0 in transformed_data.columns:
             transformed_data = transformed_data.drop(columns=[0])

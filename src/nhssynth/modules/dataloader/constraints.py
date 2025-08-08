@@ -7,15 +7,35 @@ from pyvis.network import Network
 
 class ConstraintGraph:
     VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-    POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+    POSITIVITY_TO_OPERATOR: Final = {
+        "positive": ">",
+        "nonnegative": ">=",
+        "negative": "<",
+        "nonpositive": "<=",
+    }
     BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
-    OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
+    OPERATOR_TO_PANDAS: Final = {
+        "<": pd.Series.lt,
+        "<=": pd.Series.le,
+        ">": pd.Series.gt,
+        ">=": pd.Series.ge,
+    }
 
     class Constraint:
         VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-        POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+        POSITIVITY_TO_OPERATOR: Final = {
+            "positive": ">",
+            "nonnegative": ">=",
+            "negative": "<",
+            "nonpositive": "<=",
+        }
         BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
-        OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
+        OPERATOR_TO_PANDAS: Final = {
+            "<": pd.Series.lt,
+            "<=": pd.Series.le,
+            ">": pd.Series.gt,
+            ">=": pd.Series.ge,
+        }
 
         def __init__(
             self,

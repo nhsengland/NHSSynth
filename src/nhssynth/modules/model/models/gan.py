@@ -312,7 +312,12 @@ class GAN(Model):
         return np.mean(errors)
 
     def _train_epoch(self) -> Tuple[float, float]:
-        for data in tqdm(self.data_loader, desc="Batches", position=len(self.stats_bars) + 1, leave=False):
+        for data in tqdm(
+            self.data_loader,
+            desc="Batches",
+            position=len(self.stats_bars) + 1,
+            leave=False,
+        ):
             cond: Optional[torch.Tensor] = None
             if self.n_units_conditional > 0:
                 X, cond = data

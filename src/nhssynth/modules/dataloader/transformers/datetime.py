@@ -31,7 +31,7 @@ class DatetimeTransformer(TransformerWrapper):
         data: pd.Series,
         constraint_adherence: Optional[pd.Series],
         missingness_column: Optional[pd.Series] = None,
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
         """
         Firstly, the datetime data is floored to the nano-second level. Next, the floored data is converted to float nanoseconds since the epoch.

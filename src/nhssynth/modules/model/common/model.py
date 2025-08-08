@@ -114,7 +114,13 @@ class Model(nn.Module, ABC):
         """Returns the list of metrics to track during training."""
         raise NotImplementedError
 
-    def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str], notebook_run: bool) -> None:
+    def _start_training(
+        self,
+        num_epochs: int,
+        patience: int,
+        displayed_metrics: list[str],
+        notebook_run: bool,
+    ) -> None:
         """
         Initialises the training process.
 
@@ -155,7 +161,8 @@ class Model(nn.Module, ABC):
             if key in losses:
                 if losses[key]:
                     self.metrics[key] = np.append(
-                        self.metrics[key], losses[key].item() if isinstance(losses[key], torch.Tensor) else losses[key]
+                        self.metrics[key],
+                        losses[key].item() if isinstance(losses[key], torch.Tensor) else losses[key],
                     )
         if time.time() - self.update_time > 0.5:
             for key, stats_bar in self.stats_bars.items():

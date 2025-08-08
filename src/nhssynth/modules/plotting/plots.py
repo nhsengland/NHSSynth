@@ -36,9 +36,21 @@ def tsne(
 
     fig = go.Figure()
 
-    fig.add_scatter(x=proj_real[0], y=proj_real[1], mode="markers", marker=dict(size=5), opacity=0.75, name="Real data")
     fig.add_scatter(
-        x=proj_synth[0], y=proj_synth[1], mode="markers", marker=dict(size=5), opacity=0.75, name="Synthetic data"
+        x=proj_real[0],
+        y=proj_real[1],
+        mode="markers",
+        marker=dict(size=5),
+        opacity=0.75,
+        name="Real data",
+    )
+    fig.add_scatter(
+        x=proj_synth[0],
+        y=proj_synth[1],
+        mode="markers",
+        marker=dict(size=5),
+        opacity=0.75,
+        name="Synthetic data",
     )
 
     # Set axis labels and legend

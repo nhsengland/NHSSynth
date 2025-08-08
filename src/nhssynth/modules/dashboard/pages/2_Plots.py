@@ -114,13 +114,21 @@ def prepare_for_dimensionality(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def plot_reducer(
-    real_dataset: pd.DataFrame, synthetic_dataset: pd.DataFrame, reducer: Any, reducer_name: str
+    real_dataset: pd.DataFrame,
+    synthetic_dataset: pd.DataFrame,
+    reducer: Any,
+    reducer_name: str,
 ) -> go.Figure:
     with st.spinner(f"Running {reducer_name}..."):
         fig = go.Figure(layout=go.Layout(xaxis_title="UMAP 1", yaxis_title="UMAP 2"))
         proj_real = reducer.fit_transform(real_dataset)
         fig.add_scatter(
-            x=proj_real[:, 0], y=proj_real[:, 1], mode="markers", marker=dict(size=5), opacity=0.75, name="Real data"
+            x=proj_real[:, 0],
+            y=proj_real[:, 1],
+            mode="markers",
+            marker=dict(size=5),
+            opacity=0.75,
+            name="Real data",
         )
         proj_synth = reducer.fit_transform(synthetic_dataset)
         fig.add_scatter(

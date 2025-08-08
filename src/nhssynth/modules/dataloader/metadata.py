@@ -80,7 +80,7 @@ class MetaData:
                 roundable_data = data[data.notna()]
                 for i in range(np.finfo(dtype).precision):
                     if (roundable_data.round(i) == roundable_data).all():
-                        return 10**-i
+                        return 10 ** -i
             return None
 
         def _validate_categorical(self, data: pd.Series, categorical: Optional[bool] = None) -> bool:
@@ -235,7 +235,10 @@ class MetaData:
             else:
                 column_types.pop(cix)
 
-        return {"column_types": {i + 1: x for i, x in enumerate(column_types.values())}, **metadata}
+        return {
+            "column_types": {i + 1: x for i, x in enumerate(column_types.values())},
+            **metadata,
+        }
 
     def _assemble(self, collapse_yaml: bool) -> dict[str, dict[str, Any]]:
         """
@@ -266,7 +269,10 @@ class MetaData:
                 assembled_metadata["columns"][cn]["missingness"] = (
                     cmd.missingness_strategy.name
                     if cmd.missingness_strategy.name != "impute"
-                    else {"name": cmd.missingness_strategy.name, "impute": cmd.missingness_strategy.impute}
+                    else {
+                        "name": cmd.missingness_strategy.name,
+                        "impute": cmd.missingness_strategy.impute,
+                    }
                 )
             if cmd.transformer_config:
                 assembled_metadata["columns"][cn]["transformer"] = {
@@ -321,7 +327,11 @@ class MetaData:
                     "sdtype": (
                         "boolean"
                         if cmd.boolean
-                        else "categorical" if cmd.categorical else "datetime" if cmd.dtype.kind == "M" else "numerical"
+                        else "categorical"
+                        if cmd.categorical
+                        else "datetime"
+                        if cmd.dtype.kind == "M"
+                        else "numerical"
                     ),
                 }
                 for cn, cmd in self._metadata.items()

@@ -51,7 +51,12 @@ def group_by_display(
         evaluations_shown = evaluations_filtered
         st.write(f"## {title}")
         st.dataframe(evaluations_shown.style.highlight_max(axis=0))
-        st.download_button("Press to Download", convert_df(evaluations_shown), "evaluations.csv", "text/csv")
+        st.download_button(
+            "Press to Download",
+            convert_df(evaluations_shown),
+            "evaluations.csv",
+            "text/csv",
+        )
 
 
 def table_metrics(evaluations, experiments, selected_metric_group):
@@ -91,7 +96,11 @@ def columnwise_metrics(evaluations, experiments):
         )
         st.dataframe(exploded_evaluations.style.highlight_max(axis=0))
         st.download_button(
-            "Press to Download", convert_df(exploded_evaluations), "evaluations.csv", "text/csv", key="download-csv"
+            "Press to Download",
+            convert_df(exploded_evaluations),
+            "evaluations.csv",
+            "text/csv",
+            key="download-csv",
         )
         st.write("### Configurations")
         st.dataframe(experiments.groupby(["architecture", "config"]).first())
@@ -100,7 +109,11 @@ def columnwise_metrics(evaluations, experiments):
 def pairwise_metrics(evaluations, experiments):
     display = st.sidebar.selectbox(
         "Display",
-        ["By column pair", "By reference column and metric", "By configuration and metric"],
+        [
+            "By column pair",
+            "By reference column and metric",
+            "By configuration and metric",
+        ],
         index=0,
     )
     metric_column_map = {
@@ -119,11 +132,16 @@ def pairwise_metrics(evaluations, experiments):
             lambda x: x.apply(lambda y: (y.get((column1, column2)) or y.get((column2, column1)) or {}).get("score"))
         )
         prepared_evals = prepare_evals(column_pair_evaluations, experiments)
-        group_by_display(prepared_evals, experiments, f"Pairwise metrics for `{column1}` and `{column2}`")
+        group_by_display(
+            prepared_evals,
+            experiments,
+            f"Pairwise metrics for `{column1}` and `{column2}`",
+        )
     elif display == "By reference column and metric":
         reference_column = st.sidebar.selectbox("Select reference column", columns, index=0)
         metric = st.sidebar.selectbox(
-            "Select metric to display", [k for k, v in metric_column_map.items() if reference_column in v]
+            "Select metric to display",
+            [k for k, v in metric_column_map.items() if reference_column in v],
         )
         metric_evaluations = (
             evaluations[metric]
@@ -135,19 +153,32 @@ def pairwise_metrics(evaluations, experiments):
             (col[0] + col[1]).replace(reference_column, "") for col in metric_evaluations.columns
         ]
         joined_evals = metric_evaluations.join(experiments)
-        group_by_display(joined_evals, experiments, f"Pairwise `{metric}` relative to `{reference_column}`")
+        group_by_display(
+            joined_evals,
+            experiments,
+            f"Pairwise `{metric}` relative to `{reference_column}`",
+        )
     elif display == "By configuration and metric":
         config_evaluations = id_selector(evaluations)
         metric = st.sidebar.selectbox("Select metric to display", evaluations.columns)
         metric_evaluations = config_evaluations.loc[metric]
-        grid = pd.DataFrame(columns=list(metric_column_map[metric]), index=list(metric_column_map[metric]))
+        grid = pd.DataFrame(
+            columns=list(metric_column_map[metric]),
+            index=list(metric_column_map[metric]),
+        )
         for (col1, col2), score in metric_evaluations.items():
             grid.loc[col1, col2], grid.loc[col2, col1] = score["score"], score["score"]
         st.write(
             f"## Pairwise `{metric}` values for {config_evaluations.name[0]} repeat {int(config_evaluations.name[1])} configuration {int(config_evaluations.name[2])}"
         )
         st.table(grid)
-        st.download_button("Press to Download", convert_df(grid), "evaluations.csv", "text/csv", key="download-csv")
+        st.download_button(
+            "Press to Download",
+            convert_df(grid),
+            "evaluations.csv",
+            "text/csv",
+            key="download-csv",
+        )
         st.write("### Configurations")
         st.dataframe(experiments.groupby(["architecture", "config"]).first())
 

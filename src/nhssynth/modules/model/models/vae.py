@@ -150,7 +150,10 @@ class VAE(Model):
             self.zero_grad = self.optim.zero_grad
             self.step = self.optim.step
         else:
-            self.zero_grad = lambda: (self.encoder.optim.zero_grad(), self.decoder.optim.zero_grad())
+            self.zero_grad = lambda: (
+                self.encoder.optim.zero_grad(),
+                self.decoder.optim.zero_grad(),
+            )
             self.step = lambda: (self.encoder.optim.step(), self.decoder.optim.step())
 
     @classmethod
@@ -273,10 +276,18 @@ class VAE(Model):
         self.noiser.train()
 
         for epoch in tqdm(
-            range(num_epochs), desc="Epochs", position=len(self.stats_bars) if not notebook_run else 0, leave=False
+            range(num_epochs),
+            desc="Epochs",
+            position=len(self.stats_bars) if not notebook_run else 0,
+            leave=False,
         ):
             if not notebook_run:
-                epoch_progress = tqdm(self.data_loader, desc="Batches", position=len(self.stats_bars) + 1, leave=False)
+                epoch_progress = tqdm(
+                    self.data_loader,
+                    desc="Batches",
+                    position=len(self.stats_bars) + 1,
+                    leave=False,
+                )
             else:
                 epoch_progress = self.data_loader
             for (Y_subset,) in epoch_progress:
