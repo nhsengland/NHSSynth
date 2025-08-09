@@ -225,17 +225,15 @@ class VAE(Model):
         # --- add noise to continuous "value" columns inside mixture groups ---
         cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
         if cont_idx:
+            import torch
             idx = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
 
-            # derive a scalar sigma from the singles' noiser if available; else small constant
-            if getattr(self, "single_column_indices", None):
-                with torch.no_grad():
-                    sig_singles = self.noiser(x_gen[:, self.single_column_indices])  # [N, S]
-                    sigma_scalar = sig_singles.abs().median().clamp_min(1e-6)
-            else:
-                sigma_scalar = torch.tensor(0.1, device=x_gen.device)
+            # Jitter directly in z-space; 0.5 is a good starting point
+            z_sigma = getattr(self, "z_jitter_std", 0.5)
+            if not torch.is_tensor(z_sigma):
+                z_sigma = torch.tensor(float(z_sigma), device=x_gen.device)
 
-            x_gen_[:, idx] = x_gen[:, idx] + sigma_scalar * torch.randn_like(x_gen[:, idx])
+            x_gen_[:, idx] = x_gen[:, idx] + z_sigma * torch.randn_like(x_gen[:, idx])
 
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
