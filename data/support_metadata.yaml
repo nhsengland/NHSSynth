@@ -46,4 +46,14 @@ columns:
     categorical: true
     dtype: int64
 constraints:
-  - "x8 < 180"
+  - "x10 in (0,100)"
+  - "x12 in (0,100)"
+  - "x13 in (0,100)"
+  - "x10 < x12"
+  - "x12 < x13"
+  - "x10 < x13"
+  - "x8 > x10"
+  - "x8 > x12"
+  - "x8 > x13"
+  - "x11 > 100"
+  - "x12 > 10"

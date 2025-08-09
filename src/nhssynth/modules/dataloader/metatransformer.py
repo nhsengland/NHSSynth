@@ -5,6 +5,7 @@ from typing import Any, Iterable, Optional, Dict, Self, Union
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import inspect
 
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
@@ -217,49 +218,138 @@ class MetaTransformer:
 
         return constraint_adherence
 
+    def _call_transformer_apply(
+        self,
+        transformer,
+        *,
+        series,
+        constraint_adherence=None,
+        missingness_column=None,
+    ):
+        """
+        Call transformer.apply with only the kwargs it supports, using **keywords only**.
+        - Binds the input series to 'data' if present, otherwise to the first non-self parameter.
+        - Only passes constraint_adherence / missingness_column if the transformer declares them.
+        """
+        fn = transformer.apply
+        sig = inspect.signature(fn)
+        params = sig.parameters
+
+        # Decide which parameter name to bind the series to
+        if "data" in params:
+            data_param = "data"
+        else:
+            data_param = next((n for n, p in params.items() if n != "self"), None)
+            if data_param is None:
+                # Last resort: the method takes no args beyond self; try calling without any
+                return fn()
+
+        kwargs = {data_param: series}
+
+        if "constraint_adherence" in params:
+            kwargs["constraint_adherence"] = constraint_adherence
+        if "missingness_column" in params:
+            kwargs["missingness_column"] = missingness_column
+
+        return fn(**kwargs)
+
+
     def transform(self) -> pd.DataFrame:
         """
-        Prepares the dataset by applying each of the columns' transformers and recording the indices of the single and multi columns.
-
-        Returns:
-            The transformed dataset.
+        Apply each column transformer to its *raw* Series, then concatenate results.
+        Ensures each transformer receives a single Series (not the whole/mutated DataFrame),
+        which fixes DateTime ('dob') KeyErrors.
         """
-        transformed_columns = []
-        self.single_column_indices = []
-        self.multi_column_indices = []
-        col_counter = 0
-        working_data = self.constrained_dataset.copy()
 
-        # iteratively build the transformed df
-        for column_metadata in tqdm(
-            self._metadata,
-            desc="Transforming data",
-            unit="column",
-            total=len(self._metadata.columns),
-        ):
-            missingness_carrier = self._get_missingness_carrier(column_metadata)
-            constraint_adherence = self._get_adherence_constraint(working_data)
-            transformed_data = column_metadata.transformer.apply(
-                working_data[column_metadata.name],
-                constraint_adherence,
-                missingness_carrier,
+        # Prefer the dataset that already has missingness flags computed,
+        # but still contains the original raw columns.
+        if hasattr(self, "post_missingness_strategy_dataset") and self.post_missingness_strategy_dataset is not None:
+            source_df = self.post_missingness_strategy_dataset
+        elif hasattr(self, "typed_dataset") and self.typed_dataset is not None:
+            source_df = self.typed_dataset
+        else:
+            # Fallback: raw dataset as last resort
+            source_df = self._raw_dataset
+
+        parts = []
+
+        # Helper: get a column if it exists, else None
+        def _maybe_col(df: pd.DataFrame, name: str):
+            return df[name] if (df is not None and name in df.columns) else None
+
+        for col_meta in self._metadata:
+            # Work out the original column name this transformer handles
+            col = (
+                getattr(col_meta, "name", None)
+                or getattr(col_meta, "column", None)
+                or getattr(col_meta, "feature", None)
             )
-            transformed_columns.append(transformed_data)
+            if col is None:
+                raise ValueError(f"Metadata entry missing column name: {col_meta}")
 
-            # track single and multi column indices to supply to the model
-            if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
-                num_to_add = transformed_data.shape[1]
-                if not column_metadata.categorical:
-                    self.single_column_indices.append(col_counter)
-                    col_counter += 1
-                    num_to_add -= 1
-                self.multi_column_indices.append(list(range(col_counter, col_counter + num_to_add)))
-                col_counter += num_to_add
+            # Always hand the transformer a *Series* from the original (pre-transform) frame
+            if col not in source_df.columns:
+                raise KeyError(
+                    f"[MetaTransformer.transform] Expected raw column '{col}' in source_df; "
+                    f"available={list(source_df.columns)[:15]}..."
+                )
+            series = source_df[col]
+
+            # Optional per-row flags
+            # Missingness: prefer exact "{col}_missing"; if not present, try to find any "<col>_missing*"
+            miss = _maybe_col(source_df, f"{col}_missing")
+            if miss is None:
+                # Try a looser match if you have variant names
+                candidates = [c for c in source_df.columns if c.startswith(f"{col}_missing")]
+                miss = source_df[candidates[0]] if candidates else None
+
+            # Constraint adherence: if your PR1 kept these in constrained_dataset, pass it through; else use ones
+            if hasattr(self, "constrained_dataset") and self.constrained_dataset is not None:
+                adh = _maybe_col(self.constrained_dataset, f"{col}_adherence")
             else:
-                self.single_column_indices.append(col_counter)
-                col_counter += 1
+                adh = None
 
-        return pd.concat(transformed_columns, axis=1)
+            if adh is None:
+                # Default to all-ones (i.e., include all rows during transform)
+                adh = pd.Series(1, index=series.index, name=f"{col}_adherence", dtype=int)
+
+            # Apply the per-column transformer
+            part = self._call_transformer_apply(
+                col_meta.transformer,
+                series=series,
+                constraint_adherence=adh,
+                missingness_column=miss,
+            )
+
+            # Normalise to DataFrame
+            if isinstance(part, pd.Series):
+                part = part.to_frame()
+
+            parts.append(part)
+
+        # Concatenate all transformed parts
+        transformed = pd.concat(parts, axis=1)
+        
+        multi_groups: list[list[int]] = []
+        single_list: list[int] = []
+
+        col_offset = 0
+        for part in parts:
+            m = part.shape[1] if hasattr(part, "shape") else 1
+            if m > 1:
+                multi_groups.append(list(range(col_offset, col_offset + m)))
+            else:
+                single_list.append(col_offset)
+            col_offset += m
+
+        # Store on self for the model
+        self.multi_column_indices = multi_groups
+        self.single_column_indices = single_list
+        self.output_columns = list(transformed.columns)
+        self.ncols = transformed.shape[1]
+
+        return transformed
+
 
     def apply(self) -> pd.DataFrame:
         """

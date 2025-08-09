@@ -62,8 +62,24 @@ class DatetimeTransformer(TransformerWrapper):
         Returns:
             The reverted data.
         """
-        reverted_data = super().revert(data, **kwargs)
+        reverted = super().revert(data, **kwargs)
+
+        # Handle both return types from super().revert:
+        # - Series: it's already the decoded timestamp-int series
+        # - DataFrame: pull the decoded column by name
+        if isinstance(reverted, pd.Series):
+            series = reverted
+        else:
+            if self.original_column_name not in reverted.columns:
+                raise KeyError(
+                    f"[DatetimeTransformer.revert] expected column '{self.original_column_name}' "
+                    f"in reverted DataFrame; available={list(reverted.columns)[:10]}..."
+                )
+            series = reverted[self.original_column_name]
+
+        # Cast to pandas nullable Int64 to match your code path, then to datetime
         data[self.original_column_name] = pd.to_datetime(
-            reverted_data[self.original_column_name].astype("Int64"), unit="ns"
+            series.astype("Int64"), unit="ns", errors="coerce"
         )
         return data
+

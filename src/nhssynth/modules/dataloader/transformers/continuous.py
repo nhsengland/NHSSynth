@@ -186,20 +186,17 @@ class ClusterContinuousTransformer(ColumnTransformer):
             {col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)}
         )
 
-    def revert(self, data: pd.DataFrame) -> pd.Series:
+    def revert(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Decode using name-based selection, tolerant to different suffixes.
-        Expects columns like:
-        - value:       {base}_value  OR {base}_normalized  OR {base}_normalised
-        - components:  {base}_c{idx} for idx in 0..K-1 (or 1..K)
-        Ignores any '*_missing' or '*_adherence' columns.
+        Decode continuous feature from mixture-normalised form and
+        return the full DataFrame (DataFrame in -> DataFrame out).
         """
         import re
         import numpy as np
         import warnings
         from typing import List
 
-        # 1) Work out the base column name
+        # 1) Determine base/original column name
         base = (
             getattr(self, "name", None)
             or getattr(self, "column", None)
@@ -208,22 +205,11 @@ class ClusterContinuousTransformer(ColumnTransformer):
             or getattr(self, "base", None)
         )
 
-        # Helper to infer candidate bases from current DataFrame
-        def _infer_bases_from_df(df: pd.DataFrame):
+        def _infer_bases_from_df(df):
             value_suffixes = ("_value", "_normalized", "_normalised")
-            bases_from_values = set()
-            for c in df.columns:
-                for sfx in value_suffixes:
-                    if c.endswith(sfx):
-                        bases_from_values.add(c[: -len(sfx)])
-            # components pattern
-            comp_pat = re.compile(rf"^{re.escape(base)}_c(\d+)$")
-            bases_from_comps = set()
-            for c in df.columns:
-                m = comp_pat.match(c)
-                if m:
-                    bases_from_comps.add(m.group(1))
-            # prefer intersection if any; else take union
+            bases_from_values = {c[: -len(sfx)] for c in df.columns for sfx in value_suffixes if c.endswith(sfx)}
+            comp_pat = re.compile(r"^(.*)_c(\d+)$")
+            bases_from_comps = {comp_pat.match(c).group(1) for c in df.columns if comp_pat.match(c)}
             candidates = (bases_from_values & bases_from_comps) or (bases_from_values or bases_from_comps)
             return candidates
 
@@ -231,82 +217,61 @@ class ClusterContinuousTransformer(ColumnTransformer):
             candidates = _infer_bases_from_df(data)
             if len(candidates) == 1:
                 base = next(iter(candidates))
-                # cache for future calls
                 self.name = base
             else:
                 raise ValueError(
                     "ClusterContinuousTransformer missing 'name'/'column' and could not infer a unique base; "
-                    f"candidates from columns: {sorted(list(candidates))[:5]}... "
-                    f"(example columns: {list(data.columns)[:20]})"
+                    f"candidates={sorted(list(candidates))[:5]} ..."
                 )
 
-        # 2) Find value column (accept several spellings)
+        # 2) Find value + component columns
         value_candidates = [f"{base}_value", f"{base}_normalized", f"{base}_normalised"]
         value_col = next((c for c in value_candidates if c in data.columns), None)
         if value_col is None:
             raise ValueError(f"[revert:{base}] could not find value column; tried {value_candidates}")
 
-        # 3) Find component columns by regex and sort numerically
         comp_pat = re.compile(rf"^{re.escape(base)}_c(\d+)$")
         comp_cols: List[str] = [c for c in data.columns if comp_pat.match(c)]
         comp_cols.sort(key=lambda c: int(comp_pat.match(c).group(1)))
 
-        # Ignore *_missing and *_adherence if they exist (we don't use them here)
-        # (No-op unless present)
-        # data = data.drop(columns=[c for c in data.columns if c.endswith("_adherence") or c.endswith("_missing")], errors="ignore")
-
-        if not hasattr(self, "n_components"):
-            warnings.warn(f"[revert:{base}] transformer missing n_components; proceeding with {len(comp_cols)} comps")
-            expected = len(comp_cols)
-        else:
-            expected = int(self.n_components)
-
-        if len(comp_cols) != expected:
-            warnings.warn(
-                f"[revert:{base}] expected {expected} component cols, found {len(comp_cols)}: {comp_cols}. "
-                "Proceeding with what is available."
-            )
-
-        # 4) Build arrays and decode
-        comps = data[comp_cols].to_numpy() if comp_cols else np.empty((len(data), 0))
-        vals = data[value_col].to_numpy()
-
-        # --- Decode from per-component params ---
-        # Try to find the fitted BayesianGaussianMixture instance on this transformer
+        # 3) Get fitted BGM on THIS instance
         bgm = getattr(self, "_transformer", None)
         if bgm is None or not hasattr(bgm, "means_") or not hasattr(bgm, "covariances_"):
-            raise ValueError(
-                f"[revert:{base}] mixture model not fitted on this transformer "
-                "(missing means_/covariances_). Make sure `apply()` was called on the "
-                "training data with THIS instance before decode."
-            )
+            raise ValueError(f"[revert:{base}] mixture model not fitted (no means_/covariances_).")
 
-        means = np.asarray(bgm.means_).reshape(-1)  # shape (K,)
-        cov = np.asarray(bgm.covariances_)          # variety of shapes depending on covariance_type
-
-        # Extract per-component variances for a 1D feature
+        means = np.asarray(bgm.means_).reshape(-1)
+        cov = np.asarray(bgm.covariances_)
         if cov.ndim == 1:
             vars_ = cov
         elif cov.ndim == 2:
-            # diagonal or spherical collapsed—take [k,k] if 1x1, else first element
             vars_ = np.diag(cov) if cov.shape[0] == cov.shape[1] else cov[:, 0]
         elif cov.ndim == 3:
-            # full/diag covariance -> take [k,0,0] for 1D
             vars_ = cov[:, 0, 0]
         else:
             raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
+        sigmas = np.sqrt(vars_ + 1e-12)
 
-        sigmas = np.sqrt(vars_ + 1e-12)  # numerical safety
-
-        # Choose component per row (argmax works for logits or probs)
-        if comps.size == 0:
-            # No component columns? fall back to the global mean/std of component 0
-            k_idx = np.zeros(len(vals), dtype=int)
-        else:
+        vals = data[value_col].to_numpy()
+        if comp_cols:
+            comps = data[comp_cols].to_numpy()
             k_idx = np.argmax(comps, axis=1)
+        else:
+            # no component columns: fall back to first component
+            k_idx = np.zeros(len(vals), dtype=int)
 
-        # Inverse of z = (x - mu_k)/sigma_k  ->  x = z*sigma_k + mu_k
+        # 4) Invert: x = z * sigma_k + mu_k
         decoded = vals * sigmas[k_idx] + means[k_idx]
-        return pd.Series(decoded, name=base)
+
+        # 5) Write back into the DataFrame under the original column name
+        data[base] = decoded
+
+        # 6) Drop helper columns for this feature so downstream transformers don’t trip
+        to_drop = [value_col] + comp_cols
+        # also okay to drop adherence/missing flags if they exist for this base
+        to_drop += [c for c in (f"{base}_adherence", f"{base}_missing") if c in data.columns]
+        data = data.drop(columns=[c for c in to_drop if c in data.columns], errors="ignore")
+
+        return data
+
 
 
