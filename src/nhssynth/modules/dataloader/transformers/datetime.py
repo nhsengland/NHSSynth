@@ -28,45 +28,85 @@ class DatetimeTransformer(TransformerWrapper):
 
     def apply(
         self,
-        data: pd.Series,
-        constraint_adherence: Optional[pd.Series],
-        missingness_column: Optional[pd.Series] = None,
-        **kwargs,
-    ) -> pd.DataFrame:
+        data,
+        constraint_adherence=None,
+        missingness_column=None,
+    ):
         """
-        Firstly, the datetime data is floored to the nano-second level. Next, the floored data is converted to float nanoseconds since the epoch.
-        The float value of `pd.NaT` under the operation above is then replaced with `np.nan` to ensure missing values are represented correctly.
-        Finally, the wrapped transformer is applied to the data.
-
-        Args:
-            data: The column of data to transform.
-            missingness_column: The column of missingness indicators to augment the data with.
-
-        Returns:
-            The transformed data.
+        Convert datetime column -> nanoseconds (float), cache train-range,
+        then delegate to the parent transform (mixture/normalisation).
+        Returns the transformed DataFrame (normalised + components [+ flags]).
         """
+        import pandas as pd
+        import numpy as np
 
-        self.original_column_name = data.name
-        floored_data = pd.Series(data.dt.floor("ns").to_numpy().astype(float), name=data.name)
-        nan_corrected_data = floored_data.replace(pd.to_datetime(pd.NaT).to_numpy().astype(float), np.nan)
-               
-        return super().apply(nan_corrected_data, constraint_adherence, missingness_column, **kwargs)
+        # --- normalise input to a single Series and cache names ---
+        if isinstance(data, pd.DataFrame):
+            if hasattr(self, "name") and self.name and self.name in data.columns:
+                s = data[self.name]
+            elif data.shape[1] == 1:
+                s = data.iloc[:, 0]
+                self.name = s.name
+            else:
+                raise KeyError(
+                    f"[DatetimeTransformer.apply] expected column '{getattr(self,'name',None)}' in DataFrame; "
+                    f"available={list(data.columns)[:10]}..."
+                )
+        elif isinstance(data, pd.Series):
+            s = data
+            if not getattr(self, "name", None):
+                self.name = s.name
+        else:
+            raise TypeError(f"[DatetimeTransformer.apply] expected Series/DataFrame, got {type(data)}")
 
-    def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        self.original_column_name = s.name
+
+        # --- to datetime, then to ns as float (so missing -> NaN) ---
+        s_dt = pd.to_datetime(s, errors="coerce")
+        ns = s_dt.view("int64").astype("float64")
+        ns[s_dt.isna()] = np.nan
+
+        # cache train range (unchanged)
+        ns_clean = ns[~np.isnan(ns)]
+        self._ns_min = int(np.nanmin(ns_clean)) if ns_clean.size else None
+        self._ns_max = int(np.nanmax(ns_clean)) if ns_clean.size else None
+
+        # 🔧 build a clean, aligned 0/1 missingness mask
+        if missingness_column is None:
+            miss = s_dt.isna().astype(int)
+        else:
+            miss = (
+                pd.to_numeric(missingness_column, errors="coerce")
+                .reindex(s_dt.index)
+                .fillna(0)
+                .astype(int)
+            )
+        miss.name = f"{self.original_column_name}_missing"
+
+        ns.name = self.original_column_name
+        return super().apply(
+            data=ns,
+            constraint_adherence=constraint_adherence,
+            missingness_column=miss,
+        )
+
+
+    def revert(self, data, **kwargs):
         """
-        The wrapped transformer's `revert` method is applied to the data. The data is then converted back to datetime format.
-
-        Args:
-            data: The full dataset including the column(s) to be reverted to their pre-transformer state.
-
-        Returns:
-            The reverted data.
+        Reconstruct datetime from decoded nanoseconds.
+        - Accepts Series or DataFrame from super().revert
+        - Clamps to training ns-range (if cached)
+        - Applies missingness mask (if present)
+        - Converts to datetime64[ns]
+        - Drops helper columns (normalised, comps, missing/adherence)
         """
+        import re
+        import numpy as np
+        import pandas as pd
+
         reverted = super().revert(data, **kwargs)
 
-        # Handle both return types from super().revert:
-        # - Series: it's already the decoded timestamp-int series
-        # - DataFrame: pull the decoded column by name
+        # get the decoded ns series back
         if isinstance(reverted, pd.Series):
             series = reverted
         else:
@@ -77,9 +117,34 @@ class DatetimeTransformer(TransformerWrapper):
                 )
             series = reverted[self.original_column_name]
 
-        # Cast to pandas nullable Int64 to match your code path, then to datetime
-        data[self.original_column_name] = pd.to_datetime(
-            series, unit="ns", errors="coerce"
-        )
+        # coerce to float ns
+        series = pd.to_numeric(series, errors="coerce").astype("float64")
+
+        # clamp to training range if available
+        ns_min = getattr(self, "_ns_min", None)
+        ns_max = getattr(self, "_ns_max", None)
+        if ns_min is not None and ns_max is not None:
+            series = series.clip(lower=ns_min, upper=ns_max)
+
+        # apply missingness if the flag exists
+        miss_col = f"{self.original_column_name}_missing"
+        if miss_col in data.columns:
+            mask = pd.to_numeric(data[miss_col], errors="coerce").fillna(0).astype(bool).to_numpy()
+            series[mask] = np.nan
+
+        # convert back to datetime
+        data[self.original_column_name] = pd.to_datetime(series, unit="ns", errors="coerce")
+
+        # drop helper columns for this datetime feature
+        base = self.original_column_name
+        drop_cols = []
+        if f"{base}_normalised" in data.columns:
+            drop_cols.append(f"{base}_normalised")
+        drop_cols += [c for c in data.columns if re.fullmatch(rf"{re.escape(base)}_c\d+", c)]
+        drop_cols += [c for c in (f"{base}_missing", f"{base}_adherence") if c in data.columns]
+        if drop_cols:
+            data = data.drop(columns=drop_cols, errors="ignore")
+
         return data
+
 

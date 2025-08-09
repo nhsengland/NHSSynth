@@ -394,7 +394,7 @@ class MetaTransformer:
         # binarize generated missingness indicators: >0.5 -> 1, else 0
         for col in list(dataset.columns):
             if col.endswith("_missing"):
-                v = dataset[col].to_numpy()
+                v = pd.to_numeric(dataset[col], errors="coerce").fillna(0.0).to_numpy()
                 dataset[col] = (v > 0.5).astype(int)
 
         

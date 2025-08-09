@@ -119,9 +119,10 @@ class ClusterContinuousTransformer(ColumnTransformer):
         if missingness_column is not None:
             self._missingness_column_name = missingness_column.name
             full_index = data.index
-            data = data[missingness_column == 0]
-            # Align constraint_adherence with the filtered data
-            constraint_adherence = constraint_adherence[missingness_column == 0]
+            _mask = pd.to_numeric(missingness_column, errors="coerce").fillna(0).astype(int)
+            _mask = _mask.reindex(data.index).fillna(0).astype(int)
+            data = data[_mask == 0]
+            constraint_adherence = constraint_adherence[_mask == 0]
         semi_index = data.index
         index = data.index
         data = data.fillna(0)
@@ -251,11 +252,9 @@ class ClusterContinuousTransformer(ColumnTransformer):
             raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
         sigmas = np.sqrt(vars_ + 1e-12)
 
-        vals = data[value_col].to_numpy().astype(float)
-
-        # mirror training: keep z in [-1, 1] if clip_output was used in apply()
-        if getattr(self, "clip_output", False):
-            vals = np.clip(vals, -1.0, 1.0)
+        # replace with (ALWAYS clamp to training encode range):
+        vals = data[value_col].to_numpy(dtype=float)
+        vals = np.clip(vals, -1.0, 1.0)  # mirror training clipping unconditionally
 
         if comp_cols:
             comps = data[comp_cols].to_numpy(dtype=float)
@@ -296,20 +295,25 @@ class ClusterContinuousTransformer(ColumnTransformer):
             # no component columns: fall back to first component
             k_idx = np.zeros(len(vals), dtype=int)
 
-        # 4) Invert: x = z * sigma_k + mu_k
+        # 4) Invert: x = z * (scale * sigma_k) + mu_k
         scale = getattr(self, "_std_multiplier", 1.0)
         decoded = vals * (scale * sigmas[k_idx]) + means[k_idx]
 
-        # 5) Write back into the DataFrame under the original column name
+        # 4b) If a missingness flag exists, apply it (set decoded to NaN for missing rows)
+        miss_col = f"{base}_missing"
+        if miss_col in data.columns:
+            miss_mask = data[miss_col].to_numpy().astype(bool)
+            decoded[miss_mask] = np.nan
+
+        # 5) Write back
         data[base] = decoded
 
-        # 6) Drop helper columns for this feature so downstream transformers don’t trip
+        # 6) Drop helper columns for this feature
         to_drop = [value_col] + comp_cols
-        # also okay to drop adherence/missing flags if they exist for this base
         to_drop += [c for c in (f"{base}_adherence", f"{base}_missing") if c in data.columns]
         data = data.drop(columns=[c for c in to_drop if c in data.columns], errors="ignore")
-
         return data
+
 
 
 
