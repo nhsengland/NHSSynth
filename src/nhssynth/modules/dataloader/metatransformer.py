@@ -363,6 +363,9 @@ class MetaTransformer:
         self.ncols = transformed.shape[1]
         self.continuous_value_indices = list(self.continuous_value_indices)
 
+        # Make sure downstream code (like VAE.generate) has the correct column names
+        self.columns = list(transformed.columns)
+
         return transformed
 
 
@@ -391,6 +394,19 @@ class MetaTransformer:
             The original dataset.
         """
         
+        def _zstat(df, base):
+            for sfx in ("_value","_normalized","_normalised"):
+                col = f"{base}{sfx}"
+                if col in df.columns:
+                    v = df[col].to_numpy()
+                    tqdm.write(f"[pre-revert df] {col}: std={float(np.nanstd(v)):.4f}, "
+                            f"min={np.nanmin(v):.4f}, max={np.nanmax(v):.4f}")
+                    return
+            tqdm.write(f"[pre-revert df] {base}: NO VALUE COLUMN FOUND")
+
+        _zstat(dataset, "x8")
+        _zstat(dataset, "dob")
+        
         # binarize generated missingness indicators: >0.5 -> 1, else 0
         for col in list(dataset.columns):
             if col.endswith("_missing"):
@@ -400,10 +416,35 @@ class MetaTransformer:
         
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
+        
+        # --- DEBUG with tqdm.write ---
+        def _dbg(tag):
+            try:
+                msgs = []
+                if "x8" in dataset:
+                    msgs.append(
+                        f"x8 uniques={dataset['x8'].nunique(dropna=False)} "
+                        f"min/max={dataset['x8'].min()} / {dataset['x8'].max()}"
+                    )
+                if "dob" in dataset:
+                    msgs.append(
+                        f"dob min/max={dataset['dob'].min()} / {dataset['dob'].max()}"
+                    )
+                tqdm.write(f"[{tag}] " + " | ".join(msgs))
+            except Exception as e:
+                tqdm.write(f"[{tag}] debug failed: {e}")
+
+        _dbg("post-revert")
+        
+        # Ensure the dataset has the same columns as the original
         # Enforce constraints on decoded data if available
         dataset = self.repair_constraints(dataset, mode="reflect")
 
-        return self.apply_dtypes(dataset)
+        _dbg("post-constraints")
+
+        out = self.apply_dtypes(dataset)
+        _dbg("post-dtypes") 
+        return out
 
     def get_typed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "typed_dataset"):

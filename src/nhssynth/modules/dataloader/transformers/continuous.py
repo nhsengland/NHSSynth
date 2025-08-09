@@ -4,6 +4,7 @@ from typing import Optional, List
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.mixture import BayesianGaussianMixture
 
@@ -134,6 +135,18 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
         self.means = self._transformer.means_.reshape(-1)
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)
+        
+        # --- variance floor: keep components from collapsing ---
+        # use a data-driven floor: 5% of the column's std, with an absolute minimum
+        col_std = float(np.std(data)) if data.size else 0.0
+        sigma_floor = max(1e-2, 0.1 * col_std)
+
+        # store for use in revert
+        self._sigma_floor = sigma_floor
+
+        # apply the floor to the stds used to normalise (keeps z-scale reasonable during training)
+        self.stds = np.maximum(self.stds, sigma_floor)
+
 
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
         normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
@@ -251,10 +264,25 @@ class ClusterContinuousTransformer(ColumnTransformer):
         else:
             raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
         sigmas = np.sqrt(vars_ + 1e-12)
+        
+        # --- apply the same floor at decode time ---
+        sigma_floor = getattr(self, "_sigma_floor", None)
+        if sigma_floor is None:
+            # fallback: derive a conservative floor from all components
+            sigma_floor = max(1e-2, 0.05 * float(np.nanstd(means)) if means.size else 1e-2)
+        sigmas = np.maximum(sigmas, float(sigma_floor))
+
 
         # replace with (ALWAYS clamp to training encode range):
         vals = data[value_col].to_numpy(dtype=float)
-        vals = np.clip(vals, -1.0, 1.0)  # mirror training clipping unconditionally
+
+        # if z collapsed (std ~ 0), inject small jitter so we don't decode only means
+        if not np.isfinite(vals).any() or np.nanstd(vals) < 1e-3:
+            rng = np.random.default_rng(getattr(self, "random_state", None))
+            vals = vals + rng.normal(0.0, 0.5, size=vals.shape)  # 0.5 in z-space is a good default
+
+        # clamp to training encode range
+        # vals = np.clip(vals, -1.0, 1.0)
 
         if comp_cols:
             comps = data[comp_cols].to_numpy(dtype=float)
@@ -298,12 +326,28 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # 4) Invert: x = z * (scale * sigma_k) + mu_k
         scale = getattr(self, "_std_multiplier", 1.0)
         decoded = vals * (scale * sigmas[k_idx]) + means[k_idx]
+        
+        # DEBUG: remove after inspection
+        from tqdm import tqdm
+        tqdm.write(f"[{base}] scale={getattr(self,'_std_multiplier',None)}")
+        tqdm.write(f"sigma_floor={getattr(self,'_sigma_floor',None)}")
+        tqdm.write(f"sigmas(min,max)={float(np.nanmin(sigmas)):.4g},{float(np.nanmax(sigmas)):.4g}")
+        tqdm.write(f"decoded_std={float(np.nanstd(decoded)):.4g}")
 
         # 4b) If a missingness flag exists, apply it (set decoded to NaN for missing rows)
         miss_col = f"{base}_missing"
         if miss_col in data.columns:
             miss_mask = data[miss_col].to_numpy().astype(bool)
             decoded[miss_mask] = np.nan
+
+        from tqdm import tqdm
+        try:
+            nz = np.isfinite(vals)
+            u = np.unique(np.round(decoded[nz], 6))
+            tqdm.write(f"[revert:{base}] z_std={float(np.nanstd(vals)):.4f} "
+                    f"decoded_std={float(np.nanstd(decoded)):.4f} uniques={len(u)}")
+        except Exception:
+            pass
 
         # 5) Write back
         data[base] = decoded

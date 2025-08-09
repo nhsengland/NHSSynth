@@ -196,49 +196,79 @@ class VAE(Model):
             warnings.filterwarnings("ignore", message="Using a non-full backward hook")
             x_gen = self.decoder(z_samples)
 
-        # start from decoded values
+        # after x_gen = self.decoder(...)
         x_gen_ = x_gen.clone()
 
-        # --- identify which multi-column groups are categorical (pure OHE) ---
-        cols = self.columns  # list of names aligned with tensor dim
+        import re
+        cols = self.columns  # make sure MetaTransformer.transform() set this!
         categorical_groups = []
-        for group in self.multi_column_indices or []:
+        for group in (self.multi_column_indices or []):
             names = [cols[j] for j in group]
-            has_value = any(n.endswith(("_value", "_normalized", "_normalised")) for n in names)
-            has_mixc  = any(re.search(r"_c\d+$", n) for n in names)
-            if not has_value and not has_mixc:
-                # pure OHE group -> treat as categorical
+            has_value = any(n.endswith(("_value","_normalized","_normalised")) for n in names)
+            has_mix  = any(re.search(r"_c\d+$", n) for n in names)
+            if not has_value and not has_mix:
                 categorical_groups.append(group)
 
-        # --- sample categorical groups as one-hot ---
-        if categorical_groups:
-            ohc = torch.distributions.one_hot_categorical.OneHotCategorical
-            for cat_idxs in categorical_groups:
-                logits = x_gen[:, cat_idxs]
-                x_gen_[:, cat_idxs] = ohc(logits=logits).sample()
+        from torch.distributions import OneHotCategorical
+        for cat_idxs in categorical_groups:
+            logits = x_gen[:, cat_idxs]
+            x_gen_[:, cat_idxs] = OneHotCategorical(logits=logits).sample()
+        
+        from tqdm import tqdm
+        import numpy as np
+        tqdm.write(f"one-hot groups (sizes): {[len(g) for g in categorical_groups]}")
 
-        # --- add noise to single-column features (existing behaviour) ---
+        # --- singles noise (existing behaviour) ---
         if getattr(self, "single_column_indices", None):
             idx = self.single_column_indices
             x_gen_[:, idx] = x_gen[:, idx] + torch.exp(self.noiser(x_gen[:, idx])) * torch.randn_like(x_gen[:, idx])
 
-        # --- add noise to continuous "value" columns inside mixture groups ---
+        # --- jitter continuous "value" z-columns ---
         cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
         if cont_idx:
-            import torch
             idx = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
-
-            # Jitter directly in z-space; 0.5 is a good starting point
-            z_sigma = getattr(self, "z_jitter_std", 0.5)
+            z_sigma = getattr(self, "z_jitter_std", 0.7)
             if not torch.is_tensor(z_sigma):
                 z_sigma = torch.tensor(float(z_sigma), device=x_gen.device)
-
             x_gen_[:, idx] = x_gen[:, idx] + z_sigma * torch.randn_like(x_gen[:, idx])
 
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
 
         df = pd.DataFrame(x_gen_.detach().numpy(), columns=self.columns)
+        
+        # Debug: check z dispersion
+        try:
+            zcols = [j for j,n in enumerate(self.columns) if n.endswith(("_value","_normalized","_normalised"))]
+            if zcols:
+                z = x_gen_[:, zcols].detach().cpu().numpy()
+                tqdm.write(f"z std (median over cols): {np.median(np.std(z, axis=0))}")
+        except Exception:
+            pass
+
+        # --- per-feature z stds for debug ---
+        def _zcol_for(base: str):
+            suffixes = ("_value", "_normalized", "_normalised")
+            # make a plain list to be safe with both Index and list
+            cols = list(self.columns)
+            for sfx in suffixes:
+                name = f"{base}{sfx}"
+                if name in cols:
+                    return cols.index(name)  # position in the transformed matrix
+            return None
+
+        for base in ("x8", "dob"):
+            j = _zcol_for(base)
+            if j is not None:
+                zvals = x_gen_[:, j].detach().cpu().numpy()
+                tqdm.write(f"[gen:z-std] {base}: std={float(np.std(zvals)):.4f}")
+            else:
+                tqdm.write(f"[gen:z-std] {base}: NO Z-COLUMN FOUND")
+        
+        
+        # BEFORE calling inverse_apply
+        arr = x_gen_.detach().cpu().numpy()   # <-- ensure a real NumPy array
+        df  = pd.DataFrame(arr, columns=list(self.columns))  # columns as plain list is safest
         return self.metatransformer.inverse_apply(df)
 
 
