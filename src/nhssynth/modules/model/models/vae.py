@@ -186,25 +186,63 @@ class VAE(Model):
         return x_recon
 
     def generate(self, N: Optional[int] = None) -> pd.DataFrame:
+        import re
+        import torch
         N = N or self.nrows
-        z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim)), device=self.device)
+
+        # sample latent, decode
+        z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim), device=self.device))
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="Using a non-full backward hook")
             x_gen = self.decoder(z_samples)
-        x_gen_ = torch.ones_like(x_gen, device=self.device)
 
-        if self.multi_column_indices != [[]]:
-            for cat_idxs in self.multi_column_indices:
-                x_gen_[:, cat_idxs] = torch.distributions.one_hot_categorical.OneHotCategorical(
-                    logits=x_gen[:, cat_idxs]
-                ).sample()
+        # start from decoded values
+        x_gen_ = x_gen.clone()
 
-        x_gen_[:, self.single_column_indices] = x_gen[:, self.single_column_indices] + torch.exp(
-            self.noiser(x_gen[:, self.single_column_indices])
-        ) * torch.randn_like(x_gen[:, self.single_column_indices])
+        # --- identify which multi-column groups are categorical (pure OHE) ---
+        cols = self.columns  # list of names aligned with tensor dim
+        categorical_groups = []
+        for group in self.multi_column_indices or []:
+            names = [cols[j] for j in group]
+            has_value = any(n.endswith(("_value", "_normalized", "_normalised")) for n in names)
+            has_mixc  = any(re.search(r"_c\d+$", n) for n in names)
+            if not has_value and not has_mixc:
+                # pure OHE group -> treat as categorical
+                categorical_groups.append(group)
+
+        # --- sample categorical groups as one-hot ---
+        if categorical_groups:
+            ohc = torch.distributions.one_hot_categorical.OneHotCategorical
+            for cat_idxs in categorical_groups:
+                logits = x_gen[:, cat_idxs]
+                x_gen_[:, cat_idxs] = ohc(logits=logits).sample()
+
+        # --- add noise to single-column features (existing behaviour) ---
+        if getattr(self, "single_column_indices", None):
+            idx = self.single_column_indices
+            x_gen_[:, idx] = x_gen[:, idx] + torch.exp(self.noiser(x_gen[:, idx])) * torch.randn_like(x_gen[:, idx])
+
+        # --- add noise to continuous "value" columns inside mixture groups ---
+        cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
+        if cont_idx:
+            idx = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
+
+            # derive a scalar sigma from the singles' noiser if available; else small constant
+            if getattr(self, "single_column_indices", None):
+                with torch.no_grad():
+                    sig_singles = self.noiser(x_gen[:, self.single_column_indices])  # [N, S]
+                    sigma_scalar = sig_singles.abs().median().clamp_min(1e-6)
+            else:
+                sigma_scalar = torch.tensor(0.1, device=x_gen.device)
+
+            x_gen_[:, idx] = x_gen[:, idx] + sigma_scalar * torch.randn_like(x_gen[:, idx])
+
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
-        return self.metatransformer.inverse_apply(pd.DataFrame(x_gen_.detach(), columns=self.columns))
+
+        df = pd.DataFrame(x_gen_.detach().numpy(), columns=self.columns)
+        return self.metatransformer.inverse_apply(df)
+
 
     def loss(self, X):
         mu_z, logsigma_z = self.encoder(X)

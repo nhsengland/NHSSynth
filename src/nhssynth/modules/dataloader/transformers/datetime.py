@@ -79,7 +79,7 @@ class DatetimeTransformer(TransformerWrapper):
 
         # Cast to pandas nullable Int64 to match your code path, then to datetime
         data[self.original_column_name] = pd.to_datetime(
-            series.astype("Int64"), unit="ns", errors="coerce"
+            series, unit="ns", errors="coerce"
         )
         return data
 

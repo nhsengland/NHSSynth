@@ -34,7 +34,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
     def __init__(
         self,
-        n_components: int = 3,
+        n_components: int = 5,
         n_init: int = 10,
         init_params: str = "kmeans",
         random_state: int = 0,
@@ -251,16 +251,54 @@ class ClusterContinuousTransformer(ColumnTransformer):
             raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
         sigmas = np.sqrt(vars_ + 1e-12)
 
-        vals = data[value_col].to_numpy()
+        vals = data[value_col].to_numpy().astype(float)
+
+        # mirror training: keep z in [-1, 1] if clip_output was used in apply()
+        if getattr(self, "clip_output", False):
+            vals = np.clip(vals, -1.0, 1.0)
+
         if comp_cols:
-            comps = data[comp_cols].to_numpy()
-            k_idx = np.argmax(comps, axis=1)
+            comps = data[comp_cols].to_numpy(dtype=float)
+
+            # Detect rows that are genuine one-hot (training path)
+            one_hot = (np.isin(comps, [0.0, 1.0]).all(axis=1)) & (comps.sum(axis=1) == 1.0)
+
+            k_idx = np.empty(len(vals), dtype=int)
+
+            # 1) One-hot rows -> deterministic argmax (fast path)
+            if one_hot.any():
+                k_idx[one_hot] = comps[one_hot].argmax(axis=1)
+
+            # 2) Non one-hot rows (generated logits/probs) -> sample a component
+            bad = ~one_hot
+            if bad.any():
+                logits = comps[bad]
+
+                # If these are already probabilities, they might be negative or not sum to 1.
+                # Convert to probabilities via stable softmax.
+                logits = logits - np.nanmax(logits, axis=1, keepdims=True)
+                exp = np.exp(np.clip(logits, -40, 40))  # avoid overflow
+                probs = exp / (np.nansum(exp, axis=1, keepdims=True) + 1e-12)
+
+                # Handle any degenerate rows (all-NaN or all-equal): fall back to uniform
+                row_sums = probs.sum(axis=1, keepdims=True)
+                deg = ~(row_sums > 0)
+                if deg.any():
+                    K = probs.shape[1]
+                    probs[deg] = 1.0 / K
+
+                # Sample a component index per row from probs
+                cum = np.cumsum(probs, axis=1)
+                r = np.random.rand(probs.shape[0], 1)
+                k_idx[bad] = (cum < r).sum(axis=1)
+
         else:
             # no component columns: fall back to first component
             k_idx = np.zeros(len(vals), dtype=int)
 
         # 4) Invert: x = z * sigma_k + mu_k
-        decoded = vals * sigmas[k_idx] + means[k_idx]
+        scale = getattr(self, "_std_multiplier", 1.0)
+        decoded = vals * (scale * sigmas[k_idx]) + means[k_idx]
 
         # 5) Write back into the DataFrame under the original column name
         data[base] = decoded

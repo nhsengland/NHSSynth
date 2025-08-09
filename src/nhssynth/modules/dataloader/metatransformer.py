@@ -325,6 +325,20 @@ class MetaTransformer:
             if isinstance(part, pd.Series):
                 part = part.to_frame()
 
+            value_idx_in_part = None
+            for cand in (f"{col}_value", f"{col}_normalized", f"{col}_normalised"):
+                if cand in part.columns:
+                    value_idx_in_part = part.columns.get_loc(cand)
+                    break
+
+            # record absolute index for this value column
+            if not hasattr(self, "continuous_value_indices"):
+                self.continuous_value_indices = []
+
+            abs_offset = sum(m.shape[1] if hasattr(m, "shape") else 1 for m in parts)  # cols before this part
+            if value_idx_in_part is not None:
+                self.continuous_value_indices.append(abs_offset + value_idx_in_part)
+
             parts.append(part)
 
         # Concatenate all transformed parts
@@ -347,6 +361,7 @@ class MetaTransformer:
         self.single_column_indices = single_list
         self.output_columns = list(transformed.columns)
         self.ncols = transformed.shape[1]
+        self.continuous_value_indices = list(self.continuous_value_indices)
 
         return transformed
 
@@ -375,6 +390,14 @@ class MetaTransformer:
         Returns:
             The original dataset.
         """
+        
+        # binarize generated missingness indicators: >0.5 -> 1, else 0
+        for col in list(dataset.columns):
+            if col.endswith("_missing"):
+                v = dataset[col].to_numpy()
+                dataset[col] = (v > 0.5).astype(int)
+
+        
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
         # Enforce constraints on decoded data if available
