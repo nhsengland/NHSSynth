@@ -4,6 +4,7 @@ from typing import Any, Iterable, Optional, Dict, Self, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 from tqdm import tqdm
 import inspect
 
@@ -573,6 +574,18 @@ class MetaTransformer:
                     repaired[base] = s
                 return
 
+            if op == "=":
+                if reference_is_column and isinstance(reference, str) and reference in repaired.columns:
+                    repaired[base] = repaired[reference]
+                else:
+                    ref_num = _as_number(reference)
+                    if ref_num is not None:
+                        repaired[base] = ref_num
+                    else:
+                        # equality to a non-numeric constant → treat as categorical fill
+                        repaired[base] = reference
+                return
+
             # numeric comparisons
             a = repaired[base].to_numpy(dtype=float)
             if reference_is_column:
@@ -644,6 +657,51 @@ class MetaTransformer:
                         eps = 1e-8 if op == ">" else 0.0
                         a[mask] = b[mask] + eps
                 repaired[base] = a
+                
+        def _get_pool_for(self, base: str):
+            """
+            Return a numeric pool of in-bounds training values for `base`:
+            - For datetime columns: int64 nanoseconds (as float for NaN handling)
+            - For numeric columns: float64
+            Falls back to raw/typed dataset if transformer pool absent.
+            """
+            # 1) Try a transformer-provided reservoir (e.g., DatetimeTransformer._ns_pool)
+            try:
+                t = next(m.transformer for m in self._metadata if getattr(m, "name", None) == base)
+                pool = getattr(t, "_ns_pool", None)
+                if isinstance(pool, np.ndarray) and pool.size:
+                    # convert to float for np.isfinite downstream
+                    return pool.astype("float64", copy=False)
+            except StopIteration:
+                pass
+
+            # 2) Fall back to a source dataset column
+            src = getattr(self, "typed_dataset", None)
+            if src is None:
+                src = getattr(self, "_raw_dataset", None)
+            if src is None or base not in src.columns:
+                return None
+
+            col = src[base]
+
+            # Datetime -> int64 ns -> float64
+            if is_datetime64_any_dtype(col):
+                arr = pd.to_datetime(col, errors="coerce").view("int64").astype("float64")
+            else:
+                # Numeric or other -> force numeric (non-convertible -> NaN)
+                arr = pd.to_numeric(col, errors="coerce").astype("float64")
+
+            # Keep only finite values
+            arr = arr[np.isfinite(arr)]
+            if arr.size == 0:
+                return None
+
+            # Downsample very large pools
+            if arr.size > 10000:
+                rng = np.random.default_rng(0)
+                arr = rng.choice(arr, size=10000, replace=False)
+
+            return arr
                 
         def _fold_into_interval(a: np.ndarray, low: float, high: float,
                         strict_low: bool, strict_high: bool) -> np.ndarray:
@@ -735,39 +793,64 @@ class MetaTransformer:
             # Collect lower/upper constant bounds per base
             bounds = {}
             for c in constraints_iterable:
-                cd = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
+                cd  = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
                 base = cd.get("base"); op = _norm_op(cd.get("operator")); ref = cd.get("reference")
                 if not base or base not in repaired.columns or not op:
                     continue
                 if bool(cd.get("reference_is_column", False)):
-                    continue  # only handle constant bounds here
+                    continue
                 ref_num = _as_number(ref)
                 if ref_num is None:
                     continue
-                b = bounds.setdefault(base, {})
+
+                b = bounds.setdefault(base, {"strict_low": False, "strict_high": False})
                 if op in (">", ">="):
-                    b["low"] = max(ref_num, b.get("low", -np.inf)) if "low" in b else ref_num
+                    b["low"]  = max(ref_num, b.get("low", -np.inf)) if "low" in b else ref_num
+                    b["strict_low"]  = b["strict_low"] or (op == ">")
                 elif op in ("<", "<="):
                     b["high"] = min(ref_num, b.get("high",  np.inf)) if "high" in b else ref_num
+                    b["strict_high"] = b["strict_high"] or (op == "<")
 
-            changes_resample = 0
+            # after you assembled `bounds` dict {base: {'low':..,'high':..}}
+            changes_interval = 0
             for base, b in bounds.items():
                 low, high = b.get("low", -np.inf), b.get("high", np.inf)
                 if not (np.isfinite(low) and np.isfinite(high) and high > low):
                     continue
-                a = repaired[base].to_numpy(dtype=float, copy=False)
-                before = a.copy()
-                a = _bootstrap_into_interval(a, low, high, rng)
-                repaired[base] = a
-                changed = ~(np.equal(a, before) | (np.isnan(a) & np.isnan(before)))
-                n_changed = int(changed.sum())
-                changes_resample += n_changed
-                if base == "x8":
-                    from tqdm import tqdm
-                    tqdm.write(f"[repair:resample] x8 resampled {n_changed} rows into [{low}, {high}]")
 
-            from tqdm import tqdm
-            tqdm.write(f"[repair] resampling adjustments: {changes_resample}")
+                a = repaired[base].to_numpy(dtype=float, copy=False)
+                bad = (a < low) | (a > high)
+                if not bad.any():
+                    continue
+
+                if mode == "fold":
+                    a = _fold_into_interval(a, low, high, b["strict_low"], b["strict_high"])
+                elif mode == "clip":
+                    eps_lo = 1e-8 if b["strict_low"] else 0.0
+                    eps_hi = 1e-8 if b["strict_high"] else 0.0
+                    a = np.where(a < low + eps_lo, low + eps_lo, a)
+                    a = np.where(a > high - eps_hi, high - eps_hi, a)
+                elif mode == "uniform":
+                    a[bad] = rng.uniform(low, high, size=bad.sum())
+                elif mode == "resample":
+                    pool = _get_pool_for(base)
+                    if pool is not None:
+                        inb = pool[(pool >= low) & (pool <= high)]
+                        if inb.size:
+                            a[bad] = rng.choice(inb, size=bad.sum(), replace=True)
+                        else:
+                            a[bad] = rng.uniform(low, high, size=bad.sum())
+                    else:
+                        a[bad] = rng.uniform(low, high, size=bad.sum())
+                else:
+                    # default: reflect (kept for backward compatibility)
+                    a = _fold_into_interval(a, low, high, b["strict_low"], b["strict_high"])
+
+                repaired[base] = a
+                changes_interval += int(bad.sum())
+                if base == "x8":
+                    tqdm.write(f"[repair:{mode}] x8 adjusted {int(bad.sum())} into [{low},{high}]")
+            tqdm.write(f"[repair] interval fix-ups: {changes_interval}")
 
         return repaired
 
