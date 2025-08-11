@@ -33,68 +33,68 @@ class DatetimeTransformer(TransformerWrapper):
         missingness_column: Optional[pd.Series] = None,
     ) -> pd.DataFrame:
         """
-        Encode datetimes by first converting to a numeric scale (days since epoch),
-        then delegating to the continuous mixture transformer. This keeps mixture σ
-        in a sane range (days), avoiding huge nanosecond-scale variances.
+        Encode datetimes by converting to numeric *days* since epoch, then delegate
+        to the continuous mixture transformer. Also caches train-window bounds and a
+        small reservoir for later repair/jitter.
         """
+        import numpy as np
+        import pandas as pd
+        from tqdm import tqdm
+
         # Keep original name for revert
         self.original_column_name = data.name
 
-        # Coerce to datetime
+        # Coerce to datetime64[ns] and to *float* nanoseconds (NaN for missing)
         dt = pd.to_datetime(data, errors="coerce")
-
-        # Convert to int64 nanoseconds (float for NaN handling)
         ns = dt.view("int64").astype("float64")
         ns[dt.isna()] = np.nan
 
-        # in src/nhssynth/modules/dataloader/transformers/datetime.py
-        # inside DatetimeTransformer.apply(), after you compute `ns` and before returning
+        # Convert to DAYS (keeps σ in a reasonable range for mixture)
+        NS_PER_DAY = float(24 * 60 * 60 * 1e9)
+        self._unit_scale = NS_PER_DAY  # used later in revert
+        days = ns / NS_PER_DAY
 
-        from tqdm import tqdm
+        # ---- Cache train-window bounds & a small pool (in *days*) ----
+        # Work only on non-missing rows for bounds
+        days_train = days[missingness_column == 0] if missingness_column is not None else days
+        vals = pd.to_numeric(days_train, errors="coerce").to_numpy(dtype="float64", copy=False)
+        vals = vals[np.isfinite(vals)]
 
-        # Work on non-missing training values
-        ns_train = ns[missingness_column == 0] if missingness_column is not None else ns
-        ns_vals = ns_train.to_numpy(dtype="float64", copy=False)
-        ns_vals = ns_vals[np.isfinite(ns_vals)]
+        if vals.size >= 10:
+            p1 = float(np.nanpercentile(vals, 1))
+            p99 = float(np.nanpercentile(vals, 99))
+            window = p99 - p1
 
-        if ns_vals.size >= 10:
-            q1  = float(np.nanpercentile(ns_vals, 1))
-            q99 = float(np.nanpercentile(ns_vals, 99))
-            window = q99 - q1
-            # cache bounds & a small empirical pool for later resampling
-            self._ns_min = int(q1) if window > 0 else None
-            self._ns_max = int(q99) if window > 0 else None
-            # keep a small reservoir of in-bounds training samples for DOB repair/jitter
-            # (store as int64 nanoseconds)
-            pool = ns_vals[(ns_vals >= q1) & (ns_vals <= q99)]
+            # Cache bounds in *days*
+            self._days_min = p1 if window > 0 else None
+            self._days_max = p99 if window > 0 else None
+
+            # Small reservoir (in-bounds, in *days*) for repair/jitter
+            pool = vals[(vals >= p1) & (vals <= p99)]
             if pool.size > 5000:
                 rng = np.random.default_rng(0)
                 pool = rng.choice(pool, size=5000, replace=False)
-            self._ns_pool = pool.astype("int64", copy=False)
-            # enable clamp only if the window is sensible (>= 30 days)
-            min_ns_window = 30 * 24 * 3600 * 1e9
-            self._ns_clamp_enabled = bool(window >= min_ns_window)
+            self._days_pool = pool.astype("float64", copy=False)
+
+            # Enable clamp only for sensible windows (>= 30 days)
+            self._days_clamp_enabled = bool(window >= 30.0)
+
+            # Debug
+            p1_ts = pd.to_datetime(int(round(p1 * NS_PER_DAY)), unit="ns", errors="coerce")
+            p99_ts = pd.to_datetime(int(round(p99 * NS_PER_DAY)), unit="ns", errors="coerce")
             tqdm.write(
-                f"[datetime.apply] p1={pd.to_datetime(int(q1))} p99={pd.to_datetime(int(q99))} "
-                f"Δ≈{window/1e9/86400:.1f}d clamp={'ON' if self._ns_clamp_enabled else 'OFF'} "
-                f"(pool={len(self._ns_pool)})"
+                f"[datetime.apply] {self.original_column_name}: p1={p1_ts}  "
+                f"p99={p99_ts}  Δ≈{window:.1f} days  "
+                f"clamp={'ON' if self._days_clamp_enabled else 'OFF'}  pool={self._days_pool.size}"
             )
         else:
-            self._ns_min = self._ns_max = None
-            self._ns_pool = np.array([], dtype="int64")
-            self._ns_clamp_enabled = False
-            tqdm.write("[datetime.apply] insufficient data for bounds; clamp OFF, empty pool")
+            self._days_min = self._days_max = None
+            self._days_pool = np.array([], dtype="float64")
+            self._days_clamp_enabled = False
+            tqdm.write(f"[datetime.apply] {self.original_column_name}: insufficient data; clamp OFF, empty pool")
 
-
-        # Work in DAYS to keep σ reasonable
-        NS_PER_DAY = float(24 * 60 * 60 * 1e9)
-        self._unit_scale = NS_PER_DAY  # used in revert
-        days = ns / NS_PER_DAY
-
-        # Name + index preserved for downstream
+        # Hand off DAYS series to the mixture/continuous transformer
         days_series = pd.Series(days, index=data.index, name=self.original_column_name)
-
-        # Delegate to the wrapped continuous transformer (mixture/GMM)
         return super().apply(
             data=days_series,
             constraint_adherence=constraint_adherence,
@@ -103,69 +103,68 @@ class DatetimeTransformer(TransformerWrapper):
 
     def revert(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """
-        Decode from mixture space back to numeric DAYS, then scale to ns and cast
-        to datetime64[ns], with robust train-window clamping. Preserves missingness.
+        Decode from mixture space back to *days*, clamp/jitter in *days* (if enabled),
+        convert to ns and then to datetime64[ns]. Respects <base>_missing when present.
         """
-        # First, let the continuous transformer decode back to numeric DAYS
+        import numpy as np
+        import pandas as pd
+        from tqdm import tqdm
+
+        # 1) Let the continuous transformer put the numeric DAYS back
         reverted = super().revert(data, **kwargs)
 
-        base = self.original_column_name
-        if base not in reverted.columns:
-            # Nothing to do
+        base = getattr(self, "original_column_name", None) or getattr(self, "name", None)
+        if not base or base not in reverted.columns:
             return reverted
 
-        # Numeric days -> ns -> datetime64[ns]
-        series = pd.to_numeric(reverted[base], errors="coerce").astype("float64")
+        # 2) DAYS as float
+        days = pd.to_numeric(reverted[base], errors="coerce").astype("float64")
 
-        NS_PER_DAY = float(getattr(self, "_unit_scale", 24 * 60 * 60 * 1e9))
-        ns_vals = series * NS_PER_DAY  # STILL float here for NaN safety
-
-        # Optional clamp
-        ns_min = getattr(self, "_ns_min", None)
-        ns_max = getattr(self, "_ns_max", None)
-        clamp_ok = bool(getattr(self, "_ns_clamp_enabled", False)) and (ns_min is not None) and (ns_max is not None) and (ns_max > ns_min)
-
-        from tqdm import tqdm
-        if clamp_ok:
-            tqdm.write(f"[datetime.revert] clamp to {pd.to_datetime(ns_min)} .. {pd.to_datetime(ns_max)}")
-            ns_vals = np.clip(ns_vals, ns_min, ns_max)
-
-            # add a tiny in-window jitter so values don't all quantize to the same tick
-            # jitter amplitude ~ 0.25% of the window, but at least 1 second
-            J = int(max(1e9, 0.0025 * (ns_max - ns_min)))
-            rng = np.random.default_rng()
-            ns_vals = ns_vals + rng.integers(-J, J + 1, size=ns_vals.shape)
-
-        # Safe cast to nullable Int64 (unchanged from our hardened block)
-        # Safe cast to nullable Int64 and to datetime Series aligned to `reverted`
-        INT64_MIN = np.iinfo(np.int64).min
-        INT64_MAX = np.iinfo(np.int64).max
-
-        finite = np.isfinite(ns_vals)
-        ns_vals = np.where(finite, np.clip(ns_vals, INT64_MIN, INT64_MAX), ns_vals)
-        ns_vals = np.where(finite, np.rint(ns_vals), ns_vals)
-
-        int_arr = np.zeros_like(ns_vals, dtype="int64")
-        int_arr[finite] = np.clip(ns_vals[finite], INT64_MIN, INT64_MAX).astype("int64")
-        mask = np.isnan(ns_vals)  # boolean numpy array
-
-        ns_int = pd.arrays.IntegerArray(int_arr, mask)
-
-        # IMPORTANT: build a Series so we can assign by mask later
-        dt = pd.to_datetime(
-            pd.Series(ns_int, index=reverted.index, name=base),
-            unit="ns",
-            errors="coerce",
+        # 3) Optional clamp+tiny jitter in *days*
+        dmin = getattr(self, "_days_min", None)
+        dmax = getattr(self, "_days_max", None)
+        clamp_ok = bool(getattr(self, "_days_clamp_enabled", False)) and (
+            dmin is not None and dmax is not None and dmax > dmin
         )
+        if clamp_ok:
+            # Clamp to [p1, p99] in days
+            days = np.clip(days, dmin, dmax)
 
-        # Respect missingness if present (mask must be a boolean ndarray)
+            # Tiny in-window jitter: max(1 second, 0.25% of window) in days
+            window = dmax - dmin
+            jitter_days = max(1.0 / 86400.0, 0.0025 * window)
+            rng = np.random.default_rng()
+            days = days + rng.uniform(-jitter_days, jitter_days, size=days.shape)
+
+            tqdm.write(
+                f"[datetime.revert] {base}: clamp to [{pd.to_datetime(int(dmin*self._unit_scale), unit='ns')}, "
+                f"{pd.to_datetime(int(dmax*self._unit_scale), unit='ns')}]  jitter≈{jitter_days*86400:.1f}s"
+            )
+
+        # 4) DAYS -> ns (float), safe cast to nullable Int64
+        NS_PER_DAY = float(getattr(self, "_unit_scale", 24 * 60 * 60 * 1e9))
+        ns_float = days * NS_PER_DAY
+        finite = np.isfinite(ns_float)
+
+        # Prevent int64 overflow before rounding
+        i64_min, i64_max = np.iinfo(np.int64).min, np.iinfo(np.int64).max
+        ns_float = np.where(finite, np.clip(ns_float, i64_min, i64_max), np.nan)
+        ns_round = np.where(finite, np.rint(ns_float), np.nan)
+
+        # Nullable Int64 via pd.array (NaN -> <NA>)
+        ns_int = pd.array(ns_round, dtype="Int64")
+
+        # 5) To datetime64[ns]
+        dt = pd.to_datetime(ns_int, unit="ns", errors="coerce")
+        dt = pd.Series(dt, index=reverted.index, name=base)
+
+        # 6) Respect missingness flag if present
         miss_col = f"{base}_missing"
-        if miss_col in data.columns:
-            m = data[miss_col].to_numpy(dtype=bool, copy=False)
-            # Series supports boolean assignment; Index would not
-            dt.loc[m] = pd.NaT
+        if miss_col in reverted.columns:
+            m = pd.to_numeric(reverted[miss_col], errors="coerce").fillna(0).astype(bool).to_numpy()
+            if m.any():
+                dt.loc[m] = pd.NaT
 
-        # Write back into the decoded DataFrame and return it
+        # 7) Write back; continuous.revert likely already dropped helper cols
         reverted[base] = dt
         return reverted
-
