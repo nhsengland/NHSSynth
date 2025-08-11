@@ -644,18 +644,130 @@ class MetaTransformer:
                         eps = 1e-8 if op == ">" else 0.0
                         a[mask] = b[mask] + eps
                 repaired[base] = a
+                
+        def _fold_into_interval(a: np.ndarray, low: float, high: float,
+                        strict_low: bool, strict_high: bool) -> np.ndarray:
+            """
+            Reflect-then-wrap any values into [low, high] (or (low, high), etc.).
+            Works in one shot, no ping-pong. Vectorised.
+            """
+            a = a.astype(float, copy=False)
+            w = high - low
+            if not np.isfinite(w) or w <= 0:
+                return a  # degenerate interval, nothing to do
+
+            # Reflect-wrap into [0, 2w), then fold to [0, w]
+            y = (a - low) % (2 * w)
+            y = np.where(y <= w, y, 2 * w - y)
+            out = low + y
+
+            # handle strict bounds by nudging inside by tiny eps
+            eps = 1e-8
+            if strict_low:
+                out = np.where(out <= low, low + eps, out)
+            else:
+                out = np.where(out < low, low, out)
+            if strict_high:
+                out = np.where(out >= high, high - eps, out)
+            else:
+                out = np.where(out > high, high, out)
+            return out
+        
+        def _bootstrap_into_interval(a: np.ndarray, low: float, high: float, rng) -> np.ndarray:
+            """Resample any out-of-range values from the in-bounds portion of `a`.
+            If there are no in-bounds values, fall back to uniform(low, high)."""
+            a = a.astype(float, copy=False)
+            bad = (a < low) | (a > high)
+            if not np.any(bad):
+                return a
+            inb = a[~bad]
+            if inb.size > 0:
+                a[bad] = rng.choice(inb, size=bad.sum(), replace=True)
+            else:
+                a[bad] = rng.uniform(low, high, size=bad.sum())
+            return a
+
 
         # ----------------- apply constraints -----------------
-        for c in constraints_iterable:
-            cd = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
-            base = cd.get("base")
-            op = _norm_op(cd.get("operator"))
-            ref = cd.get("reference")
-            ref_is_col = bool(cd.get("reference_is_column", False))
+        from tqdm import tqdm
 
-            if base and op:
+        # ----------------- apply constraints (iteratively) -----------------
+        max_passes = max(1, int(n_retries) + 2)  # 2 passes by default
+        total_changes = 0
+
+        for pass_idx in range(max_passes):
+            pass_changes = 0
+
+            for c in constraints_iterable:
+                cd = c.to_dict() if hasattr(c, "to_dict") else {
+                    k: getattr(c, k) for k in dir(c) if not k.startswith("_")
+                }
+                base = cd.get("base")
+                op = _norm_op(cd.get("operator"))
+                ref = cd.get("reference")
+                ref_is_col = bool(cd.get("reference_is_column", False))
+
+                if not base or base not in repaired.columns or not op:
+                    continue
+
+                # ----- snapshot BEFORE on the *repaired* DataFrame -----
+                before = repaired[base].copy()
+
+                # apply into 'repaired'
                 _ensure_binary_or_in(base, op, ref, ref_is_col)
-                # Optional: debug print
-                # print(f"[repair] applied: {base} {op} {ref} (col? {ref_is_col})")
+
+                # ----- AFTER & deltas -----
+                after = repaired[base]
+                # Count true numeric changes (ignore NaN==NaN)
+                changed_mask = ~(before.eq(after) | (before.isna() & after.isna()))
+                n_changed = int(changed_mask.sum())
+                pass_changes += n_changed
+                total_changes += n_changed
+
+                # targeted debug for x8
+                if base == "x8":
+                    tqdm.write(f"[repair] pass {pass_idx+1}: x8 adjusted {n_changed} rows for {op} {ref}")
+
+            # Early exit if nothing else changed on this pass
+            if pass_changes == 0:
+                break
+            
+            # Collect lower/upper constant bounds per base
+            bounds = {}
+            for c in constraints_iterable:
+                cd = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
+                base = cd.get("base"); op = _norm_op(cd.get("operator")); ref = cd.get("reference")
+                if not base or base not in repaired.columns or not op:
+                    continue
+                if bool(cd.get("reference_is_column", False)):
+                    continue  # only handle constant bounds here
+                ref_num = _as_number(ref)
+                if ref_num is None:
+                    continue
+                b = bounds.setdefault(base, {})
+                if op in (">", ">="):
+                    b["low"] = max(ref_num, b.get("low", -np.inf)) if "low" in b else ref_num
+                elif op in ("<", "<="):
+                    b["high"] = min(ref_num, b.get("high",  np.inf)) if "high" in b else ref_num
+
+            changes_resample = 0
+            for base, b in bounds.items():
+                low, high = b.get("low", -np.inf), b.get("high", np.inf)
+                if not (np.isfinite(low) and np.isfinite(high) and high > low):
+                    continue
+                a = repaired[base].to_numpy(dtype=float, copy=False)
+                before = a.copy()
+                a = _bootstrap_into_interval(a, low, high, rng)
+                repaired[base] = a
+                changed = ~(np.equal(a, before) | (np.isnan(a) & np.isnan(before)))
+                n_changed = int(changed.sum())
+                changes_resample += n_changed
+                if base == "x8":
+                    from tqdm import tqdm
+                    tqdm.write(f"[repair:resample] x8 resampled {n_changed} rows into [{low}, {high}]")
+
+            from tqdm import tqdm
+            tqdm.write(f"[repair] resampling adjustments: {changes_resample}")
 
         return repaired
+
