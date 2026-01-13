@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from nhssynth.modules.model.common.dp import DPMixin
-from nhssynth.modules.model.common.mlp import MLP
+#from nhssynth.modules.model.common.mlp import MLP
 from nhssynth.modules.model.common.model import Model
 
 

@@ -71,17 +71,14 @@ class Decoder(nn.Module):
     def forward(self, z):
         return self.net(z)
 
-
+        
 class Noiser(nn.Module):
-    def __init__(
-        self,
-        num_single_column_indices: list[int],
-    ) -> None:
+    def __init__(self, num_single_column_indices: list[int]) -> None:
         super().__init__()
         self.output_logsigma_fn = nn.Linear(num_single_column_indices, num_single_column_indices, bias=True)
-        torch.nn.init.zeros_(self.output_logsigma_fn.weight)
-        torch.nn.init.zeros_(self.output_logsigma_fn.bias)
-        self.output_logsigma_fn.weight.requires_grad = False
+        torch.nn.init.constant_(self.output_logsigma_fn.weight, 0.0)
+        torch.nn.init.constant_(self.output_logsigma_fn.bias, -0.5)  # Start with scale ~0.6
+        # Removed frozen line - now trainable!
 
     def forward(self, X):
         return self.output_logsigma_fn(X)
@@ -111,7 +108,7 @@ class VAE(Model):
         encoder_activation: str = "leaky_relu",
         encoder_learning_rate: float = 1e-3,
         decoder_latent_dim: int = 256,
-        decoder_hidden_dim: int = 32,
+        decoder_hidden_dim: int = 256,
         decoder_activation: str = "leaky_relu",
         decoder_learning_rate: float = 1e-3,
         shared_optimizer: bool = True,
@@ -136,15 +133,17 @@ class VAE(Model):
             learning_rate=decoder_learning_rate,
             shared_optimizer=self.shared_optimizer,
         ).to(self.device)
-        self.noiser = Noiser(
-            len(self.single_column_indices),
-        ).to(self.device)
+        num_continuous = len([idx for idx in self.single_column_indices
+                     if idx in self.metatransformer.continuous_value_indices])
+        self.noiser = Noiser(num_continuous).to(self.device)
         if self.shared_optimizer:
             assert (
                 encoder_learning_rate == decoder_learning_rate
             ), "If `shared_optimizer` is True, `encoder_learning_rate` must equal `decoder_learning_rate`"
             self.optim = torch.optim.Adam(
-                list(self.encoder.parameters()) + list(self.decoder.parameters()),
+                list(self.encoder.parameters()) +
+                list(self.decoder.parameters()) +
+                list(self.noiser.parameters()),  # Added!
                 lr=encoder_learning_rate,
             )
             self.zero_grad = self.optim.zero_grad
@@ -178,6 +177,7 @@ class VAE(Model):
             "ReconstructionLoss",
             "CategoricalLoss",
             "NumericalLoss",
+            "BinaryLoss",
         ]
 
     def reconstruct(self, X):
@@ -219,9 +219,15 @@ class VAE(Model):
         tqdm.write(f"one-hot groups (sizes): {[len(g) for g in categorical_groups]}")
 
         # --- singles noise (existing behaviour) ---
-        if getattr(self, "single_column_indices", None):
-            idx = self.single_column_indices
-            x_gen_[:, idx] = x_gen[:, idx] + torch.exp(self.noiser(x_gen[:, idx])) * torch.randn_like(x_gen[:, idx])
+        cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
+        if cont_idx:
+            cont_idx_list = [idx for idx in self.single_column_indices if idx in cont_idx]
+            if cont_idx_list:
+                idx_tensor = torch.tensor(cont_idx_list, device=x_gen.device, dtype=torch.long)
+                loc = x_gen[:, cont_idx_list]
+                noiser_output = self.noiser(loc)
+                scale = torch.exp(noiser_output)
+                x_gen_[:, idx_tensor] = loc + scale * torch.randn_like(loc)
 
         # --- jitter continuous "value" z-columns ---
         cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
@@ -294,18 +300,32 @@ class VAE(Model):
                     torch.max(X[:, cat_idxs], 1)[1],
                 ).sum()
 
-        gauss_loglik = 0
-        if self.single_column_indices:
-            gauss_loglik = (
-                Normal(
-                    loc=x_recon[:, self.single_column_indices],
-                    scale=torch.exp(self.noiser(x_recon[:, self.single_column_indices])),
-                )
-                .log_prob(X[:, self.single_column_indices])
-                .sum()
-            )
+        gauss_loglik = torch.tensor(0.0, device=X.device)
+        binary_loglik = torch.tensor(0.0, device=X.device)
 
-        reconstruction_loss = -(categoric_loglik + gauss_loglik)
+        if self.single_column_indices:
+            # Separate continuous (z-score) columns from binary (missingness) columns
+            cont_indices = [idx for idx in self.single_column_indices
+                        if idx in self.metatransformer.continuous_value_indices]
+            miss_indices = [idx for idx in self.single_column_indices
+                        if idx not in self.metatransformer.continuous_value_indices]
+
+            # Gaussian loss for continuous columns
+            if cont_indices:
+                loc = x_recon[:, cont_indices]
+                noiser_output = self.noiser(x_recon[:, cont_indices])
+                scale = torch.exp(noiser_output)
+                gauss_loglik = Normal(loc=loc, scale=scale).log_prob(X[:, cont_indices]).sum()
+
+            # BCE loss for binary missingness columns
+            if miss_indices:
+                logits = x_recon[:, miss_indices]
+                targets = X[:, miss_indices]
+                binary_loglik = -torch.nn.functional.binary_cross_entropy_with_logits(
+                    logits, targets, reduction='sum'
+                )
+
+        reconstruction_loss = -(categoric_loglik + gauss_loglik + binary_loglik)
 
         elbo = kld + reconstruction_loss
 
@@ -315,6 +335,7 @@ class VAE(Model):
             "KLD": kld / X.size()[0],
             "CategoricalLoss": categoric_loglik / X.size()[0],
             "NumericalLoss": gauss_loglik / X.size()[0],
+            "BinaryLoss": binary_loglik / X.size()[0],
         }
 
     def train(

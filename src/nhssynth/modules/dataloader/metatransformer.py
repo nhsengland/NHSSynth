@@ -194,6 +194,40 @@ class MetaTransformer:
         for constraint in self._metadata.constraints:
             working_data = constraint.transform(working_data)
         return working_data
+    
+    def repair_constraints(
+        self,
+        df: pd.DataFrame,
+        *,
+        mode: str = "reflect",
+        rng=None,
+        n_retries: int = 0
+    ) -> pd.DataFrame:
+        """
+        Enforce constraints on a *decoded* DataFrame using
+        self._metadata.constraints.minimal_constraints.
+        """
+        import numpy as np
+        import pandas as pd
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
+        if constraints is None:
+            return df
+        constraints_iterable = getattr(constraints, "minimal_constraints", None)
+        if constraints_iterable is None:
+            return df
+
+        repaired = df.copy()
+
+        # >>> paste your _as_number, _norm_op, _ensure_binary_or_in, and the rest
+        # of the implementation here, unchanged except for using `repaired` and `self`
+        # where needed. Make sure helper defs are nested inside this method so they can
+        # see `mode`, `rng`, `repaired`, and `self`.
+
+        return repaired
 
     def _get_missingness_carrier(self, column_metadata: MetaData.ColumnMetaData) -> Union[pd.Series, Any]:
         """
@@ -352,7 +386,25 @@ class MetaTransformer:
         for part in parts:
             m = part.shape[1] if hasattr(part, "shape") else 1
             if m > 1:
-                multi_groups.append(list(range(col_offset, col_offset + m)))
+                part_cols = list(part.columns)
+                component_indices = []
+                non_component_indices = []
+
+                for i, col_name in enumerate(part_cols):
+                    col_idx = col_offset + i
+                    # Component columns go to multi_column_indices
+                    if isinstance(col_name, str) and ('_c1' in col_name or '_c2' in col_name or ...):
+                        component_indices.append(col_idx)
+                    elif isinstance(col_name, str) and not any(suffix in col_name for suffix in
+                                                                ['_value', '_normalized', '_normalised', '_missing']):
+                        component_indices.append(col_idx)
+                    else:
+                        # Z-scores and missingness go to single_column_indices
+                        non_component_indices.append(col_idx)
+
+                if component_indices:
+                    multi_groups.append(component_indices)
+                single_list.extend(non_component_indices)
             else:
                 single_list.append(col_offset)
             col_offset += m
@@ -439,7 +491,7 @@ class MetaTransformer:
         
         # Ensure the dataset has the same columns as the original
         # Enforce constraints on decoded data if available
-        dataset = self.repair_constraints(dataset, mode="reflect")
+        dataset = self.repair_constraints(dataset, mode="resample")
 
         _dbg("post-constraints")
 
@@ -496,167 +548,145 @@ class MetaTransformer:
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
 
-    def repair_constraints(self, df: pd.DataFrame, *, mode="reflect", rng=None, n_retries: int = 0) -> pd.DataFrame:
-        """
-        Enforce constraints on a *decoded* DataFrame.
+    def _ensure_binary_or_in(base: str, op: str, reference, reference_is_column: bool):
+        # Column must exist
+        if base not in repaired.columns or op is None:
+            return
 
-        Reads constraints from self._metadata.constraints.minimal_constraints.
-
-        Supports:
-        - Numeric bounds via <, <=, >, >=, =  (column vs. constant or column)
-        - Categorical membership via 'in'
-        """
-    
-        if rng is None:
-            rng = np.random.default_rng()    
-    
-        constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
-        if constraints is None:
-            return df
-        constraints_iterable = getattr(constraints, "minimal_constraints", None)
-        if constraints_iterable is None:
-            return df
-
-        repaired = df.copy()
-
-        # ----------------- helpers -----------------
-        def _as_number(x):
-            try:
-                if x is None:
-                    return None
-                if isinstance(x, (int, float)) and not isinstance(x, bool):
-                    return float(x)
-                return float(str(x))
-            except Exception:
-                return None
-
-        def _norm_op(op):
-            if op is None:
-                return None
-            op = str(op).strip().lower()
-            return {
-                "<": "<",
-                "lt": "<",
-                "<=": "<=",
-                "lte": "<=",
-                ">": ">",
-                "gt": ">",
-                ">=": ">=",
-                "gte": ">=",
-                "=": "=",
-                "==": "=",
-                "eq": "=",
-                "in": "in",
-            }.get(op, op)
-
-        def _ensure_binary_or_in(base: str, op: str, reference, reference_is_column: bool):
-            if base not in repaired.columns:
-                return
-
-            if op == "in":
-                # categorical inclusion
-                if reference_is_column:
-                    if isinstance(reference, str) and reference in repaired.columns:
-                        allowed = set(repaired[reference].dropna().unique().tolist())
-                    else:
-                        return
-                else:
-                    if isinstance(reference, (list, tuple, set)):
-                        allowed = set(reference)
-                    else:
-                        allowed = set(str(reference).split(","))
-                s = repaired[base].astype(object)
-                mask = ~s.isin(allowed)
-                if mask.any():
-                    mode_vals = s[s.isin(allowed)].mode(dropna=True)
-                    fill_val = mode_vals.iloc[0] if len(mode_vals) else next(iter(allowed))
-                    s.loc[mask] = fill_val
-                    repaired[base] = s
-                return
-
-            if op == "=":
-                if reference_is_column and isinstance(reference, str) and reference in repaired.columns:
-                    repaired[base] = repaired[reference]
-                else:
-                    ref_num = _as_number(reference)
-                    if ref_num is not None:
-                        repaired[base] = ref_num
-                    else:
-                        # equality to a non-numeric constant → treat as categorical fill
-                        repaired[base] = reference
-                return
-
-            # numeric comparisons
-            a = repaired[base].to_numpy(dtype=float)
+        # ---------- helper getters ----------
+        def _get_numeric_pair():
+            """Return (a, b, ok) as float arrays for numeric ops."""
             if reference_is_column:
                 if not (isinstance(reference, str) and reference in repaired.columns):
-                    return
-                b = repaired[reference].to_numpy(dtype=float)
+                    return None, None, False
+                a = repaired[base].to_numpy(dtype=float, copy=False)
+                b = repaired[reference].to_numpy(dtype=float, copy=False)
+                return a, b, True
             else:
                 ref_num = _as_number(reference)
                 if ref_num is None:
-                    return
+                    return None, None, False
+                a = repaired[base].to_numpy(dtype=float, copy=False)
                 b = np.full_like(a, ref_num, dtype=float)
+                return a, b, True
 
+        # ---------- categorical membership ----------
+        if op == "in":
+            # Build allowed set
+            if reference_is_column:
+                if not (isinstance(reference, str) and reference in repaired.columns):
+                    return
+                allowed = set(repaired[reference].dropna().unique().tolist())
+            else:
+                if isinstance(reference, (list, tuple, set)):
+                    allowed = set(reference)
+                else:
+                    allowed = set(str(reference).split(","))
+
+            s = repaired[base].astype(object)
+            mask = ~s.isin(allowed)
+            if mask.any():
+                # choose a mode from allowed values present in column, else any allowed
+                present_allowed = s[s.isin(allowed)]
+                if not present_allowed.empty:
+                    fill_val = present_allowed.mode(dropna=True)
+                    fill_val = (fill_val.iloc[0] if not fill_val.empty else next(iter(allowed)))
+                else:
+                    fill_val = next(iter(allowed))
+                s.loc[mask] = fill_val
+                repaired[base] = s
+            return
+
+        # ---------- equality (assign) ----------
+        if op == "=":
+            if reference_is_column and isinstance(reference, str) and reference in repaired.columns:
+                repaired[base] = repaired[reference]
+            else:
+                # numeric constant → fill with number; else fill with raw reference (categorical/string)
+                ref_num = _as_number(reference)
+                repaired[base] = ref_num if ref_num is not None else reference
+            return
+
+        # ---------- numeric comparisons ----------
+        a, b, ok = _get_numeric_pair()
+        if not ok:
+            return
+
+        # Build violation mask
+        if op == "<":
+            mask = a >= b
+        elif op == "<=":
+            mask = a > b
+        elif op == ">":
+            mask = a <= b
+        elif op == ">=":
+            mask = a < b
+        else:
+            # unsupported operator here
+            return
+
+        if not np.any(mask):
+            repaired[base] = a
+            return
+
+        # Choose fix strategy
+        if mode == "clip":
+            # final value on correct side of the boundary by a tiny epsilon if strict
+            eps = 1e-8
             if op in ("<", "<="):
-                mask = a >= b if op == "<" else a > b
-                if not mask.any():
-                    repaired[base] = a; return
-                if mode == "clip":
-                    eps = 1e-8 if op == "<" else 0.0
-                    a[mask] = b[mask] - eps
-                elif mode == "reflect":
-                    # reflect over the boundary then clip just in case
-                    a[mask] = 2.0 * b[mask] - a[mask]
-                    # ensure strictness
-                    eps = 1e-8 if op == "<" else 0.0
-                    a[mask] = np.minimum(a[mask], b[mask] - eps)
-                elif mode == "uniform":
-                    # sample uniformly just below the bound within window w
-                    w = np.clip(0.05 * np.nanstd(a), 1e-6, np.inf)  # 5% of std as window
-                    eps = 1e-8 if op == "<" else 0.0
-                    a[mask] = rng.uniform(b[mask] - w, b[mask] - eps)
-                elif mode == "resample":
-                    # bootstrap from in-bounds upper tail (e.g., above q=0.95)
-                    inb = a[~mask]
-                    if inb.size:
-                        q = np.quantile(inb, 0.95)
-                        tail = inb[inb >= q]
-                        if tail.size == 0:
-                            tail = inb
-                        a[mask] = rng.choice(tail, size=mask.sum(), replace=True)
-                    else:
-                        # fallback to uniform if everything violated
-                        eps = 1e-8 if op == "<" else 0.0
-                        a[mask] = b[mask] - eps
-                repaired[base] = a
-            elif op in (">", ">="):
-                mask = a <= b if op == ">" else a < b
-                if not mask.any():
-                    repaired[base] = a; return
-                if mode == "clip":
-                    eps = 1e-8 if op == ">" else 0.0
-                    a[mask] = b[mask] + eps
-                elif mode == "reflect":
-                    a[mask] = 2.0 * b[mask] - a[mask]
-                    eps = 1e-8 if op == ">" else 0.0
-                    a[mask] = np.maximum(a[mask], b[mask] + eps)
-                elif mode == "uniform":
-                    w = np.clip(0.05 * np.nanstd(a), 1e-6, np.inf)
-                    eps = 1e-8 if op == ">" else 0.0
-                    a[mask] = rng.uniform(b[mask] + eps, b[mask] + w)
-                elif mode == "resample":
-                    inb = a[~mask]
-                    if inb.size:
-                        q = np.quantile(inb, 0.05)
-                        tail = inb[inb <= q]
-                        if tail.size == 0:
-                            tail = inb
-                        a[mask] = rng.choice(tail, size=mask.sum(), replace=True)
-                    else:
-                        eps = 1e-8 if op == ">" else 0.0
-                        a[mask] = b[mask] + eps
-                repaired[base] = a
+                # want a <= b   (strict for <)
+                a[mask] = np.minimum(a[mask], b[mask] - (eps if op == "<" else 0.0))
+            else:
+                # want a >= b   (strict for >)
+                a[mask] = np.maximum(a[mask], b[mask] + (eps if op == ">" else 0.0))
+
+        elif mode == "uniform":
+            # sample near the boundary within a small window based on spread
+            spread = float(np.nanstd(a))
+            w = np.clip(0.05 * spread, 1e-6, np.inf)
+            if op in ("<", "<="):
+                hi = b[mask] - (1e-8 if op == "<" else 0.0)
+                lo = hi - w
+                a[mask] = rng.uniform(lo, hi)
+            else:
+                lo = b[mask] + (1e-8 if op == ">" else 0.0)
+                hi = lo + w
+                a[mask] = rng.uniform(lo, hi)
+
+        elif mode == "resample":
+            # draw from *in-bounds* values observed in this column (bootstrap),
+            # fall back to a small uniform window if none available; add light jitter, then enforce bound.
+            inb = a[~mask]
+            if inb.size:
+                sampled = rng.choice(inb, size=mask.sum(), replace=True)
+                s = float(np.nanstd(inb))
+                jitter = rng.normal(0.0, max(1e-6, 0.005 * s), size=mask.sum())
+                cand = sampled + jitter
+            else:
+                spread = float(np.nanstd(a))
+                w = np.clip(0.05 * spread, 1e-6, np.inf)
+                if op in ("<", "<="):
+                    hi = b[mask] - (1e-8 if op == "<" else 0.0)
+                    lo = hi - w
+                    cand = rng.uniform(lo, hi, size=mask.sum())
+                else:
+                    lo = b[mask] + (1e-8 if op == ">" else 0.0)
+                    hi = lo + w
+                    cand = rng.uniform(lo, hi, size=mask.sum())
+
+            # enforce strictness once more
+            if op in ("<", "<="):
+                cand = np.minimum(cand, b[mask] - (1e-8 if op == "<" else 0.0))
+            else:
+                cand = np.maximum(cand, b[mask] + (1e-8 if op == ">" else 0.0))
+            a[mask] = cand
+
+        else:
+            # unknown mode → no-op for safety
+            pass
+
+        repaired[base] = a
+
                 
         def _get_pool_for(self, base: str):
             """

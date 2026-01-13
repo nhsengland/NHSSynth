@@ -121,25 +121,39 @@ class DatetimeTransformer(TransformerWrapper):
         days = pd.to_numeric(reverted[base], errors="coerce").astype("float64")
 
         # 3) Optional clamp+tiny jitter in *days*
-        dmin = getattr(self, "_days_min", None)
-        dmax = getattr(self, "_days_max", None)
-        clamp_ok = bool(getattr(self, "_days_clamp_enabled", False)) and (
-            dmin is not None and dmax is not None and dmax > dmin
+        # --- replace the hard clip with pool-based resample + light jitter ---
+        ns_min = getattr(self, "_ns_min", None)
+        ns_max = getattr(self, "_ns_max", None)
+        clamp_ok = bool(getattr(self, "_ns_clamp_enabled", False)) and (
+            ns_min is not None and ns_max is not None and ns_max > ns_min
         )
+
         if clamp_ok:
-            # Clamp to [p1, p99] in days
-            days = np.clip(days, dmin, dmax)
-
-            # Tiny in-window jitter: max(1 second, 0.25% of window) in days
-            window = dmax - dmin
-            jitter_days = max(1.0 / 86400.0, 0.0025 * window)
+            from tqdm import tqdm
             rng = np.random.default_rng()
-            days = days + rng.uniform(-jitter_days, jitter_days, size=days.shape)
 
-            tqdm.write(
-                f"[datetime.revert] {base}: clamp to [{pd.to_datetime(int(dmin*self._unit_scale), unit='ns')}, "
-                f"{pd.to_datetime(int(dmax*self._unit_scale), unit='ns')}]  jitter≈{jitter_days*86400:.1f}s"
-            )
+            # out-of-bounds mask
+            bad = np.isfinite(ns_vals) & ((ns_vals < ns_min) | (ns_vals > ns_max))
+            tqdm.write(f"[datetime.revert] window={pd.to_datetime(ns_min)}..{pd.to_datetime(ns_max)} "
+                    f"oob={int(bad.sum())}/{len(ns_vals)}")
+
+            if bad.any():
+                pool = getattr(self, "_ns_pool", None)
+                if isinstance(pool, np.ndarray) and pool.size:
+                    choice = rng.choice(pool, size=int(bad.sum()), replace=True).astype("float64")
+                else:
+                    choice = rng.uniform(ns_min, ns_max, size=int(bad.sum()))
+                # small jitter so they don’t quantize to identical ticks
+                J = int(max(1e8, 0.0005 * (ns_max - ns_min)))  # ≥0.1s or 0.05% window
+                choice = choice + rng.integers(-J, J + 1, size=choice.shape)
+                ns_vals[bad] = choice
+
+            # light jitter for in-bounds too, to avoid edge pile-ups
+            good = np.isfinite(ns_vals) & ~bad
+            if good.any():
+                J_small = int(max(1e7, 0.0002 * (ns_max - ns_min)))  # ≥0.01s or 0.02% window
+                ns_vals[good] = ns_vals[good] + rng.integers(-J_small, J_small + 1, size=int(good.sum()))
+
 
         # 4) DAYS -> ns (float), safe cast to nullable Int64
         NS_PER_DAY = float(getattr(self, "_unit_scale", 24 * 60 * 60 * 1e9))
