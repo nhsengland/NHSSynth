@@ -35,7 +35,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
     def __init__(
         self,
-        n_components: int = 5,
+        n_components: int = 10,  # Increased max components, let Bayesian prior select effective number
         n_init: int = 10,
         init_params: str = "kmeans",
         random_state: int = 0,
@@ -50,10 +50,13 @@ class ClusterContinuousTransformer(ColumnTransformer):
             n_init=n_init,
             init_params=init_params,
             max_iter=max_iter,
-            weight_concentration_prior=1.0,  # 1e-3,
+            weight_concentration_prior=1e-3,  # Low prior encourages sparsity - unused components → 0 weight
         )
         self._n_components = n_components
-        self._std_multiplier = 4
+        # Reduced from 4 → 3 → 1 to fix z-score compression
+        # With GMM component stds up to 1.7x column std, multiplier=3 was over-compressing
+        # z = (x - μ) / (1σ) gives proper z-score scaling
+        self._std_multiplier = 1
         self._missingness_column_name = None
         self._max_iter = max_iter
         self.remove_unused_components = remove_unused_components
@@ -135,17 +138,42 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
         self.means = self._transformer.means_.reshape(-1)
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)
-        
+
+        # Diagnostic: Show effective number of components (weight > 1%)
+        weights = self._transformer.weights_
+        effective_components = (weights > 0.01).sum()
+        col_name = getattr(self, 'name', 'unknown')
+        from tqdm import tqdm
+        tqdm.write(f"[{col_name}] BGM fitted {effective_components}/{len(weights)} components with weights: {weights.round(3)}")
+
+        # Store training data bounds for safety clipping during generation
+        # Use percentiles to be robust to outliers
+        self._data_min = float(np.percentile(data, 0.5))  # 0.5th percentile
+        self._data_max = float(np.percentile(data, 99.5))  # 99.5th percentile
+        # Add small margin for reasonable extrapolation (5% beyond observed range)
+        # Tightened from 10% to improve fidelity
+        data_range = self._data_max - self._data_min
+        self._safe_min = self._data_min - 0.05 * data_range
+        self._safe_max = self._data_max + 0.05 * data_range
+
         # --- variance floor: keep components from collapsing ---
-        # use a data-driven floor: 5% of the column's std, with an absolute minimum
+        # Use a more adaptive floor: 15% of the column's std (increased from 10%)
+        # This prevents extreme z-scores from collapsed components
         col_std = float(np.std(data)) if data.size else 0.0
-        sigma_floor = max(1e-2, 0.1 * col_std)
+        # Increased floor percentage and minimum to be more conservative
+        sigma_floor = max(0.05, 0.15 * col_std)
 
         # store for use in revert
         self._sigma_floor = sigma_floor
 
         # apply the floor to the stds used to normalise (keeps z-scale reasonable during training)
         self.stds = np.maximum(self.stds, sigma_floor)
+
+        # Debug output
+        from tqdm import tqdm
+        tqdm.write(f"[{self.name}] fit: col_std={col_std:.4f}, sigma_floor={sigma_floor:.4f}, "
+                   f"stds range=[{float(np.min(self.stds)):.4f}, {float(np.max(self.stds)):.4f}], "
+                   f"safe_range=[{self._safe_min:.2f}, {self._safe_max:.2f}]")
 
 
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
@@ -301,6 +329,11 @@ class ClusterContinuousTransformer(ColumnTransformer):
             if bad.any():
                 logits = comps[bad]
 
+                # Apply temperature to component selection to blur GMM boundaries
+                # Higher temperature = more uniform, less peaked component assignments
+                component_temperature = 4.0  # Increased to smooth out unimodal variables (x8)
+                logits = logits / component_temperature
+
                 # If these are already probabilities, they might be negative or not sum to 1.
                 # Convert to probabilities via stable softmax.
                 logits = logits - np.nanmax(logits, axis=1, keepdims=True)
@@ -326,7 +359,19 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # 4) Invert: x = z * (scale * sigma_k) + mu_k
         scale = getattr(self, "_std_multiplier", 1.0)
         decoded = vals * (scale * sigmas[k_idx]) + means[k_idx]
-        
+
+        # 4a) Apply safety clipping to prevent extreme outliers
+        safe_min = getattr(self, "_safe_min", None)
+        safe_max = getattr(self, "_safe_max", None)
+        if safe_min is not None and safe_max is not None:
+            pre_clip = decoded.copy()
+            decoded = np.clip(decoded, safe_min, safe_max)
+            n_clipped = np.sum((pre_clip < safe_min) | (pre_clip > safe_max))
+            if n_clipped > 0:
+                from tqdm import tqdm
+                tqdm.write(f"[revert:{base}] Clipped {n_clipped}/{len(decoded)} values to safe range "
+                          f"[{safe_min:.2f}, {safe_max:.2f}]")
+
         # DEBUG: remove after inspection
         from tqdm import tqdm
         tqdm.write(f"[{base}] scale={getattr(self,'_std_multiplier',None)}")

@@ -1,6 +1,11 @@
 import pathlib
 import sys
-from typing import Any, Iterable, Optional, Dict, Self, Union
+from typing import Any, Iterable, Optional, Dict, Union
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 import numpy as np
 import pandas as pd
@@ -111,6 +116,16 @@ class MetaTransformer:
         Returns:
             The column with the rounding scheme applied.
         """
+        # Check if column is numeric before applying rounding
+        if not pd.api.types.is_numeric_dtype(working_column):
+            # Try to coerce to numeric first
+            working_column = pd.to_numeric(working_column, errors='coerce')
+            if not pd.api.types.is_numeric_dtype(working_column):
+                # If still not numeric, skip rounding (likely datetime or categorical)
+                from tqdm import tqdm
+                tqdm.write(f"Warning: Skipping rounding for non-numeric column {working_column.name}")
+                return working_column
+
         working_column = np.round(working_column / rounding_scheme) * rounding_scheme
         return working_column.round(max(0, int(np.ceil(np.log10(1 / rounding_scheme)))))
 
@@ -206,26 +221,140 @@ class MetaTransformer:
         """
         Enforce constraints on a *decoded* DataFrame using
         self._metadata.constraints.minimal_constraints.
+
+        Supports:
+        - Numeric constant constraints (e.g., x > 0, x in (0, 100))
+        - Column reference constraints (e.g., x8 > x10)
+
+        Args:
+            df: DataFrame to repair
+            mode: Repair strategy ('reflect', 'resample', 'clamp')
+            rng: Random number generator
+            n_retries: Number of retries (unused for now)
+
+        Returns:
+            DataFrame with constraints enforced
         """
         import numpy as np
         import pandas as pd
+        from tqdm import tqdm
+
+        # CRITICAL DEBUG: Check if this method is even being called
+        tqdm.write(f"[repair_constraints] CALLED with df shape {df.shape}")
 
         if rng is None:
             rng = np.random.default_rng()
 
         constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
         if constraints is None:
+            tqdm.write(f"[repair_constraints] EARLY EXIT: constraints is None")
             return df
         constraints_iterable = getattr(constraints, "minimal_constraints", None)
         if constraints_iterable is None:
+            tqdm.write(f"[repair_constraints] EARLY EXIT: minimal_constraints is None")
             return df
 
         repaired = df.copy()
+        violations_fixed = 0
 
-        # >>> paste your _as_number, _norm_op, _ensure_binary_or_in, and the rest
-        # of the implementation here, unchanged except for using `repaired` and `self`
-        # where needed. Make sure helper defs are nested inside this method so they can
-        # see `mode`, `rng`, `repaired`, and `self`.
+        # Import ComboConstraint to check instance
+        from nhssynth.modules.dataloader.constraints import ConstraintGraph
+
+        # Convert to list to avoid consuming iterator
+        constraints_list = list(constraints_iterable)
+        tqdm.write(f"[repair_constraints] Processing {len(constraints_list)} constraints")
+
+        # Iterate through minimal constraints and repair violations
+        for constraint in constraints_list:
+            # Skip combo constraints for now (they require special handling)
+            if isinstance(constraint, ConstraintGraph.ComboConstraint):
+                continue
+
+            base = constraint.base
+            operator = constraint.operator
+            reference = constraint.reference
+            is_column = constraint.reference_is_column
+
+            # Skip if base column doesn't exist in dataframe
+            if base not in repaired.columns:
+                continue
+
+            # Get base values
+            base_vals = pd.to_numeric(repaired[base], errors='coerce')
+
+            # Handle column reference constraints (e.g., x8 > x10)
+            if is_column:
+                if reference not in repaired.columns:
+                    continue
+                ref_vals = pd.to_numeric(repaired[reference], errors='coerce')
+            else:
+                # Handle numeric constant constraints (e.g., x > 0)
+                try:
+                    ref_vals = float(reference)
+                except ValueError:
+                    # Could be datetime, skip for now
+                    continue
+
+            # Identify violations
+            if operator == ">":
+                violations = base_vals <= ref_vals
+            elif operator == ">=":
+                violations = base_vals < ref_vals
+            elif operator == "<":
+                violations = base_vals >= ref_vals
+            elif operator == "<=":
+                violations = base_vals > ref_vals
+            else:
+                continue  # Unknown operator
+
+            # Only repair finite violations (skip NaN)
+            violations = violations & np.isfinite(base_vals)
+
+            n_viol = violations.sum()
+            if n_viol == 0:
+                continue
+
+            # Debug: Show violation details
+            tqdm.write(f"  Constraint '{base} {operator} {reference}': {n_viol} violations detected")
+            violations_fixed += n_viol
+
+            # Repair strategy
+            if operator in [">", ">="]:
+                # Base must be greater than reference
+                if is_column:
+                    # Add small margin above reference (5% of reference value or 0.1, whichever is larger)
+                    margin = np.maximum(0.1, 0.05 * np.abs(ref_vals[violations]))
+                    if operator == ">":
+                        repaired.loc[violations, base] = ref_vals[violations] + margin
+                    else:  # >=
+                        repaired.loc[violations, base] = ref_vals[violations]
+                else:
+                    # Numeric constant
+                    margin = max(0.1, 0.05 * abs(ref_vals))
+                    if operator == ">":
+                        repaired.loc[violations, base] = ref_vals + margin
+                    else:  # >=
+                        repaired.loc[violations, base] = ref_vals
+
+            elif operator in ["<", "<="]:
+                # Base must be less than reference
+                if is_column:
+                    margin = np.maximum(0.1, 0.05 * np.abs(ref_vals[violations]))
+                    if operator == "<":
+                        repaired.loc[violations, base] = ref_vals[violations] - margin
+                    else:  # <=
+                        repaired.loc[violations, base] = ref_vals[violations]
+                else:
+                    margin = max(0.1, 0.05 * abs(ref_vals))
+                    if operator == "<":
+                        repaired.loc[violations, base] = ref_vals - margin
+                    else:  # <=
+                        repaired.loc[violations, base] = ref_vals
+
+        if violations_fixed > 0:
+            tqdm.write(f"[repair_constraints] Fixed {violations_fixed} constraint violations")
+        else:
+            tqdm.write(f"[repair_constraints] No violations detected")
 
         return repaired
 
@@ -446,7 +575,10 @@ class MetaTransformer:
         Returns:
             The original dataset.
         """
-        
+        # Import at the top so nested functions can use it
+        import numpy as np
+        from tqdm import tqdm
+
         def _zstat(df, base):
             for sfx in ("_value","_normalized","_normalised"):
                 col = f"{base}{sfx}"
@@ -488,10 +620,44 @@ class MetaTransformer:
                 tqdm.write(f"[{tag}] debug failed: {e}")
 
         _dbg("post-revert")
-        
+
+        # Add Gaussian smoothing to continuous variables to blur GMM component peaks
+        try:
+            from tqdm import tqdm
+            import numpy as np
+            smoothing_std = 0.03  # 3% of column std as smoothing noise
+            continuous_cols = []
+            for col_meta in self._metadata:
+                # Skip datetime columns, categorical columns, and missingness indicators
+                if (hasattr(col_meta, 'transformer') and
+                    col_meta.name in dataset.columns and
+                    not col_meta.name.endswith('_missing') and
+                    dataset[col_meta.name].dtype in ['float64', 'float32', 'int64', 'int32']):
+                    continuous_cols.append(col_meta.name)
+
+            if continuous_cols:
+                for col in continuous_cols:
+                    col_std = dataset[col].std()
+                    if col_std > 0:
+                        noise = np.random.normal(0, smoothing_std * col_std, size=len(dataset))
+                        dataset[col] = dataset[col] + noise
+                tqdm.write(f"[inverse_apply] Applied Gaussian smoothing (std={smoothing_std}) to {len(continuous_cols)} continuous columns")
+        except Exception as e:
+            from tqdm import tqdm
+            tqdm.write(f"[inverse_apply] WARNING: Gaussian smoothing failed: {e}")
+
         # Ensure the dataset has the same columns as the original
         # Enforce constraints on decoded data if available
-        dataset = self.repair_constraints(dataset, mode="resample")
+        try:
+            from tqdm import tqdm
+            tqdm.write(f"[inverse_apply] About to call repair_constraints...")
+            dataset = self.repair_constraints(dataset, mode="resample")
+            tqdm.write(f"[inverse_apply] repair_constraints completed")
+        except Exception as e:
+            from tqdm import tqdm
+            tqdm.write(f"[inverse_apply] ERROR calling repair_constraints: {type(e).__name__}: {e}")
+            import traceback
+            tqdm.write(traceback.format_exc())
 
         _dbg("post-constraints")
 

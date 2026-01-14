@@ -69,6 +69,8 @@ class Decoder(nn.Module):
             self.optim = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
     def forward(self, z):
+        # No output activation - let the network learn the natural output distribution
+        # Safety clipping and constraint repair will handle extreme values during generation
         return self.net(z)
 
         
@@ -188,13 +190,74 @@ class VAE(Model):
     def generate(self, N: Optional[int] = None) -> pd.DataFrame:
         import re
         import torch
+        from tqdm import tqdm
+        import numpy as np
+
         N = N or self.nrows
 
-        # sample latent, decode
-        z_samples = torch.randn_like(torch.ones((N, self.encoder.latent_dim), device=self.device))
+        # Sample from learned latent distribution
+        # NOTE: VAEs are designed to have N(0,1) latent space via KL divergence
+        # The learned stats should be close to 0 and 1 - this is correct behavior!
+        if hasattr(self, 'latent_mean') and hasattr(self, 'latent_std'):
+            latent_mean = self.latent_mean.to(self.device)
+            latent_std = self.latent_std.to(self.device)
+            # Sample: z ~ N(learned_mean, learned_std)
+            z_samples = latent_mean + latent_std * torch.randn(N, self.encoder.latent_dim, device=self.device)
+            tqdm.write(f"Sampling from learned posterior: mean={latent_mean.mean():.3f}, std={latent_std.mean():.3f}")
+            tqdm.write(f"  (Note: VAE latent space is regularized toward N(0,1) by design)")
+        else:
+            # Fallback to standard normal
+            z_samples = torch.randn(N, self.encoder.latent_dim, device=self.device)
+            tqdm.write("Using N(0,1) prior for latent sampling")
+
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="Using a non-full backward hook")
             x_gen = self.decoder(z_samples)
+
+        # Diagnostic: Check decoder output statistics before any modifications
+        cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
+        if cont_idx:
+            cont_idx_tensor = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
+            decoder_mean = float(x_gen[:, cont_idx_tensor].mean())
+            decoder_std = float(x_gen[:, cont_idx_tensor].std())
+            decoder_min = float(x_gen[:, cont_idx_tensor].min())
+            decoder_max = float(x_gen[:, cont_idx_tensor].max())
+            tqdm.write(f"Decoder outputs for {len(cont_idx)} continuous value columns: "
+                      f"mean={decoder_mean:.3f}, std={decoder_std:.3f}, "
+                      f"range=[{decoder_min:.3f}, {decoder_max:.3f}]")
+
+            # Temperature scaling to increase variance of generated continuous values
+            # This prevents mode collapse onto GMM component means
+            temperature = 3.0  # Aggressive scaling to smooth out GMM component peaks
+
+            # Identify datetime columns (they have "_normalised" suffix and original column is datetime)
+            datetime_indices = []
+            cols = self.columns
+            for idx in cont_idx:
+                col_name = cols[idx]
+                # Datetime columns have format "dob_normalised" - check if original column was datetime
+                if col_name.endswith('_normalised'):
+                    base_name = col_name.replace('_normalised', '')
+                    # Check if this is a datetime column by looking for it in metadata
+                    for col_meta in self.metatransformer._metadata:
+                        if col_meta.name == base_name and hasattr(col_meta.transformer, '__class__'):
+                            if 'DatetimeTransformer' in str(type(col_meta.transformer)):
+                                datetime_indices.append(idx)
+                                break
+
+            # Apply base temperature to all continuous columns
+            x_gen[:, cont_idx_tensor] = x_gen[:, cont_idx_tensor] * temperature
+
+            # Apply additional temperature boost to datetime columns (single Gaussian needs more spread)
+            if datetime_indices:
+                datetime_boost = 5.0  # Additional 5x for datetime (total 15x for wide temporal distributions)
+                datetime_tensor = torch.tensor(datetime_indices, device=x_gen.device, dtype=torch.long)
+                x_gen[:, datetime_tensor] = x_gen[:, datetime_tensor] * datetime_boost
+                tqdm.write(f"Applied temperature scaling: {temperature}x to continuous, {temperature * datetime_boost}x to {len(datetime_indices)} datetime columns")
+            else:
+                tqdm.write(f"Applied temperature scaling: {temperature}x to continuous columns")
+
+            # REMOVED aggressive safety clipping - let transformer handle it
 
         # after x_gen = self.decoder(...)
         x_gen_ = x_gen.clone()
@@ -202,20 +265,30 @@ class VAE(Model):
         import re
         cols = self.columns  # make sure MetaTransformer.transform() set this!
         categorical_groups = []
+        gmm_component_groups = []
         for group in (self.multi_column_indices or []):
             names = [cols[j] for j in group]
             has_value = any(n.endswith(("_value","_normalized","_normalised")) for n in names)
             has_mix  = any(re.search(r"_c\d+$", n) for n in names)
-            if not has_value and not has_mix:
+            if has_mix:
+                # GMM component columns - apply temperature to smooth component selection
+                gmm_component_groups.append(group)
+            elif not has_value:
+                # Regular categorical variables
                 categorical_groups.append(group)
+
+        # Apply temperature to GMM component logits to encourage mixing
+        gmm_temperature = 2.0  # Moderate temperature to preserve multimodal structure
+        for gmm_idxs in gmm_component_groups:
+            x_gen_[:, gmm_idxs] = x_gen[:, gmm_idxs] / gmm_temperature
+        if gmm_component_groups:
+            tqdm.write(f"Applied GMM component temperature {gmm_temperature}x to {len(gmm_component_groups)} groups")
 
         from torch.distributions import OneHotCategorical
         for cat_idxs in categorical_groups:
             logits = x_gen[:, cat_idxs]
             x_gen_[:, cat_idxs] = OneHotCategorical(logits=logits).sample()
-        
-        from tqdm import tqdm
-        import numpy as np
+
         tqdm.write(f"one-hot groups (sizes): {[len(g) for g in categorical_groups]}")
 
         # --- singles noise (existing behaviour) ---
@@ -229,14 +302,20 @@ class VAE(Model):
                 scale = torch.exp(noiser_output)
                 x_gen_[:, idx_tensor] = loc + scale * torch.randn_like(loc)
 
-        # --- jitter continuous "value" z-columns ---
+        # --- DISABLED z-jitter for debugging ---
+        # The decoder outputs already have high std (>2), adding jitter makes it worse
+        # TODO: Re-enable with proper calibration once decoder outputs are stable
         cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
-        if cont_idx:
+        if cont_idx and False:  # Disabled
             idx = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
-            z_sigma = getattr(self, "z_jitter_std", 0.7)
+            z_sigma = getattr(self, "z_jitter_std", 0.0)  # Set to 0 by default
             if not torch.is_tensor(z_sigma):
                 z_sigma = torch.tensor(float(z_sigma), device=x_gen.device)
-            x_gen_[:, idx] = x_gen[:, idx] + z_sigma * torch.randn_like(x_gen[:, idx])
+            if z_sigma > 0:
+                x_gen_[:, idx] = x_gen[:, idx] + z_sigma * torch.randn_like(x_gen[:, idx])
+                tqdm.write(f"Applied z-jitter with sigma={float(z_sigma):.3f}")
+            else:
+                tqdm.write(f"Z-jitter disabled (sigma=0)")
 
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
@@ -362,6 +441,10 @@ class VAE(Model):
         self.decoder.train()
         self.noiser.train()
 
+        # Initialize latent statistics accumulators
+        latent_mus = []
+        latent_sigmas = []
+
         for epoch in tqdm(
             range(num_epochs),
             desc="Epochs",
@@ -382,6 +465,14 @@ class VAE(Model):
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", message="Using a non-full backward hook")
                     losses = self.loss(Y_subset.to(self.device))
+
+                    # Track latent statistics from last few epochs for generation
+                    if epoch >= max(0, num_epochs - 5):
+                        with torch.no_grad():
+                            mu_z, logsigma_z = self.encoder(Y_subset.to(self.device))
+                            latent_mus.append(mu_z.cpu())
+                            latent_sigmas.append(torch.exp(logsigma_z).cpu())
+
                 losses["ELBO"].backward()
                 self.step()
                 self._record_metrics(losses)
@@ -390,6 +481,18 @@ class VAE(Model):
             if self._check_patience(epoch, elbo):
                 num_epochs = epoch + 1
                 break
+
+        # Store learned latent statistics for generation
+        if latent_mus:
+            all_mus = torch.cat(latent_mus, dim=0)
+            all_sigmas = torch.cat(latent_sigmas, dim=0)
+            self.latent_mean = torch.mean(all_mus, dim=0)
+            self.latent_std = torch.mean(all_sigmas, dim=0)
+            tqdm.write(f"Learned latent stats: mean={self.latent_mean.mean():.3f}, std={self.latent_std.mean():.3f}")
+        else:
+            # Fallback to standard normal
+            self.latent_mean = torch.zeros(self.encoder.latent_dim)
+            self.latent_std = torch.ones(self.encoder.latent_dim)
 
         self._finish_training(num_epochs)
         return (num_epochs, self.metrics)

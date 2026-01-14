@@ -150,9 +150,15 @@ class MetaData:
             if self.categorical:
                 transformer = OHECategoricalTransformer(**self.transformer_config)
             else:
-                transformer = ClusterContinuousTransformer(**self.transformer_config)
-            if self.dtype.kind == "M":
-                transformer = DatetimeTransformer(transformer)
+                # Datetime columns should use single Gaussian (typically smooth temporal distributions)
+                if self.dtype.kind == "M":
+                    datetime_config = self.transformer_config.copy()
+                    # Force exactly 1 component for smooth temporal distributions
+                    datetime_config['n_components'] = 1
+                    transformer = ClusterContinuousTransformer(**datetime_config)
+                    transformer = DatetimeTransformer(transformer)
+                else:
+                    transformer = ClusterContinuousTransformer(**self.transformer_config)
             return transformer
 
     def __init__(self, data: pd.DataFrame, metadata: Optional[dict] = {}):

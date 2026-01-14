@@ -65,9 +65,12 @@ class DatetimeTransformer(TransformerWrapper):
             p99 = float(np.nanpercentile(vals, 99))
             window = p99 - p1
 
-            # Cache bounds in *days*
+            # Cache bounds in *days* AND *ns* (revert uses ns)
             self._days_min = p1 if window > 0 else None
             self._days_max = p99 if window > 0 else None
+            # Store NS versions for revert (FIX: revert was looking for _ns_min/max but we only set _days_min/max)
+            self._ns_min = p1 * NS_PER_DAY if window > 0 else None
+            self._ns_max = p99 * NS_PER_DAY if window > 0 else None
 
             # Small reservoir (in-bounds, in *days*) for repair/jitter
             pool = vals[(vals >= p1) & (vals <= p99)]
@@ -75,9 +78,12 @@ class DatetimeTransformer(TransformerWrapper):
                 rng = np.random.default_rng(0)
                 pool = rng.choice(pool, size=5000, replace=False)
             self._days_pool = pool.astype("float64", copy=False)
+            # Store NS version for revert (FIX: revert was looking for _ns_pool)
+            self._ns_pool = (pool * NS_PER_DAY).astype("float64", copy=False)
 
             # Enable clamp only for sensible windows (>= 30 days)
             self._days_clamp_enabled = bool(window >= 30.0)
+            self._ns_clamp_enabled = bool(window >= 30.0)  # FIX: revert uses _ns_clamp_enabled
 
             # Debug
             p1_ts = pd.to_datetime(int(round(p1 * NS_PER_DAY)), unit="ns", errors="coerce")
@@ -89,8 +95,11 @@ class DatetimeTransformer(TransformerWrapper):
             )
         else:
             self._days_min = self._days_max = None
+            self._ns_min = self._ns_max = None  # FIX: also set ns versions
             self._days_pool = np.array([], dtype="float64")
+            self._ns_pool = np.array([], dtype="float64")  # FIX: also set ns version
             self._days_clamp_enabled = False
+            self._ns_clamp_enabled = False  # FIX: also set ns version
             tqdm.write(f"[datetime.apply] {self.original_column_name}: insufficient data; clamp OFF, empty pool")
 
         # Hand off DAYS series to the mixture/continuous transformer
@@ -120,7 +129,11 @@ class DatetimeTransformer(TransformerWrapper):
         # 2) DAYS as float
         days = pd.to_numeric(reverted[base], errors="coerce").astype("float64")
 
-        # 3) Optional clamp+tiny jitter in *days*
+        # 3) Convert to ns for clamping (FIX: need to define ns_vals before using it)
+        NS_PER_DAY = float(getattr(self, "_unit_scale", 24 * 60 * 60 * 1e9))
+        ns_vals = days * NS_PER_DAY
+
+        # 3b) Optional clamp+tiny jitter in *ns*
         # --- replace the hard clip with pool-based resample + light jitter ---
         ns_min = getattr(self, "_ns_min", None)
         ns_max = getattr(self, "_ns_max", None)
@@ -154,10 +167,8 @@ class DatetimeTransformer(TransformerWrapper):
                 J_small = int(max(1e7, 0.0002 * (ns_max - ns_min)))  # ≥0.01s or 0.02% window
                 ns_vals[good] = ns_vals[good] + rng.integers(-J_small, J_small + 1, size=int(good.sum()))
 
-
-        # 4) DAYS -> ns (float), safe cast to nullable Int64
-        NS_PER_DAY = float(getattr(self, "_unit_scale", 24 * 60 * 60 * 1e9))
-        ns_float = days * NS_PER_DAY
+        # 4) Use the clamped/jittered ns_vals (already computed above)
+        ns_float = ns_vals
         finite = np.isfinite(ns_float)
 
         # Prevent int64 overflow before rounding
