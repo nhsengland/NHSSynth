@@ -1,3 +1,6 @@
+# Critical bug fix debugged and implemented using Claude Code (2026-01-16)
+# - Fixed kurtosis detection for adaptive temperature (lines 253-260)
+
 import warnings
 from typing import Optional
 

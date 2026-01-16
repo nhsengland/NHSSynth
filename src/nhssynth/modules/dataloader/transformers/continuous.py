@@ -1,3 +1,8 @@
+# Critical bug fixes debugged and implemented using Claude Code (2026-01-16)
+# - Fixed clipping bounds (lines 159-169)
+# - Removed duplicate component temperature (lines 361-364)
+# - Added component selection diagnostics (lines 388-396)
+
 import re
 import warnings
 from typing import Optional, List
