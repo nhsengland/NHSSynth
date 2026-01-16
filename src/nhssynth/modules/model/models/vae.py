@@ -226,36 +226,65 @@ class VAE(Model):
                       f"mean={decoder_mean:.3f}, std={decoder_std:.3f}, "
                       f"range=[{decoder_min:.3f}, {decoder_max:.3f}]")
 
-            # Temperature scaling to increase variance of generated continuous values
-            # This prevents mode collapse onto GMM component means
-            temperature = 3.0  # Aggressive scaling to smooth out GMM component peaks
+            # Adaptive temperature scaling based on variable characteristics
+            # This prevents mode collapse while preserving naturally-peaked distributions
+            base_temperature = 3.0  # Default for smooth distributions
+            peaked_temperature = 1.5  # Lower for peaked distributions (high kurtosis)
+            datetime_boost = 5.0  # Additional boost for datetime
 
-            # Identify datetime columns (they have "_normalised" suffix and original column is datetime)
+            # Categorize continuous columns by their characteristics
             datetime_indices = []
+            peaked_indices = []
+            normal_indices = []
+
             cols = self.columns
             for idx in cont_idx:
                 col_name = cols[idx]
-                # Datetime columns have format "dob_normalised" - check if original column was datetime
                 if col_name.endswith('_normalised'):
                     base_name = col_name.replace('_normalised', '')
-                    # Check if this is a datetime column by looking for it in metadata
+
+                    # Check column characteristics from metadata
                     for col_meta in self.metatransformer._metadata:
-                        if col_meta.name == base_name and hasattr(col_meta.transformer, '__class__'):
-                            if 'DatetimeTransformer' in str(type(col_meta.transformer)):
+                        if col_meta.name == base_name:
+                            # Check if datetime
+                            if hasattr(col_meta.transformer, '__class__') and 'DatetimeTransformer' in str(type(col_meta.transformer)):
                                 datetime_indices.append(idx)
-                                break
+                                tqdm.write(f"  [{base_name}] idx={idx} → datetime")
+                            # Check if high kurtosis (peaked) - check outer transformer first
+                            elif hasattr(col_meta.transformer, '_kurtosis') and col_meta.transformer._kurtosis > 5:
+                                peaked_indices.append(idx)
+                                tqdm.write(f"  [{base_name}] idx={idx} → peaked (kurtosis={col_meta.transformer._kurtosis:.2f})")
+                            else:
+                                normal_indices.append(idx)
+                                tqdm.write(f"  [{base_name}] idx={idx} → normal")
+                            break
 
-            # Apply base temperature to all continuous columns
-            x_gen[:, cont_idx_tensor] = x_gen[:, cont_idx_tensor] * temperature
+            # Apply adaptive temperature
+            if peaked_indices:
+                peaked_tensor = torch.tensor(peaked_indices, device=x_gen.device, dtype=torch.long)
+                # Debug: check std before and after
+                before_std = x_gen[:, peaked_tensor].std(dim=0).mean().item()
+                x_gen[:, peaked_tensor] = x_gen[:, peaked_tensor] * peaked_temperature
+                after_std = x_gen[:, peaked_tensor].std(dim=0).mean().item()
+                tqdm.write(f"  Peaked columns: std before={before_std:.4f}, after={after_std:.4f}")
 
-            # Apply additional temperature boost to datetime columns (single Gaussian needs more spread)
+            if normal_indices:
+                normal_tensor = torch.tensor(normal_indices, device=x_gen.device, dtype=torch.long)
+                before_std = x_gen[:, normal_tensor].std(dim=0).mean().item()
+                x_gen[:, normal_tensor] = x_gen[:, normal_tensor] * base_temperature
+                after_std = x_gen[:, normal_tensor].std(dim=0).mean().item()
+                tqdm.write(f"  Normal columns: std before={before_std:.4f}, after={after_std:.4f}")
+
             if datetime_indices:
-                datetime_boost = 5.0  # Additional 5x for datetime (total 15x for wide temporal distributions)
                 datetime_tensor = torch.tensor(datetime_indices, device=x_gen.device, dtype=torch.long)
-                x_gen[:, datetime_tensor] = x_gen[:, datetime_tensor] * datetime_boost
-                tqdm.write(f"Applied temperature scaling: {temperature}x to continuous, {temperature * datetime_boost}x to {len(datetime_indices)} datetime columns")
-            else:
-                tqdm.write(f"Applied temperature scaling: {temperature}x to continuous columns")
+                before_std = x_gen[:, datetime_tensor].std(dim=0).mean().item()
+                x_gen[:, datetime_tensor] = x_gen[:, datetime_tensor] * (base_temperature * datetime_boost)
+                after_std = x_gen[:, datetime_tensor].std(dim=0).mean().item()
+                tqdm.write(f"  Datetime columns: std before={before_std:.4f}, after={after_std:.4f}")
+
+            tqdm.write(f"Applied adaptive temperature: {peaked_temperature}x to {len(peaked_indices)} peaked, "
+                      f"{base_temperature}x to {len(normal_indices)} normal, "
+                      f"{base_temperature * datetime_boost}x to {len(datetime_indices)} datetime columns")
 
             # REMOVED aggressive safety clipping - let transformer handle it
 
@@ -302,20 +331,12 @@ class VAE(Model):
                 scale = torch.exp(noiser_output)
                 x_gen_[:, idx_tensor] = loc + scale * torch.randn_like(loc)
 
-        # --- DISABLED z-jitter for debugging ---
-        # The decoder outputs already have high std (>2), adding jitter makes it worse
-        # TODO: Re-enable with proper calibration once decoder outputs are stable
-        cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
-        if cont_idx and False:  # Disabled
-            idx = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
-            z_sigma = getattr(self, "z_jitter_std", 0.0)  # Set to 0 by default
-            if not torch.is_tensor(z_sigma):
-                z_sigma = torch.tensor(float(z_sigma), device=x_gen.device)
-            if z_sigma > 0:
-                x_gen_[:, idx] = x_gen[:, idx] + z_sigma * torch.randn_like(x_gen[:, idx])
-                tqdm.write(f"Applied z-jitter with sigma={float(z_sigma):.3f}")
-            else:
-                tqdm.write(f"Z-jitter disabled (sigma=0)")
+        # --- Z-jitter disabled ---
+        # Adding jitter in z-space destroys the GMM structure that the decoder learned
+        # The low decoder variance might be intentional: decoder outputs z≈0, relying on:
+        #   1. Component selection for multimodality
+        #   2. Component stds for variance during inverse transform
+        # Mean shifts suggest component selection/means mismatch, not variance issue
 
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()

@@ -146,15 +146,44 @@ class ClusterContinuousTransformer(ColumnTransformer):
         from tqdm import tqdm
         tqdm.write(f"[{col_name}] BGM fitted {effective_components}/{len(weights)} components with weights: {weights.round(3)}")
 
+        # Show component means and stds to understand distribution
+        means = self._transformer.means_.reshape(-1)
+        covariances = self._transformer.covariances_
+        if covariances.ndim == 1:
+            stds = np.sqrt(covariances)
+        elif covariances.ndim == 3:
+            stds = np.sqrt(covariances[:, 0, 0])
+        else:
+            stds = np.sqrt(np.diag(covariances) if covariances.shape[0] == covariances.shape[1] else covariances[:, 0])
+
+        # Calculate expected mean from GMM
+        expected_mean = np.sum(weights * means)
+        actual_mean = float(np.mean(data))
+        tqdm.write(f"[{col_name}] Component means: {means.round(2)}")
+        tqdm.write(f"[{col_name}] Component stds: {stds.round(2)}")
+        tqdm.write(f"[{col_name}] GMM expected mean: {expected_mean:.2f}, actual data mean: {actual_mean:.2f}")
+
+        # Calculate kurtosis to detect heavily-peaked distributions
+        # High kurtosis (>5) indicates need for lower temperature to preserve peakedness
+        from scipy import stats
+        if data.size > 10:
+            self._kurtosis = float(stats.kurtosis(data.flatten(), fisher=True))  # Fisher=True gives excess kurtosis
+            if self._kurtosis > 5:
+                tqdm.write(f"[{col_name}] High kurtosis detected: {self._kurtosis:.2f} (peaked distribution)")
+        else:
+            self._kurtosis = 0.0
+
         # Store training data bounds for safety clipping during generation
-        # Use percentiles to be robust to outliers
-        self._data_min = float(np.percentile(data, 0.5))  # 0.5th percentile
-        self._data_max = float(np.percentile(data, 99.5))  # 99.5th percentile
-        # Add small margin for reasonable extrapolation (5% beyond observed range)
-        # Tightened from 10% to improve fidelity
+        # Use actual min to preserve lower bound (e.g., for variables bounded at 0)
+        # Use 99.9th percentile for max to be robust to outliers
+        self._data_min = float(np.min(data))  # Actual minimum
+        self._data_max = float(np.percentile(data, 99.9))  # 99.9th percentile
         data_range = self._data_max - self._data_min
-        self._safe_min = self._data_min - 0.05 * data_range
-        self._safe_max = self._data_max + 0.05 * data_range
+        # No margin on min to avoid generating negative values when natural bound is 0
+        # This prevents constraint violations and artificial pileup at 0 after repair
+        self._safe_min = self._data_min  # 0% margin on lower bound
+        # Larger margin on max (15%) to allow reasonable extrapolation
+        self._safe_max = self._data_max + 0.15 * data_range
 
         # --- variance floor: keep components from collapsing ---
         # Use a more adaptive floor: 15% of the column's std (increased from 10%)
@@ -329,10 +358,10 @@ class ClusterContinuousTransformer(ColumnTransformer):
             if bad.any():
                 logits = comps[bad]
 
-                # Apply temperature to component selection to blur GMM boundaries
-                # Higher temperature = more uniform, less peaked component assignments
-                component_temperature = 4.0  # Increased to smooth out unimodal variables (x8)
-                logits = logits / component_temperature
+                # Component temperature already applied in VAE (gmm_temperature=2.0)
+                # Applying additional temperature here was causing component selection bias
+                # component_temperature = 4.0  # REMOVED - was causing 8x total temperature
+                # logits = logits / component_temperature  # REMOVED
 
                 # If these are already probabilities, they might be negative or not sum to 1.
                 # Convert to probabilities via stable softmax.
@@ -355,6 +384,16 @@ class ClusterContinuousTransformer(ColumnTransformer):
         else:
             # no component columns: fall back to first component
             k_idx = np.zeros(len(vals), dtype=int)
+
+        # Debug: show component selection frequencies
+        from tqdm import tqdm
+        unique_k, counts_k = np.unique(k_idx, return_counts=True)
+        selection_freq = np.zeros(len(means))
+        selection_freq[unique_k] = counts_k / len(k_idx)
+        tqdm.write(f"[revert:{base}] Component selection frequencies: {selection_freq.round(3)}")
+        # Calculate mean from selected components
+        selected_mean = np.mean(means[k_idx])
+        tqdm.write(f"[revert:{base}] Mean from selected components: {selected_mean:.2f}")
 
         # 4) Invert: x = z * (scale * sigma_k) + mu_k
         scale = getattr(self, "_std_multiplier", 1.0)

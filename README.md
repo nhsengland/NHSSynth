@@ -46,6 +46,7 @@ This repository currently consists of a Python package alongside research and in
   - The components used to create the GitHub Pages [documentation site](https://nhsengland.github.io/NHSSynth/)
   - A [report](docs/reports/report.pdf) summarising the previous iteration of this project
   - A [model card](docs/model_card.md) providing more information about the VAE with Differential Privacy
+  - Optimized [transformer configuration](config/optimized_transformer_config.yaml) and [implementation summary](config/IMPLEMENTATION_SUMMARY.md) documenting synthetic data fidelity improvements
 - Numerous exemplar configurations are found in [`config`](config/)
 - Empty [`data`](data/) and [`experiments`](experiments/) folders are provided; these are the default locations for inputs and outputs when running the project using the provided [CLI](../src/nhssynth/cli/) module
 - Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](../auxiliary/)
@@ -115,7 +116,7 @@ To ensure reproducibility, you should always specify a `--seed` value and provid
 
 #### Python API
 
-Alternatively, you may want to import parts of the package into your own project or notebook. There is a minimum working example of this [in the auxiliary folder](auxiliary/mwe.ipynb). You can learn more about the API and structure of the package and its modules in the docs to reuse components as you see fit.
+Alternatively, you may want to import parts of the package into your own project or notebook. There is an optimized minimum working example [in the auxiliary folder](auxiliary/mwe_optimized.ipynb) demonstrating the latest fidelity improvements. You can learn more about the API and structure of the package and its modules in the docs to reuse components as you see fit.
 
 ### Package Structure
 
