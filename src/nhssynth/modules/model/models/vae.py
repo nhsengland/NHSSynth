@@ -1,5 +1,10 @@
-# Critical bug fix debugged and implemented using Claude Code (2026-01-16)
-# - Fixed kurtosis detection for adaptive temperature (lines 253-260)
+# Critical bug fixes and improvements debugged and implemented using Claude Code
+# - 2026-01-16: Fixed kurtosis detection for adaptive temperature (lines 253-260)
+# - 2026-01-16: Added comprehensive training monitoring (lines 506-569)
+# - 2026-01-16: Added plot_training_curves() method for convergence diagnostics (lines 621-711)
+# - 2026-01-19: Fixed posterior collapse with free bits (lines 391-405)
+# - 2026-01-19: Added KL annealing and free bits parameters to train() (lines 466-510)
+# - 2026-01-19: Added logsigma_z clamping for numerical stability (line 392)
 
 import warnings
 from typing import Optional
@@ -179,6 +184,8 @@ class VAE(Model):
         return [
             "ELBO",
             "KLD",
+            "WeightedKLD",
+            "Beta",
             "ReconstructionLoss",
             "CategoricalLoss",
             "NumericalLoss",
@@ -384,15 +391,29 @@ class VAE(Model):
     def loss(self, X):
         mu_z, logsigma_z = self.encoder(X)
 
+        # Clamp logsigma_z for numerical stability
+        logsigma_z = torch.clamp(logsigma_z, min=-10, max=2)
+
         p = Normal(torch.zeros_like(mu_z), torch.ones_like(mu_z))
         q = Normal(mu_z, torch.exp(logsigma_z))
 
-        kld = torch.sum(torch.distributions.kl_divergence(q, p))
+        # Compute per-dimension KLD for free bits
+        kld_per_dim = torch.distributions.kl_divergence(q, p)  # Shape: (batch_size, latent_dim)
+
+        # Apply free bits: only penalize KLD above threshold per dimension
+        free_bits = getattr(self, '_free_bits', 0.0)  # Default: 0.0 (no free bits)
+        if free_bits > 0:
+            kld_per_dim = torch.maximum(kld_per_dim, torch.tensor(free_bits, device=X.device))
+
+        kld = torch.sum(kld_per_dim)
 
         s = torch.randn_like(mu_z)
         z_samples = mu_z + s * torch.exp(logsigma_z)
 
         x_recon = self.decoder(z_samples)
+
+        # Apply KL annealing via beta parameter
+        beta = getattr(self, '_beta', 1.0)  # Default to 1.0 if not set
 
         categoric_loglik = 0
 
@@ -430,12 +451,16 @@ class VAE(Model):
 
         reconstruction_loss = -(categoric_loglik + gauss_loglik + binary_loglik)
 
-        elbo = kld + reconstruction_loss
+        # Apply beta weighting to KLD for annealing
+        weighted_kld = beta * kld
+        elbo = weighted_kld + reconstruction_loss
 
         return {
             "ELBO": elbo / X.size()[0],
             "ReconstructionLoss": reconstruction_loss / X.size()[0],
-            "KLD": kld / X.size()[0],
+            "KLD": kld / X.size()[0],  # Unweighted KLD for monitoring
+            "WeightedKLD": weighted_kld / X.size()[0],  # Weighted KLD used in loss
+            "Beta": torch.tensor(beta),  # Current beta value
             "CategoricalLoss": categoric_loglik / X.size()[0],
             "NumericalLoss": gauss_loglik / X.size()[0],
             "BinaryLoss": binary_loglik / X.size()[0],
@@ -447,18 +472,46 @@ class VAE(Model):
         patience: int = 5,
         displayed_metrics: list[str] = ["ELBO"],
         notebook_run: bool = False,
+        beta_start: float = 0.0,
+        beta_end: float = 1.0,
+        beta_anneal_epochs: int = None,
+        free_bits: float = 2.0,
     ) -> tuple[int, dict[str, list[float]]]:
         """
-        Train the model.
+        Train the model with KL annealing and free bits to prevent posterior collapse.
 
         Args:
             num_epochs: Number of epochs to train for.
             patience: Number of epochs to wait for improvement before early stopping.
             displayed_metrics: List of metrics to display during training.
+            notebook_run: Whether running in a notebook (affects progress bar display).
+            beta_start: Starting value for KL weight (default: 0.0 for full annealing).
+            beta_end: Final value for KL weight (default: 1.0 for standard VAE).
+            beta_anneal_epochs: Number of epochs to anneal over (default: 50% of num_epochs).
+                               If None, uses num_epochs // 2.
+            free_bits: Minimum KLD per latent dimension (default: 2.0). Forces encoder to
+                      use latent capacity by only penalizing KLD above this threshold.
+                      Set to 0.0 to disable.
 
         Returns:
             The number of epochs trained for and a dictionary of the tracked metrics.
         """
+        # Set default annealing period to 50% of training
+        if beta_anneal_epochs is None:
+            beta_anneal_epochs = num_epochs // 2
+
+        tqdm.write(f"\nKL Annealing Schedule:")
+        tqdm.write(f"  Beta: {beta_start:.4f} → {beta_end:.4f} over {beta_anneal_epochs} epochs")
+        tqdm.write(f"  This prevents posterior collapse by gradually increasing KL weight")
+
+        tqdm.write(f"\nFree Bits: {free_bits:.2f} per latent dimension")
+        if free_bits > 0:
+            tqdm.write(f"  Forces encoder to use latent capacity by not penalizing KLD below threshold")
+        tqdm.write("")
+
+        # Set free bits for loss function
+        self._free_bits = free_bits
+
         self._start_training(num_epochs, patience, displayed_metrics, notebook_run)
 
         self.encoder.train()
@@ -475,6 +528,14 @@ class VAE(Model):
             position=len(self.stats_bars) if not notebook_run else 0,
             leave=False,
         ):
+            # Update beta for KL annealing
+            if epoch < beta_anneal_epochs:
+                # Linear annealing from beta_start to beta_end
+                self._beta = beta_start + (beta_end - beta_start) * (epoch / beta_anneal_epochs)
+            else:
+                # Hold at beta_end after annealing period
+                self._beta = beta_end
+
             if not notebook_run:
                 epoch_progress = tqdm(
                     self.data_loader,
@@ -502,6 +563,26 @@ class VAE(Model):
                 self._record_metrics(losses)
 
             elbo = np.mean(self.metrics["ELBO"][-len(self.data_loader) :])
+
+            # Enhanced monitoring: display loss components every 10 epochs
+            if epoch % 10 == 0 or epoch == num_epochs - 1:
+                recon_loss = np.mean(self.metrics["ReconstructionLoss"][-len(self.data_loader) :])
+                kld = np.mean(self.metrics["KLD"][-len(self.data_loader) :])
+                weighted_kld = np.mean(self.metrics["WeightedKLD"][-len(self.data_loader) :])
+                beta = np.mean(self.metrics["Beta"][-len(self.data_loader) :])
+                kld_ratio = kld / (recon_loss + 1e-8)
+
+                tqdm.write(f"Epoch {epoch:3d}: ELBO={elbo:8.2f}, Recon={recon_loss:8.2f}, "
+                          f"KLD={kld:8.2f} (β={beta:.3f}, weighted={weighted_kld:8.2f}), "
+                          f"KLD/Recon={kld_ratio:.4f}")
+
+                # Warning for posterior collapse (only after beta reaches 1.0)
+                if beta > 0.9:  # Only warn when close to full KL weight
+                    if kld < 10.0:
+                        tqdm.write(f"  ⚠️  WARNING: Low KLD ({kld:.2f}) suggests posterior collapse!")
+                    if kld_ratio < 0.01:
+                        tqdm.write(f"  ⚠️  WARNING: KLD/Recon ratio very low ({kld_ratio:.4f}) - decoder ignoring latent!")
+
             if self._check_patience(epoch, elbo):
                 num_epochs = epoch + 1
                 break
@@ -512,7 +593,49 @@ class VAE(Model):
             all_sigmas = torch.cat(latent_sigmas, dim=0)
             self.latent_mean = torch.mean(all_mus, dim=0)
             self.latent_std = torch.mean(all_sigmas, dim=0)
-            tqdm.write(f"Learned latent stats: mean={self.latent_mean.mean():.3f}, std={self.latent_std.mean():.3f}")
+
+            # Enhanced latent statistics
+            latent_mean_val = self.latent_mean.mean().item()
+            latent_std_val = self.latent_std.mean().item()
+            tqdm.write(f"\n{'='*80}")
+            tqdm.write(f"TRAINING SUMMARY")
+            tqdm.write(f"{'='*80}")
+            tqdm.write(f"Learned latent stats: mean={latent_mean_val:.4f}, std={latent_std_val:.4f}")
+
+            # Final metrics
+            final_recon = np.mean(self.metrics["ReconstructionLoss"][-len(self.data_loader) :])
+            final_kld = np.mean(self.metrics["KLD"][-len(self.data_loader) :])
+            final_weighted_kld = np.mean(self.metrics["WeightedKLD"][-len(self.data_loader) :])
+            final_beta = np.mean(self.metrics["Beta"][-len(self.data_loader) :])
+            final_elbo = np.mean(self.metrics["ELBO"][-len(self.data_loader) :])
+
+            tqdm.write(f"\nFinal Losses (per sample):")
+            tqdm.write(f"  ELBO:              {final_elbo:8.2f}")
+            tqdm.write(f"  Reconstruction:    {final_recon:8.2f}")
+            tqdm.write(f"  KLD (unweighted):  {final_kld:8.2f}")
+            tqdm.write(f"  KLD (weighted):    {final_weighted_kld:8.2f} (β={final_beta:.3f})")
+            tqdm.write(f"  KLD/Recon ratio:   {final_kld / (final_recon + 1e-8):.4f}")
+
+            # Convergence diagnostics
+            tqdm.write(f"\nConvergence Diagnostics:")
+            if final_kld < 10.0:
+                tqdm.write(f"  ❌ POSTERIOR COLLAPSE: KLD={final_kld:.2f} is very low!")
+                tqdm.write(f"     Decoder is ignoring the latent code and outputting near-constant values.")
+                tqdm.write(f"     Solutions: Reduce KL weight (beta), use KL annealing, or train longer.")
+            elif final_kld < 50.0:
+                tqdm.write(f"  ⚠️  Mild posterior collapse: KLD={final_kld:.2f} is lower than ideal")
+                tqdm.write(f"     Decoder may be under-utilizing latent information.")
+            else:
+                tqdm.write(f"  ✓ KLD={final_kld:.2f} appears healthy")
+
+            if latent_std_val < 0.5:
+                tqdm.write(f"  ⚠️  Low latent std ({latent_std_val:.4f}) - encoder is collapsing to deterministic")
+            elif latent_std_val > 2.0:
+                tqdm.write(f"  ⚠️  High latent std ({latent_std_val:.4f}) - encoder is too uncertain")
+            else:
+                tqdm.write(f"  ✓ Latent std={latent_std_val:.4f} is reasonable")
+
+            tqdm.write(f"{'='*80}\n")
         else:
             # Fallback to standard normal
             self.latent_mean = torch.zeros(self.encoder.latent_dim)
@@ -520,3 +643,105 @@ class VAE(Model):
 
         self._finish_training(num_epochs)
         return (num_epochs, self.metrics)
+
+    def plot_training_curves(self, save_path=None):
+        """
+        Plot training curves for ELBO, Reconstruction Loss, KLD, and Beta annealing.
+        Useful for diagnosing convergence and posterior collapse.
+
+        Args:
+            save_path: Optional path to save the plot. If None, displays interactively.
+        """
+        import matplotlib.pyplot as plt
+
+        fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+        axes = axes.flatten()  # Flatten for easier indexing
+
+        # Compute batch indices for x-axis
+        batches = np.arange(len(self.metrics["ELBO"]))
+        window = len(self.data_loader)
+
+        # Plot 1: ELBO
+        elbo_smooth = np.convolve(self.metrics["ELBO"], np.ones(window)/window, mode='valid')
+        axes[0].plot(batches, self.metrics["ELBO"], alpha=0.3, label="ELBO (batch)")
+        axes[0].plot(batches[window-1:], elbo_smooth, linewidth=2, label="ELBO (epoch avg)")
+        axes[0].set_xlabel("Batch")
+        axes[0].set_ylabel("ELBO (per sample)")
+        axes[0].set_title("Evidence Lower Bound (ELBO)")
+        axes[0].legend()
+        axes[0].grid(True, alpha=0.3)
+
+        # Plot 2: Reconstruction Loss
+        recon_smooth = np.convolve(self.metrics["ReconstructionLoss"], np.ones(window)/window, mode='valid')
+        axes[1].plot(batches, self.metrics["ReconstructionLoss"], alpha=0.3, label="Recon (batch)")
+        axes[1].plot(batches[window-1:], recon_smooth, linewidth=2, label="Recon (epoch avg)")
+        axes[1].set_xlabel("Batch")
+        axes[1].set_ylabel("Reconstruction Loss")
+        axes[1].set_title("Reconstruction Loss")
+        axes[1].legend()
+        axes[1].grid(True, alpha=0.3)
+
+        # Plot 3: KL Divergence (Unweighted)
+        kld_smooth = np.convolve(self.metrics["KLD"], np.ones(window)/window, mode='valid')
+        axes[2].plot(batches, self.metrics["KLD"], alpha=0.3, label="KLD (batch)")
+        axes[2].plot(batches[window-1:], kld_smooth, linewidth=2, label="KLD (epoch avg)")
+        axes[2].axhline(y=10, color='r', linestyle='--', alpha=0.5, label="Collapse threshold")
+        axes[2].axhline(y=50, color='orange', linestyle='--', alpha=0.5, label="Healthy threshold")
+        axes[2].set_xlabel("Batch")
+        axes[2].set_ylabel("KL Divergence (Unweighted)")
+        axes[2].set_title("KL Divergence (Posterior Collapse if < 10)")
+        axes[2].legend()
+        axes[2].grid(True, alpha=0.3)
+
+        # Plot 4: Beta Annealing Schedule
+        if "Beta" in self.metrics and len(self.metrics["Beta"]) > 0:
+            beta_batches = np.arange(len(self.metrics["Beta"]))
+            axes[3].plot(beta_batches, self.metrics["Beta"], linewidth=2, label="β")
+            axes[3].set_xlabel("Batch")
+            axes[3].set_ylabel("Beta (KL Weight)")
+            axes[3].set_title("KL Annealing Schedule")
+            axes[3].set_ylim(-0.1, 1.1)
+            axes[3].legend()
+            axes[3].grid(True, alpha=0.3)
+        else:
+            axes[3].text(0.5, 0.5, "No Beta data\n(KL annealing not used)",
+                        ha='center', va='center', transform=axes[3].transAxes)
+            axes[3].set_title("KL Annealing Schedule")
+
+        # Plot 5: KLD/Recon Ratio
+        kld_ratio = np.array(self.metrics["KLD"]) / (np.array(self.metrics["ReconstructionLoss"]) + 1e-8)
+        ratio_smooth = np.convolve(kld_ratio, np.ones(window)/window, mode='valid')
+        axes[4].plot(batches, kld_ratio, alpha=0.3, label="KLD/Recon (batch)")
+        axes[4].plot(batches[window-1:], ratio_smooth, linewidth=2, label="KLD/Recon (epoch avg)")
+        axes[4].axhline(y=0.01, color='r', linestyle='--', alpha=0.5, label="Warning threshold")
+        axes[4].set_xlabel("Batch")
+        axes[4].set_ylabel("KLD / Reconstruction Ratio")
+        axes[4].set_title("KLD/Recon Ratio (Low = Decoder Ignoring Latent)")
+        axes[4].legend()
+        axes[4].grid(True, alpha=0.3)
+
+        # Plot 6: Weighted KLD (used in loss)
+        if "WeightedKLD" in self.metrics and len(self.metrics["WeightedKLD"]) > 0:
+            weighted_batches = np.arange(len(self.metrics["WeightedKLD"]))
+            weighted_kld_smooth = np.convolve(self.metrics["WeightedKLD"], np.ones(window)/window, mode='valid')
+            axes[5].plot(weighted_batches, self.metrics["WeightedKLD"], alpha=0.3, label="Weighted KLD (batch)")
+            axes[5].plot(weighted_batches[window-1:], weighted_kld_smooth, linewidth=2, label="Weighted KLD (epoch avg)")
+            axes[5].set_xlabel("Batch")
+            axes[5].set_ylabel("Weighted KL Divergence")
+            axes[5].set_title("Weighted KLD (β × KLD, used in loss)")
+            axes[5].legend()
+            axes[5].grid(True, alpha=0.3)
+        else:
+            axes[5].text(0.5, 0.5, "No Weighted KLD data",
+                        ha='center', va='center', transform=axes[5].transAxes)
+            axes[5].set_title("Weighted KLD")
+
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            tqdm.write(f"Training curves saved to {save_path}")
+        else:
+            plt.show()
+
+        return fig
