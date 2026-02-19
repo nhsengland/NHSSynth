@@ -28,8 +28,8 @@ class EvalFrame:
         tasks: A list of downstream tasks to run on the experiments.
         metrics: A list of metrics to calculate on the experiments.
         sdv_metadata: The SDV metadata for the dataset.
-        aequitas: Whether to run Aequitas on the results of supported downstream tasks.
-        aequitas_attributes: The fairness-related attributes to use for Aequitas analysis.
+        aequitas: Whether to run fairness metrics (demographic parity, equalized odds) on supported downstream tasks.
+        aequitas_attributes: The protected attributes to use for fairness analysis.
         key_numerical_fields: The numerical fields to use for SDV privacy metrics.
         sensitive_numerical_fields: The numerical fields to use for SDV privacy metrics.
         key_categorical_fields: The categorical fields to use for SDV privacy metrics.
@@ -146,7 +146,15 @@ class EvalFrame:
             task_pred_column, task_metric_values = task.run(data)
             metric_dict["task"].update(task_metric_values)
             if self._aequitas and task.supports_aequitas:
-                metric_dict["aequitas"].update(run_aequitas(data[self._aequitas_attributes].join(task_pred_column)))
+                # Pass full data, predictions, protected attributes list, and target column
+                metric_dict["aequitas"].update(
+                    run_aequitas(
+                        data=data,
+                        predictions=task_pred_column,
+                        protected_attributes=self._aequitas_attributes,
+                        target_column=task.target,
+                    )
+                )
         return metric_dict
 
     def _compute_metric(
@@ -186,17 +194,19 @@ class EvalFrame:
                         real_data, synthetic_data, self._sdv_metadata
                     )
             elif metric in NUMERICAL_PRIVACY_METRICS:
+                # Reset index for SDMetrics compatibility (expects integer index)
                 metric_dict["privacy"][metric] = NUMERICAL_PRIVACY_METRICS[metric].compute(
-                    real_data.dropna(),
-                    synthetic_data.dropna(),
+                    real_data.dropna().reset_index(drop=True),
+                    synthetic_data.dropna().reset_index(drop=True),
                     self._sdv_metadata,
                     self._key_numerical_fields,
                     self._sensitive_numerical_fields,
                 )
             elif metric in CATEGORICAL_PRIVACY_METRICS:
+                # Reset index for SDMetrics compatibility (expects integer index)
                 metric_dict["privacy"][metric] = CATEGORICAL_PRIVACY_METRICS[metric].compute(
-                    real_data.dropna(),
-                    synthetic_data.dropna(),
+                    real_data.dropna().reset_index(drop=True),
+                    synthetic_data.dropna().reset_index(drop=True),
                     self._sdv_metadata,
                     self._key_categorical_fields,
                     self._sensitive_categorical_fields,

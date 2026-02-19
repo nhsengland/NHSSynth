@@ -28,4 +28,4 @@ def run(dataset) -> tuple[pd.DataFrame, dict]:
     return probs, {"rocauc_lr": rocauc}
 
 
-task = Task("Logistic Regression on 'event'", run, supports_aequitas=True)
+task = Task("Logistic Regression on 'event'", run, supports_aequitas=True, target="event")

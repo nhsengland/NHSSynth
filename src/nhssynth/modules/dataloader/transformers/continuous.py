@@ -3,6 +3,9 @@
 # - Removed duplicate component temperature (lines 361-364)
 # - Added component selection diagnostics (lines 388-396)
 
+# Set to True for verbose debug output during transformation/reversion
+DEBUG_VERBOSE = False
+
 import re
 import warnings
 from typing import Optional, List
@@ -148,8 +151,6 @@ class ClusterContinuousTransformer(ColumnTransformer):
         weights = self._transformer.weights_
         effective_components = (weights > 0.01).sum()
         col_name = getattr(self, 'name', 'unknown')
-        from tqdm import tqdm
-        tqdm.write(f"[{col_name}] BGM fitted {effective_components}/{len(weights)} components with weights: {weights.round(3)}")
 
         # Show component means and stds to understand distribution
         means = self._transformer.means_.reshape(-1)
@@ -164,16 +165,21 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # Calculate expected mean from GMM
         expected_mean = np.sum(weights * means)
         actual_mean = float(np.mean(data))
-        tqdm.write(f"[{col_name}] Component means: {means.round(2)}")
-        tqdm.write(f"[{col_name}] Component stds: {stds.round(2)}")
-        tqdm.write(f"[{col_name}] GMM expected mean: {expected_mean:.2f}, actual data mean: {actual_mean:.2f}")
+
+        if DEBUG_VERBOSE:
+            from tqdm import tqdm
+            tqdm.write(f"[{col_name}] BGM fitted {effective_components}/{len(weights)} components")
+            tqdm.write(f"[{col_name}] Component means: {means.round(2)}")
+            tqdm.write(f"[{col_name}] Component stds: {stds.round(2)}")
+            tqdm.write(f"[{col_name}] GMM expected mean: {expected_mean:.2f}, actual data mean: {actual_mean:.2f}")
 
         # Calculate kurtosis to detect heavily-peaked distributions
         # High kurtosis (>5) indicates need for lower temperature to preserve peakedness
         from scipy import stats
         if data.size > 10:
             self._kurtosis = float(stats.kurtosis(data.flatten(), fisher=True))  # Fisher=True gives excess kurtosis
-            if self._kurtosis > 5:
+            if DEBUG_VERBOSE and self._kurtosis > 5:
+                from tqdm import tqdm
                 tqdm.write(f"[{col_name}] High kurtosis detected: {self._kurtosis:.2f} (peaked distribution)")
         else:
             self._kurtosis = 0.0
@@ -203,20 +209,18 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # apply the floor to the stds used to normalise (keeps z-scale reasonable during training)
         self.stds = np.maximum(self.stds, sigma_floor)
 
-        # Debug output
-        from tqdm import tqdm
-        tqdm.write(f"[{self.name}] fit: col_std={col_std:.4f}, sigma_floor={sigma_floor:.4f}, "
-                   f"stds range=[{float(np.min(self.stds)):.4f}, {float(np.max(self.stds)):.4f}], "
-                   f"safe_range=[{self._safe_min:.2f}, {self._safe_max:.2f}]")
+        if DEBUG_VERBOSE:
+            from tqdm import tqdm
+            tqdm.write(f"[{self.name}] fit: col_std={col_std:.4f}, sigma_floor={sigma_floor:.4f}, "
+                       f"stds range=[{float(np.min(self.stds)):.4f}, {float(np.max(self.stds)):.4f}], "
+                       f"safe_range=[{self._safe_min:.2f}, {self._safe_max:.2f}]")
 
 
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
         normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
-        print(normalised_values)
         normalised = normalised_values[np.arange(len(data)), components]
         if self.clip_output:
             normalised = np.clip(normalised, -1.0, 1.0)
-        print(normalised)
         components = np.eye(self._n_components, dtype=int)[components]
 
         transformed_data = pd.DataFrame(
@@ -225,7 +229,6 @@ class ClusterContinuousTransformer(ColumnTransformer):
             columns=[f"{self.original_column_name}_normalised"]
             + [f"{self.original_column_name}_c{i + 1}" for i in range(self._n_components)],
         )
-        print(transformed_data)
         # EXPERIMENTAL feature, removing components from the column matrix that have no data assigned to them
         """if self.remove_unused_components:
             nunique = transformed_data.iloc[:, 1:].nunique(dropna=False)
@@ -391,14 +394,15 @@ class ClusterContinuousTransformer(ColumnTransformer):
             k_idx = np.zeros(len(vals), dtype=int)
 
         # Debug: show component selection frequencies
-        from tqdm import tqdm
-        unique_k, counts_k = np.unique(k_idx, return_counts=True)
-        selection_freq = np.zeros(len(means))
-        selection_freq[unique_k] = counts_k / len(k_idx)
-        tqdm.write(f"[revert:{base}] Component selection frequencies: {selection_freq.round(3)}")
-        # Calculate mean from selected components
-        selected_mean = np.mean(means[k_idx])
-        tqdm.write(f"[revert:{base}] Mean from selected components: {selected_mean:.2f}")
+        if DEBUG_VERBOSE:
+            from tqdm import tqdm
+            unique_k, counts_k = np.unique(k_idx, return_counts=True)
+            selection_freq = np.zeros(len(means))
+            selection_freq[unique_k] = counts_k / len(k_idx)
+            tqdm.write(f"[revert:{base}] Component selection frequencies: {selection_freq.round(3)}")
+            # Calculate mean from selected components
+            selected_mean = np.mean(means[k_idx])
+            tqdm.write(f"[revert:{base}] Mean from selected components: {selected_mean:.2f}")
 
         # 4) Invert: x = z * (scale * sigma_k) + mu_k
         scale = getattr(self, "_std_multiplier", 1.0)
@@ -411,32 +415,16 @@ class ClusterContinuousTransformer(ColumnTransformer):
             pre_clip = decoded.copy()
             decoded = np.clip(decoded, safe_min, safe_max)
             n_clipped = np.sum((pre_clip < safe_min) | (pre_clip > safe_max))
-            if n_clipped > 0:
+            if DEBUG_VERBOSE and n_clipped > 0:
                 from tqdm import tqdm
                 tqdm.write(f"[revert:{base}] Clipped {n_clipped}/{len(decoded)} values to safe range "
                           f"[{safe_min:.2f}, {safe_max:.2f}]")
-
-        # DEBUG: remove after inspection
-        from tqdm import tqdm
-        tqdm.write(f"[{base}] scale={getattr(self,'_std_multiplier',None)}")
-        tqdm.write(f"sigma_floor={getattr(self,'_sigma_floor',None)}")
-        tqdm.write(f"sigmas(min,max)={float(np.nanmin(sigmas)):.4g},{float(np.nanmax(sigmas)):.4g}")
-        tqdm.write(f"decoded_std={float(np.nanstd(decoded)):.4g}")
 
         # 4b) If a missingness flag exists, apply it (set decoded to NaN for missing rows)
         miss_col = f"{base}_missing"
         if miss_col in data.columns:
             miss_mask = data[miss_col].to_numpy().astype(bool)
             decoded[miss_mask] = np.nan
-
-        from tqdm import tqdm
-        try:
-            nz = np.isfinite(vals)
-            u = np.unique(np.round(decoded[nz], 6))
-            tqdm.write(f"[revert:{base}] z_std={float(np.nanstd(vals)):.4f} "
-                    f"decoded_std={float(np.nanstd(decoded)):.4f} uniques={len(u)}")
-        except Exception:
-            pass
 
         # 5) Write back
         data[base] = decoded

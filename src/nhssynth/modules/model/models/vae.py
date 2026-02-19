@@ -6,6 +6,9 @@
 # - 2026-01-19: Added KL annealing and free bits parameters to train() (lines 466-510)
 # - 2026-01-19: Added logsigma_z clamping for numerical stability (line 392)
 
+# Set to True for verbose debug output during generation/training
+DEBUG_VERBOSE = False
+
 import warnings
 from typing import Optional
 
@@ -199,9 +202,6 @@ class VAE(Model):
 
     def generate(self, N: Optional[int] = None) -> pd.DataFrame:
         import re
-        import torch
-        from tqdm import tqdm
-        import numpy as np
 
         N = N or self.nrows
 
@@ -213,29 +213,17 @@ class VAE(Model):
             latent_std = self.latent_std.to(self.device)
             # Sample: z ~ N(learned_mean, learned_std)
             z_samples = latent_mean + latent_std * torch.randn(N, self.encoder.latent_dim, device=self.device)
-            tqdm.write(f"Sampling from learned posterior: mean={latent_mean.mean():.3f}, std={latent_std.mean():.3f}")
-            tqdm.write(f"  (Note: VAE latent space is regularized toward N(0,1) by design)")
         else:
             # Fallback to standard normal
             z_samples = torch.randn(N, self.encoder.latent_dim, device=self.device)
-            tqdm.write("Using N(0,1) prior for latent sampling")
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="Using a non-full backward hook")
             x_gen = self.decoder(z_samples)
 
-        # Diagnostic: Check decoder output statistics before any modifications
+        # Adaptive temperature scaling based on variable characteristics
         cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
         if cont_idx:
-            cont_idx_tensor = torch.tensor(cont_idx, device=x_gen.device, dtype=torch.long)
-            decoder_mean = float(x_gen[:, cont_idx_tensor].mean())
-            decoder_std = float(x_gen[:, cont_idx_tensor].std())
-            decoder_min = float(x_gen[:, cont_idx_tensor].min())
-            decoder_max = float(x_gen[:, cont_idx_tensor].max())
-            tqdm.write(f"Decoder outputs for {len(cont_idx)} continuous value columns: "
-                      f"mean={decoder_mean:.3f}, std={decoder_std:.3f}, "
-                      f"range=[{decoder_min:.3f}, {decoder_max:.3f}]")
-
             # Adaptive temperature scaling based on variable characteristics
             # This prevents mode collapse while preserving naturally-peaked distributions
             base_temperature = 3.0  # Default for smooth distributions
@@ -259,44 +247,25 @@ class VAE(Model):
                             # Check if datetime
                             if hasattr(col_meta.transformer, '__class__') and 'DatetimeTransformer' in str(type(col_meta.transformer)):
                                 datetime_indices.append(idx)
-                                tqdm.write(f"  [{base_name}] idx={idx} → datetime")
                             # Check if high kurtosis (peaked) - check outer transformer first
                             elif hasattr(col_meta.transformer, '_kurtosis') and col_meta.transformer._kurtosis > 5:
                                 peaked_indices.append(idx)
-                                tqdm.write(f"  [{base_name}] idx={idx} → peaked (kurtosis={col_meta.transformer._kurtosis:.2f})")
                             else:
                                 normal_indices.append(idx)
-                                tqdm.write(f"  [{base_name}] idx={idx} → normal")
                             break
 
             # Apply adaptive temperature
             if peaked_indices:
                 peaked_tensor = torch.tensor(peaked_indices, device=x_gen.device, dtype=torch.long)
-                # Debug: check std before and after
-                before_std = x_gen[:, peaked_tensor].std(dim=0).mean().item()
                 x_gen[:, peaked_tensor] = x_gen[:, peaked_tensor] * peaked_temperature
-                after_std = x_gen[:, peaked_tensor].std(dim=0).mean().item()
-                tqdm.write(f"  Peaked columns: std before={before_std:.4f}, after={after_std:.4f}")
 
             if normal_indices:
                 normal_tensor = torch.tensor(normal_indices, device=x_gen.device, dtype=torch.long)
-                before_std = x_gen[:, normal_tensor].std(dim=0).mean().item()
                 x_gen[:, normal_tensor] = x_gen[:, normal_tensor] * base_temperature
-                after_std = x_gen[:, normal_tensor].std(dim=0).mean().item()
-                tqdm.write(f"  Normal columns: std before={before_std:.4f}, after={after_std:.4f}")
 
             if datetime_indices:
                 datetime_tensor = torch.tensor(datetime_indices, device=x_gen.device, dtype=torch.long)
-                before_std = x_gen[:, datetime_tensor].std(dim=0).mean().item()
                 x_gen[:, datetime_tensor] = x_gen[:, datetime_tensor] * (base_temperature * datetime_boost)
-                after_std = x_gen[:, datetime_tensor].std(dim=0).mean().item()
-                tqdm.write(f"  Datetime columns: std before={before_std:.4f}, after={after_std:.4f}")
-
-            tqdm.write(f"Applied adaptive temperature: {peaked_temperature}x to {len(peaked_indices)} peaked, "
-                      f"{base_temperature}x to {len(normal_indices)} normal, "
-                      f"{base_temperature * datetime_boost}x to {len(datetime_indices)} datetime columns")
-
-            # REMOVED aggressive safety clipping - let transformer handle it
 
         # after x_gen = self.decoder(...)
         x_gen_ = x_gen.clone()
@@ -320,15 +289,11 @@ class VAE(Model):
         gmm_temperature = 2.0  # Moderate temperature to preserve multimodal structure
         for gmm_idxs in gmm_component_groups:
             x_gen_[:, gmm_idxs] = x_gen[:, gmm_idxs] / gmm_temperature
-        if gmm_component_groups:
-            tqdm.write(f"Applied GMM component temperature {gmm_temperature}x to {len(gmm_component_groups)} groups")
 
         from torch.distributions import OneHotCategorical
         for cat_idxs in categorical_groups:
             logits = x_gen[:, cat_idxs]
             x_gen_[:, cat_idxs] = OneHotCategorical(logits=logits).sample()
-
-        tqdm.write(f"one-hot groups (sizes): {[len(g) for g in categorical_groups]}")
 
         # --- singles noise (existing behaviour) ---
         cont_idx = getattr(self.metatransformer, "continuous_value_indices", None)
@@ -351,40 +316,8 @@ class VAE(Model):
         if torch.cuda.is_available():
             x_gen_ = x_gen_.cpu()
 
-        df = pd.DataFrame(x_gen_.detach().numpy(), columns=self.columns)
-        
-        # Debug: check z dispersion
-        try:
-            zcols = [j for j,n in enumerate(self.columns) if n.endswith(("_value","_normalized","_normalised"))]
-            if zcols:
-                z = x_gen_[:, zcols].detach().cpu().numpy()
-                tqdm.write(f"z std (median over cols): {np.median(np.std(z, axis=0))}")
-        except Exception:
-            pass
-
-        # --- per-feature z stds for debug ---
-        def _zcol_for(base: str):
-            suffixes = ("_value", "_normalized", "_normalised")
-            # make a plain list to be safe with both Index and list
-            cols = list(self.columns)
-            for sfx in suffixes:
-                name = f"{base}{sfx}"
-                if name in cols:
-                    return cols.index(name)  # position in the transformed matrix
-            return None
-
-        for base in ("x8", "dob"):
-            j = _zcol_for(base)
-            if j is not None:
-                zvals = x_gen_[:, j].detach().cpu().numpy()
-                tqdm.write(f"[gen:z-std] {base}: std={float(np.std(zvals)):.4f}")
-            else:
-                tqdm.write(f"[gen:z-std] {base}: NO Z-COLUMN FOUND")
-        
-        
-        # BEFORE calling inverse_apply
-        arr = x_gen_.detach().cpu().numpy()   # <-- ensure a real NumPy array
-        df  = pd.DataFrame(arr, columns=list(self.columns))  # columns as plain list is safest
+        arr = x_gen_.detach().cpu().numpy()
+        df = pd.DataFrame(arr, columns=list(self.columns))
         return self.metatransformer.inverse_apply(df)
 
 
@@ -562,14 +495,19 @@ class VAE(Model):
                 self.step()
                 self._record_metrics(losses)
 
-            elbo = np.mean(self.metrics["ELBO"][-len(self.data_loader) :])
+            elbo_vals = self.metrics["ELBO"][-len(self.data_loader):]
+            elbo = np.mean(elbo_vals) if len(elbo_vals) > 0 else float('nan')
 
             # Enhanced monitoring: display loss components every 10 epochs
             if epoch % 10 == 0 or epoch == num_epochs - 1:
-                recon_loss = np.mean(self.metrics["ReconstructionLoss"][-len(self.data_loader) :])
-                kld = np.mean(self.metrics["KLD"][-len(self.data_loader) :])
-                weighted_kld = np.mean(self.metrics["WeightedKLD"][-len(self.data_loader) :])
-                beta = np.mean(self.metrics["Beta"][-len(self.data_loader) :])
+                recon_vals = self.metrics["ReconstructionLoss"][-len(self.data_loader):]
+                kld_vals = self.metrics["KLD"][-len(self.data_loader):]
+                weighted_kld_vals = self.metrics["WeightedKLD"][-len(self.data_loader):]
+
+                recon_loss = np.mean(recon_vals) if len(recon_vals) > 0 else float('nan')
+                kld = np.mean(kld_vals) if len(kld_vals) > 0 else float('nan')
+                weighted_kld = np.mean(weighted_kld_vals) if len(weighted_kld_vals) > 0 else float('nan')
+                beta = self._beta  # Use current beta directly instead of averaging recorded values
                 kld_ratio = kld / (recon_loss + 1e-8)
 
                 tqdm.write(f"Epoch {epoch:3d}: ELBO={elbo:8.2f}, Recon={recon_loss:8.2f}, "

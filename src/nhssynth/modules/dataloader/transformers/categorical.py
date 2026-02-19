@@ -137,8 +137,9 @@ class OHECategoricalTransformer(ColumnTransformer):
         if getattr(self, "missing_value", None):
             data[self.original_column_name] = data[self.original_column_name].replace(self.missing_value, np.nan)
 
-        # Optionally: drop the OHE columns after invert (if your pipeline expects only raw columns at the end).
-        # data = data.drop(columns=self.ohe_columns, errors="ignore")
+        # Drop the OHE columns and adherence column after invert
+        cols_to_drop = list(self.ohe_columns) + [f"{self.original_column_name}_adherence"]
+        data = data.drop(columns=[c for c in cols_to_drop if c in data.columns], errors="ignore")
 
         return data
 

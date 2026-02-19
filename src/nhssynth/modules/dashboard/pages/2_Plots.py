@@ -101,7 +101,8 @@ def correlation_plots(real_dataset, synthetic_datasets) -> None:
 
 
 def prepare_for_dimensionality(df: pd.DataFrame) -> pd.DataFrame:
-    """Factorize all categorical columns in a dataframe."""
+    """Factorize all categorical columns in a dataframe and normalize values."""
+    df = df.copy()
     for col in df.columns:
         if df[col].dtype == "object":
             df[col] = pd.factorize(df[col])[0]
@@ -109,7 +110,13 @@ def prepare_for_dimensionality(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col])
         min_val = df[col].min()
         max_val = df[col].max()
-        df[col] = (df[col] - min_val) / (max_val - min_val)
+        # Avoid division by zero when all values are the same
+        if max_val != min_val:
+            df[col] = (df[col] - min_val) / (max_val - min_val)
+        else:
+            df[col] = 0.0
+    # Drop rows with NaN values (required for UMAP/t-SNE)
+    df = df.dropna()
     return df
 
 
@@ -143,11 +150,27 @@ def plot_reducer(
 
 
 def dimensionality_plots(real_dataset: pd.DataFrame, synthetic_datasets: pd.DataFrame) -> None:
-    synthetic_dataset = prepare_for_dimensionality(id_selector(synthetic_datasets).iloc[0].copy())
+    original_real_len = len(real_dataset)
+    synthetic_raw = id_selector(synthetic_datasets).iloc[0].copy()
+    original_synth_len = len(synthetic_raw)
+
+    synthetic_dataset = prepare_for_dimensionality(synthetic_raw)
     real_dataset = prepare_for_dimensionality(real_dataset.copy())
+
+    # Warn if significant data was dropped due to NaN
+    real_dropped = original_real_len - len(real_dataset)
+    synth_dropped = original_synth_len - len(synthetic_dataset)
+    if real_dropped > 0 or synth_dropped > 0:
+        st.warning(
+            f"Rows with missing values were dropped: {real_dropped} real rows, {synth_dropped} synthetic rows."
+        )
+
     dimensionality_method = st.sidebar.selectbox("Select dimensionality reduction method", ["UMAP", "t-SNE"])
     run = st.sidebar.button("Run dimensionality reduction")
     if run:
+        if len(real_dataset) == 0 or len(synthetic_dataset) == 0:
+            st.error("No data remaining after dropping NaN values. Cannot run dimensionality reduction.")
+            return
         if dimensionality_method == "UMAP":
             reducer = umap.UMAP()
         if dimensionality_method == "t-SNE":

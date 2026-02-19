@@ -12,20 +12,47 @@ class Task:
         name: The name of the task.
         run: The function to run.
         supports_aequitas: Whether the task supports Aequitas evaluation.
+        target: The target column name for fairness evaluation (required if supports_aequitas=True).
         description: The description of the task.
     """
 
-    def __init__(self, name: str, run: Callable, supports_aequitas=False, description: str = ""):
+    def __init__(
+        self,
+        name: str,
+        run: Callable,
+        supports_aequitas: bool = False,
+        target: str = None,
+        description: str = "",
+    ):
         self._name: str = name
         self._run: Callable = run
         self._supports_aequitas: bool = supports_aequitas
+        self._target: str = target
         self._description: str = description
+        if supports_aequitas and target is None:
+            raise ValueError(f"Task '{name}' supports Aequitas but no target column specified.")
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def supports_aequitas(self) -> bool:
+        return self._supports_aequitas
+
+    @property
+    def target(self) -> str:
+        return self._target
 
     def __str__(self) -> str:
         return f"{self.name}: {self.description}" if self.description else self.name
 
     def __repr__(self) -> str:
-        return str([self.name, self.run, self.supports_aequitas, self.description])
+        return str([self.name, self.run, self.supports_aequitas, self.target, self.description])
 
     def run(self, *args, **kwargs):
         return self._run(*args, **kwargs)

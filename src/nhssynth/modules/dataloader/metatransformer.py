@@ -16,6 +16,9 @@ import inspect
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
 
+# Set to True for verbose debug output during transformation/reversion
+DEBUG_VERBOSE = False
+
 
 class MetaTransformer:
     """
@@ -237,21 +240,15 @@ class MetaTransformer:
         """
         import numpy as np
         import pandas as pd
-        from tqdm import tqdm
-
-        # CRITICAL DEBUG: Check if this method is even being called
-        tqdm.write(f"[repair_constraints] CALLED with df shape {df.shape}")
 
         if rng is None:
             rng = np.random.default_rng()
 
         constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
         if constraints is None:
-            tqdm.write(f"[repair_constraints] EARLY EXIT: constraints is None")
             return df
         constraints_iterable = getattr(constraints, "minimal_constraints", None)
         if constraints_iterable is None:
-            tqdm.write(f"[repair_constraints] EARLY EXIT: minimal_constraints is None")
             return df
 
         repaired = df.copy()
@@ -262,7 +259,6 @@ class MetaTransformer:
 
         # Convert to list to avoid consuming iterator
         constraints_list = list(constraints_iterable)
-        tqdm.write(f"[repair_constraints] Processing {len(constraints_list)} constraints")
 
         # Iterate through minimal constraints and repair violations
         for constraint in constraints_list:
@@ -314,8 +310,6 @@ class MetaTransformer:
             if n_viol == 0:
                 continue
 
-            # Debug: Show violation details
-            tqdm.write(f"  Constraint '{base} {operator} {reference}': {n_viol} violations detected")
             violations_fixed += n_viol
 
             # Repair strategy
@@ -351,10 +345,8 @@ class MetaTransformer:
                     else:  # <=
                         repaired.loc[violations, base] = ref_vals
 
-        if violations_fixed > 0:
+        if DEBUG_VERBOSE and violations_fixed > 0:
             tqdm.write(f"[repair_constraints] Fixed {violations_fixed} constraint violations")
-        else:
-            tqdm.write(f"[repair_constraints] No violations detected")
 
         return repaired
 
@@ -519,16 +511,24 @@ class MetaTransformer:
                 component_indices = []
                 non_component_indices = []
 
+                import re
                 for i, col_name in enumerate(part_cols):
                     col_idx = col_offset + i
-                    # Component columns go to multi_column_indices
-                    if isinstance(col_name, str) and ('_c1' in col_name or '_c2' in col_name or ...):
+                    # Check if this is a single-column type (z-score or missingness)
+                    is_single_col = isinstance(col_name, str) and any(
+                        suffix in col_name for suffix in ['_value', '_normalized', '_normalised', '_missing']
+                    )
+                    if is_single_col:
+                        # Z-scores and missingness go to single_column_indices
+                        non_component_indices.append(col_idx)
+                    elif isinstance(col_name, str) and re.search(r'_c\d+$', col_name):
+                        # GMM component columns (e.g., x7_c1, x7_c10) go to multi_column_indices
                         component_indices.append(col_idx)
-                    elif isinstance(col_name, str) and not any(suffix in col_name for suffix in
-                                                                ['_value', '_normalized', '_normalised', '_missing']):
+                    elif isinstance(col_name, str):
+                        # OHE categorical columns (e.g., x1_0.0, x3_A) go to multi_column_indices
                         component_indices.append(col_idx)
                     else:
-                        # Z-scores and missingness go to single_column_indices
+                        # Fallback for non-string column names
                         non_component_indices.append(col_idx)
 
                 if component_indices:
@@ -575,56 +575,19 @@ class MetaTransformer:
         Returns:
             The original dataset.
         """
-        # Import at the top so nested functions can use it
         import numpy as np
-        from tqdm import tqdm
 
-        def _zstat(df, base):
-            for sfx in ("_value","_normalized","_normalised"):
-                col = f"{base}{sfx}"
-                if col in df.columns:
-                    v = df[col].to_numpy()
-                    tqdm.write(f"[pre-revert df] {col}: std={float(np.nanstd(v)):.4f}, "
-                            f"min={np.nanmin(v):.4f}, max={np.nanmax(v):.4f}")
-                    return
-            tqdm.write(f"[pre-revert df] {base}: NO VALUE COLUMN FOUND")
-
-        _zstat(dataset, "x8")
-        _zstat(dataset, "dob")
-        
         # binarize generated missingness indicators: >0.5 -> 1, else 0
         for col in list(dataset.columns):
             if col.endswith("_missing"):
                 v = pd.to_numeric(dataset[col], errors="coerce").fillna(0.0).to_numpy()
                 dataset[col] = (v > 0.5).astype(int)
 
-        
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
-        
-        # --- DEBUG with tqdm.write ---
-        def _dbg(tag):
-            try:
-                msgs = []
-                if "x8" in dataset:
-                    msgs.append(
-                        f"x8 uniques={dataset['x8'].nunique(dropna=False)} "
-                        f"min/max={dataset['x8'].min()} / {dataset['x8'].max()}"
-                    )
-                if "dob" in dataset:
-                    msgs.append(
-                        f"dob min/max={dataset['dob'].min()} / {dataset['dob'].max()}"
-                    )
-                tqdm.write(f"[{tag}] " + " | ".join(msgs))
-            except Exception as e:
-                tqdm.write(f"[{tag}] debug failed: {e}")
-
-        _dbg("post-revert")
 
         # Add Gaussian smoothing to continuous variables to blur GMM component peaks
         try:
-            from tqdm import tqdm
-            import numpy as np
             smoothing_std = 0.03  # 3% of column std as smoothing noise
             continuous_cols = []
             for col_meta in self._metadata:
@@ -641,28 +604,20 @@ class MetaTransformer:
                     if col_std > 0:
                         noise = np.random.normal(0, smoothing_std * col_std, size=len(dataset))
                         dataset[col] = dataset[col] + noise
-                tqdm.write(f"[inverse_apply] Applied Gaussian smoothing (std={smoothing_std}) to {len(continuous_cols)} continuous columns")
         except Exception as e:
-            from tqdm import tqdm
-            tqdm.write(f"[inverse_apply] WARNING: Gaussian smoothing failed: {e}")
+            if DEBUG_VERBOSE:
+                tqdm.write(f"[inverse_apply] WARNING: Gaussian smoothing failed: {e}")
 
-        # Ensure the dataset has the same columns as the original
         # Enforce constraints on decoded data if available
         try:
-            from tqdm import tqdm
-            tqdm.write(f"[inverse_apply] About to call repair_constraints...")
             dataset = self.repair_constraints(dataset, mode="resample")
-            tqdm.write(f"[inverse_apply] repair_constraints completed")
         except Exception as e:
-            from tqdm import tqdm
-            tqdm.write(f"[inverse_apply] ERROR calling repair_constraints: {type(e).__name__}: {e}")
-            import traceback
-            tqdm.write(traceback.format_exc())
-
-        _dbg("post-constraints")
+            if DEBUG_VERBOSE:
+                tqdm.write(f"[inverse_apply] ERROR calling repair_constraints: {type(e).__name__}: {e}")
+                import traceback
+                tqdm.write(traceback.format_exc())
 
         out = self.apply_dtypes(dataset)
-        _dbg("post-dtypes") 
         return out
 
     def get_typed_dataset(self) -> pd.DataFrame:

@@ -47,7 +47,7 @@ columns:
     dtype: int64
 constraints:
   - "x10 in (0,100)"
-  - "x12 in (0,100)"
+  - "x12 in (0,250)"
   - "x13 in (0,100)"
   #- "x10 < x12"
   #- "x12 < x13"

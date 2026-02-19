@@ -6,34 +6,78 @@ dataloader:
   write_csv: true
 model:
   architecture:
-    - VAE
     - DPVAE
   num_epochs:
-    - 30
     - 50
   patience: 10
   target_epsilon:
     - 1.0
-    - 3.0
-    - 6.0
   max_grad_norm: 5.0
   secure_mode: false
-  repeats: 4
+  repeats: 1
 evaluation:
+  # Downstream tasks and fairness
   downstream_tasks: true
+  aequitas: true
+  aequitas_attributes:
+    - x1
+    - x3
+
+  # Column Shape Metrics
   column_shape_metrics:
-  - KSComplement
-  - TVComplement
+    - KSComplement
+    - TVComplement
+
+  # Column Similarity Metrics
   column_similarity_metrics:
-  - CorrelationSimilarity
-  - ContingencySimilarity
+    - MissingValueSimilarity
+    - StatisticSimilarity
+    - CorrelationSimilarity
+    - ContingencySimilarity
+
+  # Boundary Metrics
   boundary_metrics:
-  - BoundaryAdherence
+    - BoundaryAdherence
+
+  # Coverage Metrics
   coverage_metrics:
-  - RangeCoverage
-  - CategoryCoverage
+    - RangeCoverage
+    - CategoryCoverage
+
+  # Synthesis Metrics
   synthesis_metrics:
-  - NewRowSynthesis
+    - NewRowSynthesis
+
+  # Divergence Metrics
   divergence_metrics:
-  - ContinuousKLDivergence
-  - DiscreteKLDivergence
+    - ContinuousKLDivergence
+    - DiscreteKLDivergence
+
+  # Privacy Metrics - Categorical
+  # Key fields: attributes that could identify someone (quasi-identifiers)
+  # Sensitive fields: attributes we want to protect
+  key_categorical_fields:
+    - x1
+  sensitive_categorical_fields:
+    - event
+  cap_privacy_metrics:
+    - CategoricalCAP
+    - CategoricalGeneralizedCAP
+    - CategoricalZeroCAP
+  categorical_privacy_metrics:
+    - CategoricalKNN
+    - CategoricalNB
+    - CategoricalRF
+    - CategoricalSVM
+    - CategoricalEnsemble
+
+  # Privacy Metrics - Numerical
+  key_numerical_fields:
+    - x7
+  sensitive_numerical_fields:
+    - x12
+  numerical_privacy_metrics:
+    - NumericalLR
+    - NumericalMLP
+    - NumericalSVR
+    - NumericalRadiusNearestNeighbor

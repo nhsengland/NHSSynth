@@ -153,7 +153,9 @@ class Model(nn.Module, ABC):
 
     def _generate_metric_str(self, key) -> str:
         """Generates a string to display the current value of the metric `key`."""
-        return f"{(add_spaces_before_caps(key) + ':').ljust(self.max_length)}  {np.mean(self.metrics[key][-len(self.data_loader) :]):.4f}"
+        values = self.metrics[key][-len(self.data_loader):]
+        mean_val = np.mean(values) if len(values) > 0 else float('nan')
+        return f"{(add_spaces_before_caps(key) + ':').ljust(self.max_length)}  {mean_val:.4f}"
 
     def _record_metrics(self, losses):
         """Records the metrics for the current batch to file and updates the tqdm status bars."""

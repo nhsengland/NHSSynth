@@ -46,7 +46,8 @@ class DatetimeTransformer(TransformerWrapper):
 
         # Coerce to datetime64[ns] and to *float* nanoseconds (NaN for missing)
         dt = pd.to_datetime(data, errors="coerce")
-        ns = dt.view("int64").astype("float64")
+        # Use astype instead of deprecated view() method
+        ns = dt.astype("int64").astype("float64")
         ns[dt.isna()] = np.nan
 
         # Convert to DAYS (keeps σ in a reasonable range for mixture)

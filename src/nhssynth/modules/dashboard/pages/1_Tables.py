@@ -16,6 +16,22 @@ def prepare_evals(evaluations: pd.DataFrame, experiments: pd.DataFrame) -> pd.Da
     return evaluations[metrics_to_show].join(experiments)[experiments.columns.tolist() + metrics_to_show]
 
 
+def safe_highlight_dataframe(df: pd.DataFrame):
+    """
+    Safely apply highlight_max styling to a dataframe, handling NaN values in index.
+    Falls back to unstyled display if styling fails.
+    """
+    try:
+        # Select only numeric columns for highlighting
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        if len(numeric_cols) > 0:
+            return df.style.highlight_max(axis=0, subset=numeric_cols)
+        return df
+    except (KeyError, ValueError, TypeError):
+        # Fall back to unstyled display if highlight_max fails
+        return df
+
+
 def group_by_display(
     evaluations_filtered: pd.DataFrame,
     experiments: pd.DataFrame,
@@ -36,13 +52,15 @@ def group_by_display(
                 ]
             ]
             .groupby(group_by_cols, dropna=False)
-            .mean()
+            .mean(numeric_only=True)
         )
         st.write(f"## {title} grouped by `{group_by_cols}`")
         download = convert_df(evaluations_shown.copy())
-        # No idea why this fixes the bug with highlight_max but it does
-        evaluations_shown.index = evaluations_shown.index.set_levels(evaluations_shown.index.levels[0], level=0)
-        st.dataframe(evaluations_shown.style.highlight_max(axis=0))
+        # Replace NaN in index with "N/A" and convert all to string to avoid pyarrow type issues
+        if isinstance(evaluations_shown.index, pd.MultiIndex):
+            new_index = evaluations_shown.index.to_frame().fillna("N/A").astype(str)
+            evaluations_shown.index = pd.MultiIndex.from_frame(new_index)
+        st.dataframe(safe_highlight_dataframe(evaluations_shown))
         st.download_button("Press to Download", download, "evaluations.csv", "text/csv")
         if "config" in group_by_cols:
             st.write("### Configurations")
@@ -50,10 +68,15 @@ def group_by_display(
     else:
         evaluations_shown = evaluations_filtered
         st.write(f"## {title}")
-        st.dataframe(evaluations_shown.style.highlight_max(axis=0))
+        # Replace NaN in index with "N/A" and convert all to string to avoid pyarrow type issues
+        if isinstance(evaluations_shown.index, pd.MultiIndex):
+            new_index = evaluations_shown.index.to_frame().fillna("N/A").astype(str)
+            evaluations_shown = evaluations_shown.copy()
+            evaluations_shown.index = pd.MultiIndex.from_frame(new_index)
+        st.dataframe(safe_highlight_dataframe(evaluations_shown))
         st.download_button(
             "Press to Download",
-            convert_df(evaluations_shown),
+            convert_df(evaluations_filtered),
             "evaluations.csv",
             "text/csv",
         )
@@ -91,10 +114,15 @@ def columnwise_metrics(evaluations, experiments):
             default=exploded_evaluations.columns.tolist(),
         )
         exploded_evaluations = exploded_evaluations[metrics_to_show]
+        # Handle potential NaN in index names
+        repeat_val = config_evaluations.name[1]
+        config_val = config_evaluations.name[2]
+        repeat_str = str(int(repeat_val)) if pd.notna(repeat_val) else "N/A"
+        config_str = str(int(config_val)) if pd.notna(config_val) else "N/A"
         st.write(
-            f"## Columnwise metrics for {config_evaluations.name[0]} repeat {int(config_evaluations.name[1])} configuration {int(config_evaluations.name[2])}"
+            f"## Columnwise metrics for {config_evaluations.name[0]} repeat {repeat_str} configuration {config_str}"
         )
-        st.dataframe(exploded_evaluations.style.highlight_max(axis=0))
+        st.dataframe(safe_highlight_dataframe(exploded_evaluations))
         st.download_button(
             "Press to Download",
             convert_df(exploded_evaluations),
@@ -168,8 +196,13 @@ def pairwise_metrics(evaluations, experiments):
         )
         for (col1, col2), score in metric_evaluations.items():
             grid.loc[col1, col2], grid.loc[col2, col1] = score["score"], score["score"]
+        # Handle potential NaN in index names
+        repeat_val = config_evaluations.name[1]
+        config_val = config_evaluations.name[2]
+        repeat_str = str(int(repeat_val)) if pd.notna(repeat_val) else "N/A"
+        config_str = str(int(config_val)) if pd.notna(config_val) else "N/A"
         st.write(
-            f"## Pairwise `{metric}` values for {config_evaluations.name[0]} repeat {int(config_evaluations.name[1])} configuration {int(config_evaluations.name[2])}"
+            f"## Pairwise `{metric}` values for {config_evaluations.name[0]} repeat {repeat_str} configuration {config_str}"
         )
         st.table(grid)
         st.download_button(
