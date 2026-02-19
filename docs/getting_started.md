@@ -197,6 +197,6 @@ Once this metadata is setup, you are ready to run your experiment.
 
 ## Evaluation
 
-Once models have been trained and synthetic datasets generated, we leverage evaluations from [SDMetrics](https://docs.sdv.dev/sdmetrics), [Aequitas](http://aequitas.dssg.io), the NHS' internal [SynAdvSuite](https://github.com/nhsengland/SynAdvSuite) (at current time you must request access to this repository to use the privacy-related attacks it implements), and also offer a facility for the [custom specification of downstream tasks](downstream_tasks.md). These evaluations are then aggregated into a dashboard for ease of comparison and analysis.
+Once models have been trained and synthetic datasets generated, we leverage evaluations from [SDMetrics](https://docs.sdv.dev/sdmetrics), custom fairness metrics (demographic parity, equalized odds), the NHS' internal [SynAdvSuite](https://github.com/nhsengland/SynAdvSuite) (at current time you must request access to this repository to use the privacy-related attacks it implements), and also offer a facility for the [custom specification of downstream tasks](downstream_tasks.md). These evaluations are then aggregated into a dashboard for ease of comparison and analysis.
 
 See the relevant documentation for each of these packages for more information on the metrics they offer.

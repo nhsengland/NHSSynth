@@ -224,7 +224,7 @@ def page():
 
     evaluations = st.session_state["evaluations"][selected_metric_group].copy()
     experiments = st.session_state["experiments"]
-    if selected_metric_group in ["table", "task", "privacy", "efficacy", "aequitas"]:
+    if selected_metric_group in ["table", "task", "privacy", "efficacy", "fairness"]:
         table_metrics(evaluations, experiments, selected_metric_group)
     elif selected_metric_group == "columnwise":
         columnwise_metrics(evaluations, experiments)

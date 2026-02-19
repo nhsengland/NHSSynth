@@ -12,7 +12,7 @@ from nhssynth.common.constants import (
     NUMERICAL_PRIVACY_METRICS,
     TABLE_METRICS,
 )
-from nhssynth.modules.evaluation.aequitas import run_aequitas
+from nhssynth.modules.evaluation.fairness import run_fairness_metrics
 from nhssynth.modules.evaluation.tasks import Task, get_tasks
 
 
@@ -28,8 +28,8 @@ class EvalFrame:
         tasks: A list of downstream tasks to run on the experiments.
         metrics: A list of metrics to calculate on the experiments.
         sdv_metadata: The SDV metadata for the dataset.
-        aequitas: Whether to run fairness metrics (demographic parity, equalized odds) on supported downstream tasks.
-        aequitas_attributes: The protected attributes to use for fairness analysis.
+        fairness: Whether to run fairness metrics (demographic parity, equalized odds) on supported downstream tasks.
+        protected_attributes: The protected attributes to use for fairness analysis.
         key_numerical_fields: The numerical fields to use for SDV privacy metrics.
         sensitive_numerical_fields: The numerical fields to use for SDV privacy metrics.
         key_categorical_fields: The categorical fields to use for SDV privacy metrics.
@@ -41,16 +41,16 @@ class EvalFrame:
         tasks: list[Task],
         metrics: list[str],
         sdv_metadata: dict[str, dict[str, str]],
-        aequitas: bool = False,
-        aequitas_attributes: list[str] = [],
+        fairness: bool = False,
+        protected_attributes: list[str] = [],
         key_numerical_fields: list[str] = [],
         sensitive_numerical_fields: list[str] = [],
         key_categorical_fields: list[str] = [],
         sensitive_categorical_fields: list[str] = [],
     ):
         self._tasks = tasks
-        self._aequitas = aequitas
-        self._aequitas_attributes = aequitas_attributes
+        self._fairness = fairness
+        self._protected_attributes = protected_attributes
 
         self._metrics = metrics
         self._sdv_metadata = sdv_metadata
@@ -79,8 +79,8 @@ class EvalFrame:
         metric_groups = set()
         if self._tasks:
             metric_groups.add("task")
-        if self._aequitas:
-            metric_groups.add("aequitas")
+        if self._fairness:
+            metric_groups.add("fairness")
         for metric in self._metrics:
             if metric in TABLE_METRICS:
                 metric_groups.add("table")
@@ -133,7 +133,7 @@ class EvalFrame:
 
     def _task_step(self, data: pd.DataFrame) -> dict[str, dict]:
         """
-        Run the downstream tasks on the dataset. Optionally run Aequitas on the results of the tasks.
+        Run the downstream tasks on the dataset. Optionally run fairness metrics on the results of the tasks.
 
         Args:
             data: The dataset to run the tasks on.
@@ -145,13 +145,13 @@ class EvalFrame:
         for task in tqdm(self._tasks, desc="Running downstream tasks", leave=False):
             task_pred_column, task_metric_values = task.run(data)
             metric_dict["task"].update(task_metric_values)
-            if self._aequitas and task.supports_aequitas:
+            if self._fairness and task.supports_fairness:
                 # Pass full data, predictions, protected attributes list, and target column
-                metric_dict["aequitas"].update(
-                    run_aequitas(
+                metric_dict["fairness"].update(
+                    run_fairness_metrics(
                         data=data,
                         predictions=task_pred_column,
-                        protected_attributes=self._aequitas_attributes,
+                        protected_attributes=self._protected_attributes,
                         target_column=task.target,
                     )
                 )
@@ -182,35 +182,47 @@ class EvalFrame:
         ):
             warnings.filterwarnings("ignore", message="ConvergenceWarning")
             if metric in TABLE_METRICS:
-                metric_dict["table"][metric] = TABLE_METRICS[metric].compute(
-                    real_data, synthetic_data, self._sdv_metadata
-                )
-                if issubclass(TABLE_METRICS[metric], MultiSingleColumnMetric):
-                    metric_dict["columnwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
+                try:
+                    metric_dict["table"][metric] = TABLE_METRICS[metric].compute(
                         real_data, synthetic_data, self._sdv_metadata
                     )
-                elif issubclass(TABLE_METRICS[metric], MultiColumnPairsMetric):
-                    metric_dict["pairwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
-                        real_data, synthetic_data, self._sdv_metadata
-                    )
+                    if issubclass(TABLE_METRICS[metric], MultiSingleColumnMetric):
+                        metric_dict["columnwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
+                            real_data, synthetic_data, self._sdv_metadata
+                        )
+                    elif issubclass(TABLE_METRICS[metric], MultiColumnPairsMetric):
+                        metric_dict["pairwise"][metric] = TABLE_METRICS[metric].compute_breakdown(
+                            real_data, synthetic_data, self._sdv_metadata
+                        )
+                except Exception as e:
+                    warnings.warn(f"Failed to compute metric '{metric}': {e}")
+                    metric_dict["table"][metric] = float("nan")
             elif metric in NUMERICAL_PRIVACY_METRICS:
                 # Reset index for SDMetrics compatibility (expects integer index)
-                metric_dict["privacy"][metric] = NUMERICAL_PRIVACY_METRICS[metric].compute(
-                    real_data.dropna().reset_index(drop=True),
-                    synthetic_data.dropna().reset_index(drop=True),
-                    self._sdv_metadata,
-                    self._key_numerical_fields,
-                    self._sensitive_numerical_fields,
-                )
+                try:
+                    metric_dict["privacy"][metric] = NUMERICAL_PRIVACY_METRICS[metric].compute(
+                        real_data.dropna().reset_index(drop=True),
+                        synthetic_data.dropna().reset_index(drop=True),
+                        self._sdv_metadata,
+                        self._key_numerical_fields,
+                        self._sensitive_numerical_fields,
+                    )
+                except Exception as e:
+                    warnings.warn(f"Failed to compute privacy metric '{metric}': {e}")
+                    metric_dict["privacy"][metric] = float("nan")
             elif metric in CATEGORICAL_PRIVACY_METRICS:
                 # Reset index for SDMetrics compatibility (expects integer index)
-                metric_dict["privacy"][metric] = CATEGORICAL_PRIVACY_METRICS[metric].compute(
-                    real_data.dropna().reset_index(drop=True),
-                    synthetic_data.dropna().reset_index(drop=True),
-                    self._sdv_metadata,
-                    self._key_categorical_fields,
-                    self._sensitive_categorical_fields,
-                )
+                try:
+                    metric_dict["privacy"][metric] = CATEGORICAL_PRIVACY_METRICS[metric].compute(
+                        real_data.dropna().reset_index(drop=True),
+                        synthetic_data.dropna().reset_index(drop=True),
+                        self._sdv_metadata,
+                        self._key_categorical_fields,
+                        self._sensitive_categorical_fields,
+                    )
+                except Exception as e:
+                    warnings.warn(f"Failed to compute privacy metric '{metric}': {e}")
+                    metric_dict["privacy"][metric] = float("nan")
         return metric_dict
 
     def _step(self, real_data: pd.DataFrame, synthetic_data: pd.DataFrame = None) -> dict[str, dict]:
@@ -237,7 +249,7 @@ def validate_metric_args(
     args: argparse.Namespace, fn_dataset: str, columns: pd.Index
 ) -> tuple[list[Task], argparse.Namespace]:
     """
-    Validate the arguments for downstream tasks and Aequitas.
+    Validate the arguments for downstream tasks and fairness metrics.
 
     Args:
         args: The argument namespace to validate.
@@ -253,17 +265,17 @@ def validate_metric_args(
             warnings.warn("No valid downstream tasks found.")
     else:
         tasks = []
-    if args.aequitas:
-        if not args.downstream_tasks or not any([task.supports_aequitas for task in tasks]):
+    if args.fairness:
+        if not args.downstream_tasks or not any([task.supports_fairness for task in tasks]):
             warnings.warn(
-                "Aequitas can only work in context of downstream tasks involving binary classification problems."
+                "Fairness metrics can only work in context of downstream tasks involving binary classification problems."
             )
-        if not args.aequitas_attributes:
-            warnings.warn("No attributes specified for Aequitas analysis, defaulting to all columns in the dataset.")
-            args.aequitas_attributes = columns.tolist()
+        if not args.protected_attributes:
+            warnings.warn("No protected attributes specified for fairness analysis, defaulting to all columns in the dataset.")
+            args.protected_attributes = columns.tolist()
         assert all(
-            [attr in columns for attr in args.aequitas_attributes]
-        ), "Invalid attribute(s) specified for Aequitas analysis."
+            [attr in columns for attr in args.protected_attributes]
+        ), "Invalid protected attribute(s) specified for fairness analysis."
     metrics = {}
     for metric_group in METRIC_CHOICES:
         selected_metrics = getattr(args, "_".join(metric_group.split()).lower() + "_metrics") or []

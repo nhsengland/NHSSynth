@@ -49,4 +49,4 @@ def run(dataset) -> tuple[pd.DataFrame, dict]:
     return probs, {"rocauc_rf": rocauc}
 
 
-task = Task("Random Forest on 'event'", run, supports_aequitas=True, target="event")
+task = Task("Random Forest on 'event'", run, supports_fairness=True, target="event")

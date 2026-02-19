@@ -1,22 +1,21 @@
 """
 Custom fairness metrics for evaluating synthetic data.
 
-Note: This module provides custom implementations of fairness metrics (demographic parity,
-equalized odds) for comparing real and synthetic datasets. The Aequitas library integration
-(https://github.com/dssg/aequitas) is NOT currently implemented - this is a placeholder
-for future development. The current implementation uses simplified fairness metrics that
-are suitable for synthetic data evaluation.
+This module provides custom implementations of fairness metrics (demographic parity,
+equalized odds) for comparing real and synthetic datasets.
 
 Metrics implemented:
     - Demographic Parity: Measures whether positive prediction rates are equal across groups.
+      Lower values indicate better fairness (less disparity between groups).
     - Equalized Odds: Measures whether TPR and FPR are equal across groups.
+      Lower values indicate better fairness.
 
 Usage:
-    These metrics are computed automatically when running evaluation with the --aequitas flag
-    and specifying protected attributes via --aequitas-attributes.
+    These metrics are computed automatically when running evaluation with the --fairness flag
+    and specifying protected attributes via --protected-attributes.
 
 Example:
-    nhssynth evaluate --aequitas --aequitas-attributes age_group gender --downstream-tasks
+    nhssynth evaluate --fairness --protected-attributes age_group gender --downstream-tasks
 """
 
 from typing import Optional
@@ -189,7 +188,7 @@ def compute_equalized_odds(
     }
 
 
-def run_aequitas(
+def run_fairness_metrics(
     data: pd.DataFrame,
     predictions: pd.DataFrame,
     protected_attributes: list[str],
@@ -201,9 +200,6 @@ def run_aequitas(
 
     This function computes demographic parity and equalized odds for each protected
     attribute specified. Lower values indicate better fairness (less disparity between groups).
-
-    Note: This is a custom implementation. The Aequitas library (https://github.com/dssg/aequitas)
-    is NOT currently integrated. See module docstring for details.
 
     Args:
         data: The full dataset containing protected attributes and target column.

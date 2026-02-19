@@ -18,8 +18,8 @@ model:
 evaluation:
   # Downstream tasks and fairness
   downstream_tasks: true
-  aequitas: true
-  aequitas_attributes:
+  fairness: true
+  protected_attributes:
     - x1
     - x3
 

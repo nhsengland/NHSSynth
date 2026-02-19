@@ -44,7 +44,7 @@ def run(dataset: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     return probs, {"rocauc_lr": rocauc}
 
 
-task = Task("Logistic Regression on 'event'", run, supports_aequitas=True, target="event")
+task = Task("Logistic Regression on 'event'", run, supports_fairness=True, target="event")
 ```
 
 Note the highlighted lines above:
@@ -52,13 +52,13 @@ Note the highlighted lines above:
 1. The `Task` class has been imported from `nhssynth.modules.evaluation.tasks`
 2. The `run` function should accept one argument and return a tuple
 3. The second element of this tuple should be a dictionary labelling each metric of interest (this name will be used in the dashboard as identification so ensure it is unique to the experiment)
-4. The `task` should be instantiated with a name, the `run` function, a boolean indicating whether the task supports fairness analysis, and the target column name (required if `supports_aequitas=True`). If the task does *not* support fairness analysis, then the first element of the tuple will not be used and `None` can be returned instead.
+4. The `task` should be instantiated with a name, the `run` function, a boolean indicating whether the task supports fairness analysis, and the target column name (required if `supports_fairness=True`). If the task does *not* support fairness analysis, then the first element of the tuple will not be used and `None` can be returned instead.
 
 The rest of this file can contain any arbitrary code that runs within these constraints, this could be a simple model as above, or a more complex pipeline of transformations and models to match a pre-existing workflow.
 
 ## Fairness Metrics
 
-When `supports_aequitas=True` and a `target` column is specified, the evaluation module computes custom fairness metrics comparing real and synthetic data:
+When `supports_fairness=True` and a `target` column is specified, the evaluation module computes custom fairness metrics comparing real and synthetic data:
 
 - **Demographic Parity**: Measures whether positive prediction rates are equal across protected groups. Lower values indicate better fairness.
 - **Equalized Odds**: Measures whether True Positive Rate (TPR) and False Positive Rate (FPR) are equal across protected groups.
@@ -68,10 +68,10 @@ To enable fairness analysis, specify protected attributes in your configuration:
 ```yaml
 evaluation:
   downstream_tasks: true
-  aequitas: true
-  aequitas_attributes:
+  fairness: true
+  protected_attributes:
     - age_group
     - gender
 ```
 
-The metrics are computed for each protected attribute and appear in the dashboard under the "Aequitas" metric group.
+The metrics are computed for each protected attribute and appear in the dashboard under the "Fairness" metric group.

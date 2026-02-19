@@ -11,26 +11,31 @@ class Task:
     Args:
         name: The name of the task.
         run: The function to run.
-        supports_aequitas: Whether the task supports Aequitas evaluation.
-        target: The target column name for fairness evaluation (required if supports_aequitas=True).
+        supports_fairness: Whether the task supports fairness evaluation.
+        target: The target column name for fairness evaluation (required if supports_fairness=True).
         description: The description of the task.
+        supports_aequitas: Deprecated alias for supports_fairness (for backward compatibility).
     """
 
     def __init__(
         self,
         name: str,
         run: Callable,
-        supports_aequitas: bool = False,
+        supports_fairness: bool = False,
         target: str = None,
         description: str = "",
+        supports_aequitas: bool = None,  # backward compatibility
     ):
         self._name: str = name
         self._run: Callable = run
-        self._supports_aequitas: bool = supports_aequitas
+        # Support backward compatibility with supports_aequitas
+        if supports_aequitas is not None:
+            supports_fairness = supports_aequitas
+        self._supports_fairness: bool = supports_fairness
         self._target: str = target
         self._description: str = description
-        if supports_aequitas and target is None:
-            raise ValueError(f"Task '{name}' supports Aequitas but no target column specified.")
+        if supports_fairness and target is None:
+            raise ValueError(f"Task '{name}' supports fairness evaluation but no target column specified.")
 
     @property
     def name(self) -> str:
@@ -41,8 +46,13 @@ class Task:
         return self._description
 
     @property
+    def supports_fairness(self) -> bool:
+        return self._supports_fairness
+
+    @property
     def supports_aequitas(self) -> bool:
-        return self._supports_aequitas
+        """Deprecated: Use supports_fairness instead."""
+        return self._supports_fairness
 
     @property
     def target(self) -> str:
@@ -52,7 +62,7 @@ class Task:
         return f"{self.name}: {self.description}" if self.description else self.name
 
     def __repr__(self) -> str:
-        return str([self.name, self.run, self.supports_aequitas, self.target, self.description])
+        return str([self.name, self.run, self.supports_fairness, self.target, self.description])
 
     def run(self, *args, **kwargs):
         return self._run(*args, **kwargs)

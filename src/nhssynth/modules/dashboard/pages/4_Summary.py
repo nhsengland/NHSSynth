@@ -152,9 +152,9 @@ def compute_summary_metrics(evaluations: dict, experiments: pd.DataFrame) -> dic
                 # Skip metrics that can't be processed
                 continue
 
-    # Fairness/Aequitas metrics
-    if "aequitas" in evaluations:
-        fairness_evals = evaluations["aequitas"]
+    # Fairness metrics
+    if "fairness" in evaluations:
+        fairness_evals = evaluations["fairness"]
         for col in fairness_evals.columns:
             try:
                 # Convert to numeric first
