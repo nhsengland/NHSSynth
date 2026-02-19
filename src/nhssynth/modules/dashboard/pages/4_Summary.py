@@ -163,25 +163,36 @@ def compute_summary_metrics(evaluations: dict, experiments: pd.DataFrame) -> dic
                     continue
 
                 # Separate real vs synthetic values for comparison
-                real_idx = [i for i in fairness_evals.index if i[0] == "Real"]
-                synth_idx = [i for i in fairness_evals.index if i[0] != "Real"]
+                # Handle both MultiIndex and regular Index
+                if hasattr(fairness_evals.index, 'get_level_values'):
+                    # MultiIndex - get first level
+                    idx_values = fairness_evals.index.get_level_values(0)
+                    real_idx = fairness_evals.index[idx_values == "Real"]
+                    synth_idx = fairness_evals.index[idx_values != "Real"]
+                else:
+                    # Regular index - try tuple access
+                    real_idx = [i for i in fairness_evals.index if (isinstance(i, tuple) and i[0] == "Real") or i == "Real"]
+                    synth_idx = [i for i in fairness_evals.index if not ((isinstance(i, tuple) and i[0] == "Real") or i == "Real")]
 
-                real_vals = pd.to_numeric(fairness_evals.loc[real_idx, col], errors='coerce') if real_idx else None
-                synth_vals = pd.to_numeric(fairness_evals.loc[synth_idx, col], errors='coerce') if synth_idx else None
+                real_vals = pd.to_numeric(fairness_evals.loc[real_idx, col], errors='coerce') if len(real_idx) > 0 else None
+                synth_vals = pd.to_numeric(fairness_evals.loc[synth_idx, col], errors='coerce') if len(synth_idx) > 0 else None
 
-                real_val = real_vals.mean() if real_vals is not None and not real_vals.isna().all() else None
-                synth_val = synth_vals.mean() if synth_vals is not None and not synth_vals.isna().all() else None
+                real_val = real_vals.mean() if real_vals is not None and len(real_vals) > 0 and not real_vals.isna().all() else None
+                synth_val = synth_vals.mean() if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all() else None
 
                 # For fairness, lower is better (less disparity)
                 summary["fairness_metrics"][col] = {
                     "real": real_val,
                     "synthetic_mean": synth_val,
-                    "synthetic_min": synth_vals.min() if synth_vals is not None and not synth_vals.isna().all() else None,
-                    "synthetic_max": synth_vals.max() if synth_vals is not None and not synth_vals.isna().all() else None,
+                    "synthetic_min": synth_vals.min() if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all() else None,
+                    "synthetic_max": synth_vals.max() if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all() else None,
                     "real_rating": get_fairness_rating(real_val) if real_val is not None else ("N/A", "gray"),
                     "synthetic_rating": get_fairness_rating(synth_val) if synth_val is not None else ("N/A", "gray"),
                 }
-            except Exception:
+            except Exception as e:
+                # Store error for debugging
+                summary["_fairness_errors"] = summary.get("_fairness_errors", [])
+                summary["_fairness_errors"].append(f"{col}: {str(e)}")
                 continue
 
     return summary
@@ -461,6 +472,19 @@ def page():
             fairness_df["real_rating"] = fairness_df["real_rating"].apply(lambda x: x[0])
             fairness_df["synthetic_rating"] = fairness_df["synthetic_rating"].apply(lambda x: x[0])
             st.dataframe(fairness_df)
+
+        # Debug: Show if fairness was expected but not computed
+        if "fairness" in evaluations and not summary["fairness_metrics"]:
+            st.write("#### Fairness Metrics")
+            st.warning("Fairness evaluation data exists but no metrics could be extracted.")
+            fairness_raw = evaluations["fairness"]
+            st.write(f"Columns: {list(fairness_raw.columns)}")
+            st.write(f"Shape: {fairness_raw.shape}")
+            st.write(f"Index type: {type(fairness_raw.index)}")
+            if "_fairness_errors" in summary:
+                st.error(f"Errors: {summary['_fairness_errors']}")
+            if not fairness_raw.empty:
+                st.dataframe(fairness_raw)
 
 
 if __name__ == "__main__":

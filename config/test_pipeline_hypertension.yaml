@@ -1,0 +1,85 @@
+seed: 1
+experiment_name: test_hypertension
+run_type: pipeline
+dataloader:
+  collapse_yaml: true
+  write_csv: true
+model:
+  architecture:
+    - DPVAE
+  num_epochs:
+    - 50
+  patience: 10
+  target_epsilon:
+    - 1.0
+  max_grad_norm: 5.0
+  secure_mode: false
+  repeats: 1
+evaluation:
+  # Downstream tasks and fairness
+  downstream_tasks: true
+  fairness: true
+  protected_attributes:
+    - Gender
+    - Ethnicity
+    - Income_Level
+
+  # Column Shape Metrics
+  column_shape_metrics:
+    - KSComplement
+    - TVComplement
+
+  # Column Similarity Metrics
+  column_similarity_metrics:
+    - MissingValueSimilarity
+    - StatisticSimilarity
+    - CorrelationSimilarity
+    - ContingencySimilarity
+
+  # Boundary Metrics
+  boundary_metrics:
+    - BoundaryAdherence
+
+  # Coverage Metrics
+  coverage_metrics:
+    - RangeCoverage
+    - CategoryCoverage
+
+  # Synthesis Metrics
+  synthesis_metrics:
+    - NewRowSynthesis
+
+  # Divergence Metrics
+  divergence_metrics:
+    - ContinuousKLDivergence
+    - DiscreteKLDivergence
+
+  # Privacy Metrics - Categorical
+  # Key fields: attributes that could identify someone (quasi-identifiers)
+  # Sensitive fields: attributes we want to protect
+  key_categorical_fields:
+    - Gender
+    - Ethnicity
+  sensitive_categorical_fields:
+    - Hypertension_Diagnosis
+  cap_privacy_metrics:
+    - CategoricalCAP
+    - CategoricalGeneralizedCAP
+    - CategoricalZeroCAP
+  categorical_privacy_metrics:
+    - CategoricalKNN
+    - CategoricalNB
+    - CategoricalRF
+    - CategoricalSVM
+    - CategoricalEnsemble
+
+  # Privacy Metrics - Numerical
+  key_numerical_fields:
+    - Baseline_BP_Systolic
+  sensitive_numerical_fields:
+    - Genetic_Risk_Score
+  numerical_privacy_metrics:
+    - NumericalLR
+    - NumericalMLP
+    - NumericalSVR
+    - NumericalRadiusNearestNeighbor
