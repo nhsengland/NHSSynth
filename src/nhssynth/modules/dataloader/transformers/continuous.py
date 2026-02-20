@@ -2,21 +2,19 @@
 # - Fixed clipping bounds (lines 159-169)
 # - Removed duplicate component temperature (lines 361-364)
 # - Added component selection diagnostics (lines 388-396)
-
-# Set to True for verbose debug output during transformation/reversion
-DEBUG_VERBOSE = False
-
 import re
 import warnings
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.mixture import BayesianGaussianMixture
 
 from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
+
+# Set to True for verbose debug output during transformation/reversion
+DEBUG_VERBOSE = False
 
 
 class ClusterContinuousTransformer(ColumnTransformer):
@@ -123,11 +121,11 @@ class ClusterContinuousTransformer(ColumnTransformer):
             elif isinstance(data, pd.Series):
                 self.name = data.name
             # else: leave as-is; revert() will infer later
-        
+
         self.original_column_name = data.name
         if not hasattr(self, "name") or self.name is None:
             self.name = self.original_column_name
-    
+
         if missingness_column is not None:
             self._missingness_column_name = missingness_column.name
             full_index = data.index
@@ -150,7 +148,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # Diagnostic: Show effective number of components (weight > 1%)
         weights = self._transformer.weights_
         effective_components = (weights > 0.01).sum()
-        col_name = getattr(self, 'name', 'unknown')
+        col_name = getattr(self, "name", "unknown")
 
         # Show component means and stds to understand distribution
         means = self._transformer.means_.reshape(-1)
@@ -168,6 +166,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
         if DEBUG_VERBOSE:
             from tqdm import tqdm
+
             tqdm.write(f"[{col_name}] BGM fitted {effective_components}/{len(weights)} components")
             tqdm.write(f"[{col_name}] Component means: {means.round(2)}")
             tqdm.write(f"[{col_name}] Component stds: {stds.round(2)}")
@@ -176,10 +175,12 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # Calculate kurtosis to detect heavily-peaked distributions
         # High kurtosis (>5) indicates need for lower temperature to preserve peakedness
         from scipy import stats
+
         if data.size > 10:
             self._kurtosis = float(stats.kurtosis(data.flatten(), fisher=True))  # Fisher=True gives excess kurtosis
             if DEBUG_VERBOSE and self._kurtosis > 5:
                 from tqdm import tqdm
+
                 tqdm.write(f"[{col_name}] High kurtosis detected: {self._kurtosis:.2f} (peaked distribution)")
         else:
             self._kurtosis = 0.0
@@ -211,10 +212,12 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
         if DEBUG_VERBOSE:
             from tqdm import tqdm
-            tqdm.write(f"[{self.name}] fit: col_std={col_std:.4f}, sigma_floor={sigma_floor:.4f}, "
-                       f"stds range=[{float(np.min(self.stds)):.4f}, {float(np.max(self.stds)):.4f}], "
-                       f"safe_range=[{self._safe_min:.2f}, {self._safe_max:.2f}]")
 
+            tqdm.write(
+                f"[{self.name}] fit: col_std={col_std:.4f}, sigma_floor={sigma_floor:.4f}, "
+                f"stds range=[{float(np.min(self.stds)):.4f}, {float(np.max(self.stds)):.4f}], "
+                f"safe_range=[{self._safe_min:.2f}, {self._safe_max:.2f}]"
+            )
 
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
         normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
@@ -254,16 +257,14 @@ class ClusterContinuousTransformer(ColumnTransformer):
             transformed_data = transformed_data.drop(columns=[0])
 
         self.new_column_names = transformed_data.columns
-        
+
         out = transformed_data
 
         # Only DataFrames have .columns
         if isinstance(out, pd.DataFrame):
             out = out.loc[:, ~out.columns.str.endswith("_adherence")]
 
-        return out.astype(
-            {col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)}
-        )
+        return out.astype({col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)})
 
     def revert(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -271,9 +272,8 @@ class ClusterContinuousTransformer(ColumnTransformer):
         return the full DataFrame (DataFrame in -> DataFrame out).
         """
         import re
+
         import numpy as np
-        import warnings
-        from typing import List
 
         # 1) Determine base/original column name
         base = (
@@ -329,14 +329,13 @@ class ClusterContinuousTransformer(ColumnTransformer):
         else:
             raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
         sigmas = np.sqrt(vars_ + 1e-12)
-        
+
         # --- apply the same floor at decode time ---
         sigma_floor = getattr(self, "_sigma_floor", None)
         if sigma_floor is None:
             # fallback: derive a conservative floor from all components
             sigma_floor = max(1e-2, 0.05 * float(np.nanstd(means)) if means.size else 1e-2)
         sigmas = np.maximum(sigmas, float(sigma_floor))
-
 
         # replace with (ALWAYS clamp to training encode range):
         vals = data[value_col].to_numpy(dtype=float)
@@ -396,6 +395,7 @@ class ClusterContinuousTransformer(ColumnTransformer):
         # Debug: show component selection frequencies
         if DEBUG_VERBOSE:
             from tqdm import tqdm
+
             unique_k, counts_k = np.unique(k_idx, return_counts=True)
             selection_freq = np.zeros(len(means))
             selection_freq[unique_k] = counts_k / len(k_idx)
@@ -417,8 +417,11 @@ class ClusterContinuousTransformer(ColumnTransformer):
             n_clipped = np.sum((pre_clip < safe_min) | (pre_clip > safe_max))
             if DEBUG_VERBOSE and n_clipped > 0:
                 from tqdm import tqdm
-                tqdm.write(f"[revert:{base}] Clipped {n_clipped}/{len(decoded)} values to safe range "
-                          f"[{safe_min:.2f}, {safe_max:.2f}]")
+
+                tqdm.write(
+                    f"[revert:{base}] Clipped {n_clipped}/{len(decoded)} values to safe range "
+                    f"[{safe_min:.2f}, {safe_max:.2f}]"
+                )
 
         # 4b) If a missingness flag exists, apply it (set decoded to NaN for missing rows)
         miss_col = f"{base}_missing"
@@ -434,7 +437,3 @@ class ClusterContinuousTransformer(ColumnTransformer):
         to_drop += [c for c in (f"{base}_adherence", f"{base}_missing") if c in data.columns]
         data = data.drop(columns=[c for c in to_drop if c in data.columns], errors="ignore")
         return data
-
-
-
-

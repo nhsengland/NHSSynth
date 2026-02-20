@@ -271,7 +271,9 @@ def validate_metric_args(
                 "Fairness metrics can only work in context of downstream tasks involving binary classification problems."
             )
         if not args.protected_attributes:
-            warnings.warn("No protected attributes specified for fairness analysis, defaulting to all columns in the dataset.")
+            warnings.warn(
+                "No protected attributes specified for fairness analysis, defaulting to all columns in the dataset."
+            )
             args.protected_attributes = columns.tolist()
         assert all(
             [attr in columns for attr in args.protected_attributes]

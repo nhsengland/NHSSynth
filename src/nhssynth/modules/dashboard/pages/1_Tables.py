@@ -23,7 +23,7 @@ def safe_highlight_dataframe(df: pd.DataFrame):
     """
     try:
         # Select only numeric columns for highlighting
-        numeric_cols = df.select_dtypes(include=['number']).columns
+        numeric_cols = df.select_dtypes(include=["number"]).columns
         if len(numeric_cols) > 0:
             return df.style.highlight_max(axis=0, subset=numeric_cols)
         return df

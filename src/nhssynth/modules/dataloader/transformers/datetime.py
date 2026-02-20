@@ -37,7 +37,6 @@ class DatetimeTransformer(TransformerWrapper):
         to the continuous mixture transformer. Also caches train-window bounds and a
         small reservoir for later repair/jitter.
         """
-        import numpy as np
         import pandas as pd
         from tqdm import tqdm
 
@@ -116,7 +115,6 @@ class DatetimeTransformer(TransformerWrapper):
         Decode from mixture space back to *days*, clamp/jitter in *days* (if enabled),
         convert to ns and then to datetime64[ns]. Respects <base>_missing when present.
         """
-        import numpy as np
         import pandas as pd
         from tqdm import tqdm
 
@@ -144,12 +142,15 @@ class DatetimeTransformer(TransformerWrapper):
 
         if clamp_ok:
             from tqdm import tqdm
+
             rng = np.random.default_rng()
 
             # out-of-bounds mask
             bad = np.isfinite(ns_vals) & ((ns_vals < ns_min) | (ns_vals > ns_max))
-            tqdm.write(f"[datetime.revert] window={pd.to_datetime(ns_min)}..{pd.to_datetime(ns_max)} "
-                    f"oob={int(bad.sum())}/{len(ns_vals)}")
+            tqdm.write(
+                f"[datetime.revert] window={pd.to_datetime(ns_min)}..{pd.to_datetime(ns_max)} "
+                f"oob={int(bad.sum())}/{len(ns_vals)}"
+            )
 
             if bad.any():
                 pool = getattr(self, "_ns_pool", None)

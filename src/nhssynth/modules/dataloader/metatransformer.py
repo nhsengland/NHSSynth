@@ -1,17 +1,17 @@
 import pathlib
 import sys
-from typing import Any, Iterable, Optional, Dict, Union
+from typing import Any, Optional, Union
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+import inspect
+
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 from tqdm import tqdm
-import inspect
 
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
@@ -122,10 +122,11 @@ class MetaTransformer:
         # Check if column is numeric before applying rounding
         if not pd.api.types.is_numeric_dtype(working_column):
             # Try to coerce to numeric first
-            working_column = pd.to_numeric(working_column, errors='coerce')
+            working_column = pd.to_numeric(working_column, errors="coerce")
             if not pd.api.types.is_numeric_dtype(working_column):
                 # If still not numeric, skip rounding (likely datetime or categorical)
                 from tqdm import tqdm
+
                 tqdm.write(f"Warning: Skipping rounding for non-numeric column {working_column.name}")
                 return working_column
 
@@ -212,14 +213,9 @@ class MetaTransformer:
         for constraint in self._metadata.constraints:
             working_data = constraint.transform(working_data)
         return working_data
-    
+
     def repair_constraints(
-        self,
-        df: pd.DataFrame,
-        *,
-        mode: str = "reflect",
-        rng=None,
-        n_retries: int = 0
+        self, df: pd.DataFrame, *, mode: str = "reflect", rng=None, n_retries: int = 0
     ) -> pd.DataFrame:
         """
         Enforce constraints on a *decoded* DataFrame using
@@ -276,13 +272,13 @@ class MetaTransformer:
                 continue
 
             # Get base values
-            base_vals = pd.to_numeric(repaired[base], errors='coerce')
+            base_vals = pd.to_numeric(repaired[base], errors="coerce")
 
             # Handle column reference constraints (e.g., x8 > x10)
             if is_column:
                 if reference not in repaired.columns:
                     continue
-                ref_vals = pd.to_numeric(repaired[reference], errors='coerce')
+                ref_vals = pd.to_numeric(repaired[reference], errors="coerce")
             else:
                 # Handle numeric constant constraints (e.g., x > 0)
                 try:
@@ -409,7 +405,6 @@ class MetaTransformer:
 
         return fn(**kwargs)
 
-
     def transform(self) -> pd.DataFrame:
         """
         Apply each column transformer to its *raw* Series, then concatenate results.
@@ -499,7 +494,7 @@ class MetaTransformer:
 
         # Concatenate all transformed parts
         transformed = pd.concat(parts, axis=1)
-        
+
         multi_groups: list[list[int]] = []
         single_list: list[int] = []
 
@@ -512,16 +507,17 @@ class MetaTransformer:
                 non_component_indices = []
 
                 import re
+
                 for i, col_name in enumerate(part_cols):
                     col_idx = col_offset + i
                     # Check if this is a single-column type (z-score or missingness)
                     is_single_col = isinstance(col_name, str) and any(
-                        suffix in col_name for suffix in ['_value', '_normalized', '_normalised', '_missing']
+                        suffix in col_name for suffix in ["_value", "_normalized", "_normalised", "_missing"]
                     )
                     if is_single_col:
                         # Z-scores and missingness go to single_column_indices
                         non_component_indices.append(col_idx)
-                    elif isinstance(col_name, str) and re.search(r'_c\d+$', col_name):
+                    elif isinstance(col_name, str) and re.search(r"_c\d+$", col_name):
                         # GMM component columns (e.g., x7_c1, x7_c10) go to multi_column_indices
                         component_indices.append(col_idx)
                     elif isinstance(col_name, str):
@@ -549,7 +545,6 @@ class MetaTransformer:
         self.columns = list(transformed.columns)
 
         return transformed
-
 
     def apply(self) -> pd.DataFrame:
         """
@@ -592,10 +587,12 @@ class MetaTransformer:
             continuous_cols = []
             for col_meta in self._metadata:
                 # Skip datetime columns, categorical columns, and missingness indicators
-                if (hasattr(col_meta, 'transformer') and
-                    col_meta.name in dataset.columns and
-                    not col_meta.name.endswith('_missing') and
-                    dataset[col_meta.name].dtype in ['float64', 'float32', 'int64', 'int32']):
+                if (
+                    hasattr(col_meta, "transformer")
+                    and col_meta.name in dataset.columns
+                    and not col_meta.name.endswith("_missing")
+                    and dataset[col_meta.name].dtype in ["float64", "float32", "int64", "int32"]
+                ):
                     continuous_cols.append(col_meta.name)
 
             if continuous_cols:
@@ -615,6 +612,7 @@ class MetaTransformer:
             if DEBUG_VERBOSE:
                 tqdm.write(f"[inverse_apply] ERROR calling repair_constraints: {type(e).__name__}: {e}")
                 import traceback
+
                 tqdm.write(traceback.format_exc())
 
         out = self.apply_dtypes(dataset)
@@ -668,340 +666,3 @@ class MetaTransformer:
 
     def save_constraint_graphs(self, path: pathlib.Path) -> None:
         return self._metadata.constraints._output_graphs_html(path)
-
-    def _ensure_binary_or_in(base: str, op: str, reference, reference_is_column: bool):
-        # Column must exist
-        if base not in repaired.columns or op is None:
-            return
-
-        # ---------- helper getters ----------
-        def _get_numeric_pair():
-            """Return (a, b, ok) as float arrays for numeric ops."""
-            if reference_is_column:
-                if not (isinstance(reference, str) and reference in repaired.columns):
-                    return None, None, False
-                a = repaired[base].to_numpy(dtype=float, copy=False)
-                b = repaired[reference].to_numpy(dtype=float, copy=False)
-                return a, b, True
-            else:
-                ref_num = _as_number(reference)
-                if ref_num is None:
-                    return None, None, False
-                a = repaired[base].to_numpy(dtype=float, copy=False)
-                b = np.full_like(a, ref_num, dtype=float)
-                return a, b, True
-
-        # ---------- categorical membership ----------
-        if op == "in":
-            # Build allowed set
-            if reference_is_column:
-                if not (isinstance(reference, str) and reference in repaired.columns):
-                    return
-                allowed = set(repaired[reference].dropna().unique().tolist())
-            else:
-                if isinstance(reference, (list, tuple, set)):
-                    allowed = set(reference)
-                else:
-                    allowed = set(str(reference).split(","))
-
-            s = repaired[base].astype(object)
-            mask = ~s.isin(allowed)
-            if mask.any():
-                # choose a mode from allowed values present in column, else any allowed
-                present_allowed = s[s.isin(allowed)]
-                if not present_allowed.empty:
-                    fill_val = present_allowed.mode(dropna=True)
-                    fill_val = (fill_val.iloc[0] if not fill_val.empty else next(iter(allowed)))
-                else:
-                    fill_val = next(iter(allowed))
-                s.loc[mask] = fill_val
-                repaired[base] = s
-            return
-
-        # ---------- equality (assign) ----------
-        if op == "=":
-            if reference_is_column and isinstance(reference, str) and reference in repaired.columns:
-                repaired[base] = repaired[reference]
-            else:
-                # numeric constant → fill with number; else fill with raw reference (categorical/string)
-                ref_num = _as_number(reference)
-                repaired[base] = ref_num if ref_num is not None else reference
-            return
-
-        # ---------- numeric comparisons ----------
-        a, b, ok = _get_numeric_pair()
-        if not ok:
-            return
-
-        # Build violation mask
-        if op == "<":
-            mask = a >= b
-        elif op == "<=":
-            mask = a > b
-        elif op == ">":
-            mask = a <= b
-        elif op == ">=":
-            mask = a < b
-        else:
-            # unsupported operator here
-            return
-
-        if not np.any(mask):
-            repaired[base] = a
-            return
-
-        # Choose fix strategy
-        if mode == "clip":
-            # final value on correct side of the boundary by a tiny epsilon if strict
-            eps = 1e-8
-            if op in ("<", "<="):
-                # want a <= b   (strict for <)
-                a[mask] = np.minimum(a[mask], b[mask] - (eps if op == "<" else 0.0))
-            else:
-                # want a >= b   (strict for >)
-                a[mask] = np.maximum(a[mask], b[mask] + (eps if op == ">" else 0.0))
-
-        elif mode == "uniform":
-            # sample near the boundary within a small window based on spread
-            spread = float(np.nanstd(a))
-            w = np.clip(0.05 * spread, 1e-6, np.inf)
-            if op in ("<", "<="):
-                hi = b[mask] - (1e-8 if op == "<" else 0.0)
-                lo = hi - w
-                a[mask] = rng.uniform(lo, hi)
-            else:
-                lo = b[mask] + (1e-8 if op == ">" else 0.0)
-                hi = lo + w
-                a[mask] = rng.uniform(lo, hi)
-
-        elif mode == "resample":
-            # draw from *in-bounds* values observed in this column (bootstrap),
-            # fall back to a small uniform window if none available; add light jitter, then enforce bound.
-            inb = a[~mask]
-            if inb.size:
-                sampled = rng.choice(inb, size=mask.sum(), replace=True)
-                s = float(np.nanstd(inb))
-                jitter = rng.normal(0.0, max(1e-6, 0.005 * s), size=mask.sum())
-                cand = sampled + jitter
-            else:
-                spread = float(np.nanstd(a))
-                w = np.clip(0.05 * spread, 1e-6, np.inf)
-                if op in ("<", "<="):
-                    hi = b[mask] - (1e-8 if op == "<" else 0.0)
-                    lo = hi - w
-                    cand = rng.uniform(lo, hi, size=mask.sum())
-                else:
-                    lo = b[mask] + (1e-8 if op == ">" else 0.0)
-                    hi = lo + w
-                    cand = rng.uniform(lo, hi, size=mask.sum())
-
-            # enforce strictness once more
-            if op in ("<", "<="):
-                cand = np.minimum(cand, b[mask] - (1e-8 if op == "<" else 0.0))
-            else:
-                cand = np.maximum(cand, b[mask] + (1e-8 if op == ">" else 0.0))
-            a[mask] = cand
-
-        else:
-            # unknown mode → no-op for safety
-            pass
-
-        repaired[base] = a
-
-                
-        def _get_pool_for(self, base: str):
-            """
-            Return a numeric pool of in-bounds training values for `base`:
-            - For datetime columns: int64 nanoseconds (as float for NaN handling)
-            - For numeric columns: float64
-            Falls back to raw/typed dataset if transformer pool absent.
-            """
-            # 1) Try a transformer-provided reservoir (e.g., DatetimeTransformer._ns_pool)
-            try:
-                t = next(m.transformer for m in self._metadata if getattr(m, "name", None) == base)
-                pool = getattr(t, "_ns_pool", None)
-                if isinstance(pool, np.ndarray) and pool.size:
-                    # convert to float for np.isfinite downstream
-                    return pool.astype("float64", copy=False)
-            except StopIteration:
-                pass
-
-            # 2) Fall back to a source dataset column
-            src = getattr(self, "typed_dataset", None)
-            if src is None:
-                src = getattr(self, "_raw_dataset", None)
-            if src is None or base not in src.columns:
-                return None
-
-            col = src[base]
-
-            # Datetime -> int64 ns -> float64
-            if is_datetime64_any_dtype(col):
-                arr = pd.to_datetime(col, errors="coerce").view("int64").astype("float64")
-            else:
-                # Numeric or other -> force numeric (non-convertible -> NaN)
-                arr = pd.to_numeric(col, errors="coerce").astype("float64")
-
-            # Keep only finite values
-            arr = arr[np.isfinite(arr)]
-            if arr.size == 0:
-                return None
-
-            # Downsample very large pools
-            if arr.size > 10000:
-                rng = np.random.default_rng(0)
-                arr = rng.choice(arr, size=10000, replace=False)
-
-            return arr
-                
-        def _fold_into_interval(a: np.ndarray, low: float, high: float,
-                        strict_low: bool, strict_high: bool) -> np.ndarray:
-            """
-            Reflect-then-wrap any values into [low, high] (or (low, high), etc.).
-            Works in one shot, no ping-pong. Vectorised.
-            """
-            a = a.astype(float, copy=False)
-            w = high - low
-            if not np.isfinite(w) or w <= 0:
-                return a  # degenerate interval, nothing to do
-
-            # Reflect-wrap into [0, 2w), then fold to [0, w]
-            y = (a - low) % (2 * w)
-            y = np.where(y <= w, y, 2 * w - y)
-            out = low + y
-
-            # handle strict bounds by nudging inside by tiny eps
-            eps = 1e-8
-            if strict_low:
-                out = np.where(out <= low, low + eps, out)
-            else:
-                out = np.where(out < low, low, out)
-            if strict_high:
-                out = np.where(out >= high, high - eps, out)
-            else:
-                out = np.where(out > high, high, out)
-            return out
-        
-        def _bootstrap_into_interval(a: np.ndarray, low: float, high: float, rng) -> np.ndarray:
-            """Resample any out-of-range values from the in-bounds portion of `a`.
-            If there are no in-bounds values, fall back to uniform(low, high)."""
-            a = a.astype(float, copy=False)
-            bad = (a < low) | (a > high)
-            if not np.any(bad):
-                return a
-            inb = a[~bad]
-            if inb.size > 0:
-                a[bad] = rng.choice(inb, size=bad.sum(), replace=True)
-            else:
-                a[bad] = rng.uniform(low, high, size=bad.sum())
-            return a
-
-
-        # ----------------- apply constraints -----------------
-        from tqdm import tqdm
-
-        # ----------------- apply constraints (iteratively) -----------------
-        max_passes = max(1, int(n_retries) + 2)  # 2 passes by default
-        total_changes = 0
-
-        for pass_idx in range(max_passes):
-            pass_changes = 0
-
-            for c in constraints_iterable:
-                cd = c.to_dict() if hasattr(c, "to_dict") else {
-                    k: getattr(c, k) for k in dir(c) if not k.startswith("_")
-                }
-                base = cd.get("base")
-                op = _norm_op(cd.get("operator"))
-                ref = cd.get("reference")
-                ref_is_col = bool(cd.get("reference_is_column", False))
-
-                if not base or base not in repaired.columns or not op:
-                    continue
-
-                # ----- snapshot BEFORE on the *repaired* DataFrame -----
-                before = repaired[base].copy()
-
-                # apply into 'repaired'
-                _ensure_binary_or_in(base, op, ref, ref_is_col)
-
-                # ----- AFTER & deltas -----
-                after = repaired[base]
-                # Count true numeric changes (ignore NaN==NaN)
-                changed_mask = ~(before.eq(after) | (before.isna() & after.isna()))
-                n_changed = int(changed_mask.sum())
-                pass_changes += n_changed
-                total_changes += n_changed
-
-                # targeted debug for x8
-                if base == "x8":
-                    tqdm.write(f"[repair] pass {pass_idx+1}: x8 adjusted {n_changed} rows for {op} {ref}")
-
-            # Early exit if nothing else changed on this pass
-            if pass_changes == 0:
-                break
-            
-            # Collect lower/upper constant bounds per base
-            bounds = {}
-            for c in constraints_iterable:
-                cd  = c.to_dict() if hasattr(c, "to_dict") else {k: getattr(c, k) for k in dir(c) if not k.startswith("_")}
-                base = cd.get("base"); op = _norm_op(cd.get("operator")); ref = cd.get("reference")
-                if not base or base not in repaired.columns or not op:
-                    continue
-                if bool(cd.get("reference_is_column", False)):
-                    continue
-                ref_num = _as_number(ref)
-                if ref_num is None:
-                    continue
-
-                b = bounds.setdefault(base, {"strict_low": False, "strict_high": False})
-                if op in (">", ">="):
-                    b["low"]  = max(ref_num, b.get("low", -np.inf)) if "low" in b else ref_num
-                    b["strict_low"]  = b["strict_low"] or (op == ">")
-                elif op in ("<", "<="):
-                    b["high"] = min(ref_num, b.get("high",  np.inf)) if "high" in b else ref_num
-                    b["strict_high"] = b["strict_high"] or (op == "<")
-
-            # after you assembled `bounds` dict {base: {'low':..,'high':..}}
-            changes_interval = 0
-            for base, b in bounds.items():
-                low, high = b.get("low", -np.inf), b.get("high", np.inf)
-                if not (np.isfinite(low) and np.isfinite(high) and high > low):
-                    continue
-
-                a = repaired[base].to_numpy(dtype=float, copy=False)
-                bad = (a < low) | (a > high)
-                if not bad.any():
-                    continue
-
-                if mode == "fold":
-                    a = _fold_into_interval(a, low, high, b["strict_low"], b["strict_high"])
-                elif mode == "clip":
-                    eps_lo = 1e-8 if b["strict_low"] else 0.0
-                    eps_hi = 1e-8 if b["strict_high"] else 0.0
-                    a = np.where(a < low + eps_lo, low + eps_lo, a)
-                    a = np.where(a > high - eps_hi, high - eps_hi, a)
-                elif mode == "uniform":
-                    a[bad] = rng.uniform(low, high, size=bad.sum())
-                elif mode == "resample":
-                    pool = _get_pool_for(base)
-                    if pool is not None:
-                        inb = pool[(pool >= low) & (pool <= high)]
-                        if inb.size:
-                            a[bad] = rng.choice(inb, size=bad.sum(), replace=True)
-                        else:
-                            a[bad] = rng.uniform(low, high, size=bad.sum())
-                    else:
-                        a[bad] = rng.uniform(low, high, size=bad.sum())
-                else:
-                    # default: reflect (kept for backward compatibility)
-                    a = _fold_into_interval(a, low, high, b["strict_low"], b["strict_high"])
-
-                repaired[base] = a
-                changes_interval += int(bad.sum())
-                if base == "x8":
-                    tqdm.write(f"[repair:{mode}] x8 adjusted {int(bad.sum())} into [{low},{high}]")
-            tqdm.write(f"[repair] interval fix-ups: {changes_interval}")
-
-        return repaired
-

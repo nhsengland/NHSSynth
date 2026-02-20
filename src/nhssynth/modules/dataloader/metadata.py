@@ -80,7 +80,7 @@ class MetaData:
                 roundable_data = data[data.notna()]
                 for i in range(np.finfo(dtype).precision):
                     if (roundable_data.round(i) == roundable_data).all():
-                        return 10 ** -i
+                        return 10**-i
             return None
 
         def _validate_categorical(self, data: pd.Series, categorical: Optional[bool] = None) -> bool:
@@ -154,7 +154,7 @@ class MetaData:
                 if self.dtype.kind == "M":
                     datetime_config = self.transformer_config.copy()
                     # Force exactly 1 component for smooth temporal distributions
-                    datetime_config['n_components'] = 1
+                    datetime_config["n_components"] = 1
                     transformer = ClusterContinuousTransformer(**datetime_config)
                     transformer = DatetimeTransformer(transformer)
                 else:
@@ -333,11 +333,7 @@ class MetaData:
                     "sdtype": (
                         "boolean"
                         if cmd.boolean
-                        else "categorical"
-                        if cmd.categorical
-                        else "datetime"
-                        if cmd.dtype.kind == "M"
-                        else "numerical"
+                        else "categorical" if cmd.categorical else "datetime" if cmd.dtype.kind == "M" else "numerical"
                     ),
                 }
                 for cn, cmd in self._metadata.items()

@@ -2,7 +2,7 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_integer_dtype, is_extension_array_dtype
+from pandas.api.types import is_extension_array_dtype, is_integer_dtype
 from sklearn.preprocessing import OneHotEncoder
 
 from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
@@ -76,7 +76,7 @@ class OHECategoricalTransformer(ColumnTransformer):
             self.missing_value = missing_value
         semi_index = data.index
 
-       # --- Make data sklearn-friendly: no pd.NA, uniform dtype ---
+        # --- Make data sklearn-friendly: no pd.NA, uniform dtype ---
         s = data.copy()
 
         # Nullable integer (e.g., Int64) -> float64 so <NA> -> np.nan
@@ -142,4 +142,3 @@ class OHECategoricalTransformer(ColumnTransformer):
         data = data.drop(columns=[c for c in cols_to_drop if c in data.columns], errors="ignore")
 
         return data
-

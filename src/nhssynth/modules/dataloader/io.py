@@ -71,7 +71,13 @@ def check_output_paths(
         UserWarning: When any of the filenames include directory separators, as this is not supported and may not work as intended.
     """
     fn_dataset = Path(fn_dataset).stem
-    (fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata,) = io.consistent_endings(
+    (
+        fn_typed,
+        fn_transformed,
+        fn_metatransformer,
+        fn_constraint_graph,
+        fn_sdv_metadata,
+    ) = io.consistent_endings(
         [
             fn_typed,
             fn_transformed,
@@ -80,7 +86,13 @@ def check_output_paths(
             fn_sdv_metadata,
         ]
     )
-    (fn_typed, fn_transformed, fn_metatransformer, fn_constraint_graph, fn_sdv_metadata,) = io.potential_suffixes(
+    (
+        fn_typed,
+        fn_transformed,
+        fn_metatransformer,
+        fn_constraint_graph,
+        fn_sdv_metadata,
+    ) = io.potential_suffixes(
         [
             fn_typed,
             fn_transformed,

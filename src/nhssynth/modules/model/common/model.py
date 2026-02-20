@@ -153,8 +153,8 @@ class Model(nn.Module, ABC):
 
     def _generate_metric_str(self, key) -> str:
         """Generates a string to display the current value of the metric `key`."""
-        values = self.metrics[key][-len(self.data_loader):]
-        mean_val = np.mean(values) if len(values) > 0 else float('nan')
+        values = self.metrics[key][-len(self.data_loader) :]
+        mean_val = np.mean(values) if len(values) > 0 else float("nan")
         return f"{(add_spaces_before_caps(key) + ':').ljust(self.max_length)}  {mean_val:.4f}"
 
     def _record_metrics(self, losses):

@@ -15,6 +15,7 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
     warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")
     try:
         from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
+
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
         warnings.filterwarnings("ignore", category=DataConversionWarning)
     except ImportError:

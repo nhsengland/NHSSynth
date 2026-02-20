@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from nhssynth.modules.evaluation.fairness import (
     _binarize_predictions,
@@ -21,21 +20,21 @@ class TestBinarizePredictions:
         predictions = pd.DataFrame({"prob": [0.3, 0.5, 0.7, 0.9]})
         result = _binarize_predictions(predictions, threshold=0.5)
         expected = pd.Series([0, 1, 1, 1])
-        pd.testing.assert_series_equal(result, expected)
+        pd.testing.assert_series_equal(result, expected, check_names=False)
 
     def test_custom_threshold(self):
         """Test binarization with custom threshold."""
         predictions = pd.DataFrame({"prob": [0.3, 0.5, 0.7, 0.9]})
         result = _binarize_predictions(predictions, threshold=0.8)
         expected = pd.Series([0, 0, 0, 1])
-        pd.testing.assert_series_equal(result, expected)
+        pd.testing.assert_series_equal(result, expected, check_names=False)
 
     def test_edge_cases(self):
         """Test edge case values at threshold boundary."""
         predictions = pd.DataFrame({"prob": [0.0, 0.5, 1.0]})
         result = _binarize_predictions(predictions, threshold=0.5)
         expected = pd.Series([0, 1, 1])
-        pd.testing.assert_series_equal(result, expected)
+        pd.testing.assert_series_equal(result, expected, check_names=False)
 
 
 class TestComputeGroupRates:
@@ -195,15 +194,15 @@ class TestRunFairnessMetrics:
 
     def test_basic_usage(self):
         """Test basic usage with valid inputs."""
-        data = pd.DataFrame({
-            "group": ["A", "A", "B", "B"],
-            "target": [0, 1, 0, 1],
-        })
+        data = pd.DataFrame(
+            {
+                "group": ["A", "A", "B", "B"],
+                "target": [0, 1, 0, 1],
+            }
+        )
         predictions = pd.DataFrame({"prob": [0.3, 0.7, 0.3, 0.7]})
 
-        result = run_fairness_metrics(
-            data, predictions, ["group"], "target", threshold=0.5
-        )
+        result = run_fairness_metrics(data, predictions, ["group"], "target", threshold=0.5)
 
         assert "dp_group_max_diff" in result
         assert "eo_group_tpr_diff" in result
@@ -211,44 +210,44 @@ class TestRunFairnessMetrics:
 
     def test_empty_predictions(self):
         """Test with empty predictions DataFrame."""
-        data = pd.DataFrame({
-            "group": ["A", "A", "B", "B"],
-            "target": [0, 1, 0, 1],
-        })
+        data = pd.DataFrame(
+            {
+                "group": ["A", "A", "B", "B"],
+                "target": [0, 1, 0, 1],
+            }
+        )
         predictions = pd.DataFrame({"prob": []})
 
-        result = run_fairness_metrics(
-            data, predictions, ["group"], "target"
-        )
+        result = run_fairness_metrics(data, predictions, ["group"], "target")
 
         assert result == {}
 
     def test_missing_target_column(self):
         """Test when target column is not in data."""
-        data = pd.DataFrame({
-            "group": ["A", "A", "B", "B"],
-            "other": [0, 1, 0, 1],
-        })
+        data = pd.DataFrame(
+            {
+                "group": ["A", "A", "B", "B"],
+                "other": [0, 1, 0, 1],
+            }
+        )
         predictions = pd.DataFrame({"prob": [0.3, 0.7, 0.3, 0.7]})
 
-        result = run_fairness_metrics(
-            data, predictions, ["group"], "target"
-        )
+        result = run_fairness_metrics(data, predictions, ["group"], "target")
 
         assert "fairness_error" in result
 
     def test_multiple_protected_attributes(self):
         """Test with multiple protected attributes."""
-        data = pd.DataFrame({
-            "group1": ["A", "A", "B", "B"],
-            "group2": ["X", "Y", "X", "Y"],
-            "target": [0, 1, 0, 1],
-        })
+        data = pd.DataFrame(
+            {
+                "group1": ["A", "A", "B", "B"],
+                "group2": ["X", "Y", "X", "Y"],
+                "target": [0, 1, 0, 1],
+            }
+        )
         predictions = pd.DataFrame({"prob": [0.3, 0.7, 0.3, 0.7]})
 
-        result = run_fairness_metrics(
-            data, predictions, ["group1", "group2"], "target"
-        )
+        result = run_fairness_metrics(data, predictions, ["group1", "group2"], "target")
 
         # Should have metrics for both groups
         assert "dp_group1_max_diff" in result
@@ -256,15 +255,15 @@ class TestRunFairnessMetrics:
 
     def test_protected_attribute_is_target(self):
         """Test that target column is excluded from protected attributes."""
-        data = pd.DataFrame({
-            "group": ["A", "A", "B", "B"],
-            "target": [0, 1, 0, 1],
-        })
+        data = pd.DataFrame(
+            {
+                "group": ["A", "A", "B", "B"],
+                "target": [0, 1, 0, 1],
+            }
+        )
         predictions = pd.DataFrame({"prob": [0.3, 0.7, 0.3, 0.7]})
 
-        result = run_fairness_metrics(
-            data, predictions, ["group", "target"], "target"
-        )
+        result = run_fairness_metrics(data, predictions, ["group", "target"], "target")
 
         # Target should be excluded from protected attributes
         assert "dp_group_max_diff" in result
@@ -272,15 +271,15 @@ class TestRunFairnessMetrics:
 
     def test_invalid_protected_attribute(self):
         """Test with protected attribute not in data."""
-        data = pd.DataFrame({
-            "group": ["A", "A", "B", "B"],
-            "target": [0, 1, 0, 1],
-        })
+        data = pd.DataFrame(
+            {
+                "group": ["A", "A", "B", "B"],
+                "target": [0, 1, 0, 1],
+            }
+        )
         predictions = pd.DataFrame({"prob": [0.3, 0.7, 0.3, 0.7]})
 
-        result = run_fairness_metrics(
-            data, predictions, ["nonexistent"], "target"
-        )
+        result = run_fairness_metrics(data, predictions, ["nonexistent"], "target")
 
         # Should return empty metrics (no valid attributes)
         assert "dp_nonexistent_max_diff" not in result

@@ -12,7 +12,6 @@ import streamlit as st
 
 from nhssynth.modules.dashboard.utils import hide_streamlit_content
 
-
 # Thresholds for rating metrics (higher is better for these metrics)
 METRIC_THRESHOLDS = {
     "excellent": 0.95,
@@ -23,8 +22,8 @@ METRIC_THRESHOLDS = {
 # Thresholds for fairness metrics (lower is better - less disparity)
 FAIRNESS_THRESHOLDS = {
     "excellent": 0.05,  # <5% difference between groups
-    "good": 0.10,       # <10% difference
-    "fair": 0.20,       # <20% difference
+    "good": 0.10,  # <10% difference
+    "fair": 0.20,  # <20% difference
 }
 
 
@@ -103,7 +102,7 @@ def compute_summary_metrics(evaluations: dict, experiments: pd.DataFrame) -> dic
         table_evals = evaluations["table"]
         for col in table_evals.columns:
             try:
-                numeric_vals = pd.to_numeric(table_evals[col], errors='coerce')
+                numeric_vals = pd.to_numeric(table_evals[col], errors="coerce")
                 if not numeric_vals.isna().all():
                     mean_val = numeric_vals.mean()
                     summary["table_metrics"][col] = {
@@ -120,7 +119,7 @@ def compute_summary_metrics(evaluations: dict, experiments: pd.DataFrame) -> dic
         task_evals = evaluations["task"]
         for col in task_evals.columns:
             try:
-                numeric_vals = pd.to_numeric(task_evals[col], errors='coerce')
+                numeric_vals = pd.to_numeric(task_evals[col], errors="coerce")
                 if not numeric_vals.isna().all():
                     mean_val = numeric_vals.mean()
                     summary["task_metrics"][col] = {
@@ -138,7 +137,7 @@ def compute_summary_metrics(evaluations: dict, experiments: pd.DataFrame) -> dic
         for col in privacy_evals.columns:
             try:
                 # Convert to numeric, coercing errors to NaN
-                numeric_vals = pd.to_numeric(privacy_evals[col], errors='coerce')
+                numeric_vals = pd.to_numeric(privacy_evals[col], errors="coerce")
                 if not numeric_vals.isna().all():
                     mean_val = numeric_vals.mean()
                     # For privacy, higher distance/lower risk is better
@@ -158,34 +157,60 @@ def compute_summary_metrics(evaluations: dict, experiments: pd.DataFrame) -> dic
         for col in fairness_evals.columns:
             try:
                 # Convert to numeric first
-                numeric_col = pd.to_numeric(fairness_evals[col], errors='coerce')
+                numeric_col = pd.to_numeric(fairness_evals[col], errors="coerce")
                 if numeric_col.isna().all():
                     continue
 
                 # Separate real vs synthetic values for comparison
                 # Handle both MultiIndex and regular Index
-                if hasattr(fairness_evals.index, 'get_level_values'):
+                if hasattr(fairness_evals.index, "get_level_values"):
                     # MultiIndex - get first level
                     idx_values = fairness_evals.index.get_level_values(0)
                     real_idx = fairness_evals.index[idx_values == "Real"]
                     synth_idx = fairness_evals.index[idx_values != "Real"]
                 else:
                     # Regular index - try tuple access
-                    real_idx = [i for i in fairness_evals.index if (isinstance(i, tuple) and i[0] == "Real") or i == "Real"]
-                    synth_idx = [i for i in fairness_evals.index if not ((isinstance(i, tuple) and i[0] == "Real") or i == "Real")]
+                    real_idx = [
+                        i for i in fairness_evals.index if (isinstance(i, tuple) and i[0] == "Real") or i == "Real"
+                    ]
+                    synth_idx = [
+                        i
+                        for i in fairness_evals.index
+                        if not ((isinstance(i, tuple) and i[0] == "Real") or i == "Real")
+                    ]
 
-                real_vals = pd.to_numeric(fairness_evals.loc[real_idx, col], errors='coerce') if len(real_idx) > 0 else None
-                synth_vals = pd.to_numeric(fairness_evals.loc[synth_idx, col], errors='coerce') if len(synth_idx) > 0 else None
+                real_vals = (
+                    pd.to_numeric(fairness_evals.loc[real_idx, col], errors="coerce") if len(real_idx) > 0 else None
+                )
+                synth_vals = (
+                    pd.to_numeric(fairness_evals.loc[synth_idx, col], errors="coerce") if len(synth_idx) > 0 else None
+                )
 
-                real_val = real_vals.mean() if real_vals is not None and len(real_vals) > 0 and not real_vals.isna().all() else None
-                synth_val = synth_vals.mean() if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all() else None
+                real_val = (
+                    real_vals.mean()
+                    if real_vals is not None and len(real_vals) > 0 and not real_vals.isna().all()
+                    else None
+                )
+                synth_val = (
+                    synth_vals.mean()
+                    if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all()
+                    else None
+                )
 
                 # For fairness, lower is better (less disparity)
                 summary["fairness_metrics"][col] = {
                     "real": real_val,
                     "synthetic_mean": synth_val,
-                    "synthetic_min": synth_vals.min() if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all() else None,
-                    "synthetic_max": synth_vals.max() if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all() else None,
+                    "synthetic_min": (
+                        synth_vals.min()
+                        if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all()
+                        else None
+                    ),
+                    "synthetic_max": (
+                        synth_vals.max()
+                        if synth_vals is not None and len(synth_vals) > 0 and not synth_vals.isna().all()
+                        else None
+                    ),
                     "real_rating": get_fairness_rating(real_val) if real_val is not None else ("N/A", "gray"),
                     "synthetic_rating": get_fairness_rating(synth_val) if synth_val is not None else ("N/A", "gray"),
                 }
@@ -248,17 +273,17 @@ def generate_static_summary(summary: dict) -> str:
         lines.append("| Metric | Real Data | Synthetic Data | Fairness Preserved? |")
         lines.append("|--------|-----------|----------------|---------------------|")
         for metric, data in summary["fairness_metrics"].items():
-            real_val = f"{data['real']:.3f}" if data['real'] is not None else "N/A"
-            synth_val = f"{data['synthetic_mean']:.3f}" if data['synthetic_mean'] is not None else "N/A"
+            real_val = f"{data['real']:.3f}" if data["real"] is not None else "N/A"
+            synth_val = f"{data['synthetic_mean']:.3f}" if data["synthetic_mean"] is not None else "N/A"
             real_rating, real_color = data["real_rating"]
             synth_rating, synth_color = data["synthetic_rating"]
 
             # Check if fairness is preserved (synthetic is similar or better)
-            if data['real'] is not None and data['synthetic_mean'] is not None:
-                diff = abs(data['synthetic_mean'] - data['real'])
+            if data["real"] is not None and data["synthetic_mean"] is not None:
+                diff = abs(data["synthetic_mean"] - data["real"])
                 if diff <= 0.05:
                     preserved = ":green[Yes]"
-                elif data['synthetic_mean'] < data['real']:
+                elif data["synthetic_mean"] < data["real"]:
                     preserved = ":green[Improved]"
                 elif diff <= 0.10:
                     preserved = ":orange[Mostly]"
@@ -267,7 +292,9 @@ def generate_static_summary(summary: dict) -> str:
             else:
                 preserved = "N/A"
 
-            lines.append(f"| {metric} | {real_val} (:{real_color}[{real_rating}]) | {synth_val} (:{synth_color}[{synth_rating}]) | {preserved} |")
+            lines.append(
+                f"| {metric} | {real_val} (:{real_color}[{real_rating}]) | {synth_val} (:{synth_color}[{synth_rating}]) | {preserved} |"
+            )
         lines.append("")
 
     # Interpretation
@@ -307,10 +334,10 @@ def generate_static_summary(summary: dict) -> str:
         preserved_count = 0
         total_count = 0
         for data in summary["fairness_metrics"].values():
-            if data['real'] is not None and data['synthetic_mean'] is not None:
+            if data["real"] is not None and data["synthetic_mean"] is not None:
                 total_count += 1
-                diff = abs(data['synthetic_mean'] - data['real'])
-                if diff <= 0.10 or data['synthetic_mean'] < data['real']:
+                diff = abs(data["synthetic_mean"] - data["real"])
+                if diff <= 0.10 or data["synthetic_mean"] < data["real"]:
                     preserved_count += 1
 
         if total_count > 0:
@@ -341,7 +368,9 @@ def generate_llm_summary(summary: dict, api_key: str, model: str = "claude-3-hai
     try:
         import anthropic
     except ImportError:
-        st.warning("The `anthropic` package is not installed. Install it with `pip install anthropic` to enable LLM summaries.")
+        st.warning(
+            "The `anthropic` package is not installed. Install it with `pip install anthropic` to enable LLM summaries."
+        )
         return None
 
     # Build the prompt with evaluation data
@@ -350,26 +379,26 @@ def generate_llm_summary(summary: dict, api_key: str, model: str = "claude-3-hai
     if summary["table_metrics"]:
         prompt_parts.append("\nTable-Level Fidelity Metrics:")
         for metric, data in summary["table_metrics"].items():
-            if not pd.isna(data['mean']):
+            if not pd.isna(data["mean"]):
                 prompt_parts.append(f"- {metric}: {data['mean']:.3f} (range: {data['min']:.3f}-{data['max']:.3f})")
 
     if summary["task_metrics"]:
         prompt_parts.append("\nDownstream Task Utility Metrics:")
         for metric, data in summary["task_metrics"].items():
-            if not pd.isna(data['mean']):
+            if not pd.isna(data["mean"]):
                 prompt_parts.append(f"- {metric}: {data['mean']:.3f} (range: {data['min']:.3f}-{data['max']:.3f})")
 
     if summary["privacy_metrics"]:
         prompt_parts.append("\nPrivacy Metrics:")
         for metric, data in summary["privacy_metrics"].items():
-            if not pd.isna(data['mean']):
+            if not pd.isna(data["mean"]):
                 prompt_parts.append(f"- {metric}: {data['mean']:.3f} (range: {data['min']:.3f}-{data['max']:.3f})")
 
     if summary["fairness_metrics"]:
         prompt_parts.append("\nFairness Metrics (lower is better - less disparity between groups):")
         for metric, data in summary["fairness_metrics"].items():
-            real_str = f"{data['real']:.3f}" if data['real'] is not None else "N/A"
-            synth_str = f"{data['synthetic_mean']:.3f}" if data['synthetic_mean'] is not None else "N/A"
+            real_str = f"{data['real']:.3f}" if data["real"] is not None else "N/A"
+            synth_str = f"{data['synthetic_mean']:.3f}" if data["synthetic_mean"] is not None else "N/A"
             prompt_parts.append(f"- {metric}: Real={real_str}, Synthetic={synth_str}")
 
     prompt_parts.append("\nProvide a brief summary (2-3 paragraphs) that:")
@@ -382,13 +411,7 @@ def generate_llm_summary(summary: dict, api_key: str, model: str = "claude-3-hai
 
     try:
         client = anthropic.Anthropic(api_key=api_key)
-        message = client.messages.create(
-            model=model,
-            max_tokens=1024,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        message = client.messages.create(model=model, max_tokens=1024, messages=[{"role": "user", "content": prompt}])
         return message.content[0].text
     except Exception as e:
         st.error(f"Error generating LLM summary: {e}")
@@ -409,7 +432,7 @@ def page():
     enable_llm = st.sidebar.checkbox(
         "Enable LLM Summary",
         value=False,
-        help="Use an LLM to generate natural language insights about the evaluation results."
+        help="Use an LLM to generate natural language insights about the evaluation results.",
     )
 
     api_key = None
@@ -423,7 +446,7 @@ def page():
             api_key = st.sidebar.text_input(
                 "Anthropic API Key",
                 type="password",
-                help="Enter your Anthropic API key to enable LLM-powered summaries."
+                help="Enter your Anthropic API key to enable LLM-powered summaries.",
             )
             if not api_key:
                 st.sidebar.warning("Enter an API key or set ANTHROPIC_API_KEY environment variable.")

@@ -18,8 +18,6 @@ Example:
     nhssynth evaluate --fairness --protected-attributes age_group gender --downstream-tasks
 """
 
-from typing import Optional
-
 import numpy as np
 import pandas as pd
 

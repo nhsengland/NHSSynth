@@ -179,9 +179,7 @@ def dimensionality_plots(real_dataset: pd.DataFrame, synthetic_datasets: pd.Data
     real_dropped = original_real_len - len(real_dataset)
     synth_dropped = original_synth_len - len(synthetic_dataset)
     if real_dropped > 0 or synth_dropped > 0:
-        st.warning(
-            f"Rows with missing values were dropped: {real_dropped} real rows, {synth_dropped} synthetic rows."
-        )
+        st.warning(f"Rows with missing values were dropped: {real_dropped} real rows, {synth_dropped} synthetic rows.")
 
     dimensionality_method = st.sidebar.selectbox("Select dimensionality reduction method", ["UMAP", "t-SNE"])
     run = st.sidebar.button("Run dimensionality reduction")
