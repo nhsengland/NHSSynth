@@ -3439,14 +3439,14 @@ files = [
 
 [[package]]
 name = "opacus"
-version = "1.5.4"
+version = "1.4.1"
 description = "Train PyTorch models with Differential Privacy"
 optional = false
 python-versions = ">=3.7.5"
 groups = ["main"]
 files = [
-    {file = "opacus-1.5.4-py3-none-any.whl", hash = "sha256:a0ca27974e825d86635c82f08ebb380a373613c121066bc0b8e29e42d9f961a5"},
-    {file = "opacus-1.5.4.tar.gz", hash = "sha256:ea700808c0a8c3fb7e565ed55b77b3170d6a54cb30e295b255e3877170edc5ca"},
+    {file = "opacus-1.4.1-py3-none-any.whl", hash = "sha256:8c46aff596bbbc6025ce9d169b49d5b3112cb958e3d74f8b77274134e7590890"},
+    {file = "opacus-1.4.1.tar.gz", hash = "sha256:e1d453c29bc8457ad7c530f5c56074c913dfebb0fb14d7524677cf03a217cff4"},
 ]
 
 [package.dependencies]
@@ -3456,7 +3456,7 @@ scipy = ">=1.2"
 torch = ">=2.0"
 
 [package.extras]
-dev = ["black", "coverage", "datasets", "flake8", "hypothesis", "isort (>=5.0.0)", "jsonargparse[signatures] (>=3.19.3)", "lightning-bolts", "mypy (>=0.760)", "pytest", "pytorch-lightning", "requests (>=2.25.1)", "scikit-learn", "sphinx", "sphinx-autodoc-typehints", "tensorboard", "torch", "torchvision (>=0.9.1)", "tqdm (>=4.40)", "transformers"]
+dev = ["black", "coverage", "datasets", "flake8", "hypothesis", "isort", "jsonargparse[signatures] (>=3.19.3)", "lightning-bolts", "mypy (>=0.760)", "pytest", "pytorch-lightning", "requests (>=2.25.1)", "scikit-learn", "sphinx", "sphinx-autodoc-typehints", "tensorboard", "torch", "torchvision (>=0.9.1)", "tqdm (>=4.40)", "transformers"]
 
 [[package]]
 name = "opt-einsum"
@@ -5839,4 +5839,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.11"
-content-hash = "e8fd922d4039e1bf64a5fc19585d25bfedec958ae5a6fcede206d63d4c435a5f"
+content-hash = "c5184102e2c8f5e0acfb4fadca841d0d671c85a2004b8a6ca7175511af2a215f"
