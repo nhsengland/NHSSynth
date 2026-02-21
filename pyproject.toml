@@ -79,9 +79,16 @@ urllib3 = "^2.0.7"
 
 [tool.black]
 line-length = 120
+extend-exclude = '''
+(
+    auxiliary/
+    | \.venv/
+)
+'''
 
 [tool.ruff]
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+exclude = ["auxiliary/", ".venv/"]
 lint.select = ["E4", "E7", "E9", "F", "C90", "I"]
 
 [tool.ruff.lint.per-file-ignores]
