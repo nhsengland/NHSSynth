@@ -5,7 +5,6 @@
 ![Tests Passing](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/tests.json)
 ![Lines of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/loc.json)
 ![Percentage Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HarrisonWilde/1ab4eefed81ec381e29f7d4feb9856bc/raw/comments.json)
-[![Snyk Package Health](https://snyk.io/advisor/python/nhssynth/badge.svg)](https://snyk.io/advisor/python/nhssynth)
 
 </div>
 <div align="center">
