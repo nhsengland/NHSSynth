@@ -51,7 +51,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          gistID: 2bd723a1ba459db6066fd102b8f81edd
           filename: coverage.json
           label: test coverage
           message: ${{ env.COVERAGE }}%
@@ -66,7 +66,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          gistID: 2bd723a1ba459db6066fd102b8f81edd
           filename: tests.json
           label: tests passing
           message: ${{ env.PASSED }} / ${{ env.COLLECTED }}
@@ -92,7 +92,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          gistID: 2bd723a1ba459db6066fd102b8f81edd
           filename: loc.json
           label: lines of code
           message: ${{ env.CODE_LINES }}
@@ -101,7 +101,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: 1ab4eefed81ec381e29f7d4feb9856bc
+          gistID: 2bd723a1ba459db6066fd102b8f81edd
           filename: comments.json
           label: comment percentage
           message: ${{ env.COMMENT_PERCENTAGE }}%
