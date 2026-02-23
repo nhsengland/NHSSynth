@@ -48,7 +48,7 @@ This repository currently consists of a Python package alongside research and in
   - Optimized [transformer configuration](config/optimized_transformer_config.yaml) and [implementation summary](config/IMPLEMENTATION_SUMMARY.md) documenting synthetic data fidelity improvements
 - Numerous exemplar configurations are found in [`config`](config/)
 - Empty [`data`](data/) and [`experiments`](experiments/) folders are provided; these are the default locations for inputs and outputs when running the project using the provided [CLI](../src/nhssynth/cli/) module
-- Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](../auxiliary/)
+- Pre-processing notebooks for specific datasets used to assess the approach and other non-core code can be found in [`auxiliary`](../auxiliary/).
 
 ### Installation
 
