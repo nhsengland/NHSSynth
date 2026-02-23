@@ -340,8 +340,9 @@ class GAN(Model):
         num_epochs: int = 100,
         patience: int = 5,
         displayed_metrics: list[str] = ["GLoss", "DLoss"],
+        notebook_run: bool = False,
     ) -> tuple[int, dict[str, np.ndarray]]:
-        self._start_training(num_epochs, patience, displayed_metrics)
+        self._start_training(num_epochs, patience, displayed_metrics, notebook_run)
 
         for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(self.stats_bars), leave=False):
             losses = self._train_epoch()
