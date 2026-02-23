@@ -6,7 +6,8 @@ import torch
 from tqdm import tqdm
 
 from nhssynth.modules.model.common.dp import DPMixin
-from nhssynth.modules.model.common.mlp import MLP
+
+# from nhssynth.modules.model.common.mlp import MLP
 from nhssynth.modules.model.common.model import Model
 
 
@@ -91,7 +92,7 @@ class GAN(Model):
         self.generator_n_units_hidden = generator_n_units_hidden
         self.n_units_conditional = n_units_conditional
 
-        self.generator = MLP(
+        self.generator = MLP(  # noqa: F821 - MLP not implemented yet
             n_units_in=generator_n_units_hidden + n_units_conditional,
             n_units_out=self.ncols,
             n_layers_hidden=generator_n_layers_hidden,
@@ -105,7 +106,7 @@ class GAN(Model):
             opt_betas=generator_opt_betas,
         ).to(self.device)
 
-        self.discriminator = MLP(
+        self.discriminator = MLP(  # noqa: F821 - MLP not implemented yet
             n_units_in=self.ncols + n_units_conditional,
             n_units_out=1,
             n_layers_hidden=discriminator_n_layers_hidden,
@@ -312,7 +313,12 @@ class GAN(Model):
         return np.mean(errors)
 
     def _train_epoch(self) -> Tuple[float, float]:
-        for data in tqdm(self.data_loader, desc="Batches", position=len(self.stats_bars) + 1, leave=False):
+        for data in tqdm(
+            self.data_loader,
+            desc="Batches",
+            position=len(self.stats_bars) + 1,
+            leave=False,
+        ):
             cond: Optional[torch.Tensor] = None
             if self.n_units_conditional > 0:
                 X, cond = data

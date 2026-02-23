@@ -170,7 +170,14 @@ def assemble_config(
 
     # Filter out the keys that are not relevant to the config file
     args_dict = filter_dict(
-        args_dict, {"func", "experiment_name", "save_config", "save_config_path", "module_handover"}
+        args_dict,
+        {
+            "func",
+            "experiment_name",
+            "save_config",
+            "save_config_path",
+            "module_handover",
+        },
     )
     for k in args_dict.copy().keys():
         # Remove empty metric lists from the config

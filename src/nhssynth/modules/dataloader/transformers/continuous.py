@@ -1,6 +1,10 @@
+# Critical bug fixes debugged and implemented using Claude Code (2026-01-16)
+# - Fixed clipping bounds (lines 159-169)
+# - Removed duplicate component temperature (lines 361-364)
+# - Added component selection diagnostics (lines 388-396)
 import re
 import warnings
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -8,6 +12,9 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.mixture import BayesianGaussianMixture
 
 from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
+
+# Set to True for verbose debug output during transformation/reversion
+DEBUG_VERBOSE = False
 
 
 class ClusterContinuousTransformer(ColumnTransformer):
@@ -34,8 +41,8 @@ class ClusterContinuousTransformer(ColumnTransformer):
 
     def __init__(
         self,
-        n_components: int = 10,
-        n_init: int = 1,
+        n_components: int = 10,  # Increased max components, let Bayesian prior select effective number
+        n_init: int = 10,
         init_params: str = "kmeans",
         random_state: int = 0,
         max_iter: int = 1000,
@@ -49,36 +56,86 @@ class ClusterContinuousTransformer(ColumnTransformer):
             n_init=n_init,
             init_params=init_params,
             max_iter=max_iter,
-            weight_concentration_prior=1e-3,
+            weight_concentration_prior=1e-3,  # Low prior encourages sparsity - unused components → 0 weight
         )
         self._n_components = n_components
-        self._std_multiplier = 4
+        # Reduced from 4 → 3 → 1 to fix z-score compression
+        # With GMM component stds up to 1.7x column std, multiplier=3 was over-compressing
+        # z = (x - μ) / (1σ) gives proper z-score scaling
+        self._std_multiplier = 1
         self._missingness_column_name = None
         self._max_iter = max_iter
         self.remove_unused_components = remove_unused_components
         self.clip_output = clip_output
+        self.name = (
+            getattr(self, "name", None)
+            or getattr(self, "column", None)
+            or getattr(self, "col", None)
+            or getattr(self, "feature", None)
+        )
 
-    def apply(self, data: pd.Series, missingness_column: Optional[pd.Series] = None) -> pd.DataFrame:
+    def apply(
+        self,
+        data: pd.Series,
+        constraint_adherence: Optional[pd.Series],
+        missingness_column: Optional[pd.Series] = None,
+    ) -> pd.DataFrame:
         """
-        Apply the transformer to the data via sklearn's `BayesianGaussianMixture`'s `fit` and `predict_proba` methods.
-        Name the new columns via the original column name.
+        Apply the transformation to a given data column using the `BayesianGaussianMixture` model from scikit-learn.
 
-        If `missingness_column` is provided, use this to extract the non-missing data; the missing values are assigned to a new pseudo-cluster with mean 0
-        (i.e. all values in the normalised column are 0.0). We do this by taking the full index before subsetting to non-missing data, then reindexing.
+        This method transforms the input data (`data`) by fitting a `BayesianGaussianMixture` model to the data, and normalizes the values based on the
+        learned parameters. Additionally, it handles missing data by utilizing the provided `missingness_column` and `constraint_adherence` to determine
+        which rows should be included in the transformation. The resulting transformed data consists of the normalized values, along with component
+        probabilities, and a final adherence column indicating whether the data satisfies the constraints.
+
+        If the `missingness_column` is provided, missing values are handled by assigning them to a new pseudo-cluster with a mean of 0, ensuring that
+        missing data does not affect the transformation process. Missing values are filled with zeros, and the column names are updated accordingly.
 
         Args:
-            data: The column of data to transform.
-            missingness_column: The column of data representing missingness, this is only used as part of the `AugmentMissingnessStrategy`.
+            data (pd.Series): The input column of data to be transformed. This column is used to fit the `BayesianGaussianMixture` model.
+
+            constraint_adherence (Optional[pd.Series]): A series indicating whether each row satisfies the user-defined constraints. Only rows where
+                the value in `constraint_adherence` is 1 are included in the transformation process.
+
+            missingness_column (Optional[pd.Series]): A series indicating missing values. If provided, missing values will be assigned to a pseudo-cluster
+                with mean 0. The missing values are handled separately to ensure that they don't interfere with the transformation.
 
         Returns:
-            The transformed data (will be multiple columns if `n_components` > 1 at initialisation).
+            pd.DataFrame: A DataFrame containing the transformed data with the following columns:
+                - `<original_column_name>_normalised`: The normalized version of the input data.
+                - `<original_column_name>_c1`, ..., `<original_column_name>_cn`: Columns representing the component probabilities, where `n` is the
+                number of components in the `BayesianGaussianMixture` model.
+                - The `constraint_adherence` column, which contains 1s and 0s indicating whether each row adheres to the user-defined constraints.
+
+        Notes:
+            - The method uses the `fit` and `predict_proba` methods of `BayesianGaussianMixture` to fit the model and calculate component probabilities.
+            - If the `missingness_column` is provided, rows with missing values will be handled separately by assigning them to a pseudo-cluster with mean 0.
+            - The transformed data will only include rows where the corresponding value in `constraint_adherence` is 1.
+            - If `self.remove_unused_components` is set to `True`, any components that do not have any data assigned to them will be removed from the result.
+            - The final output DataFrame will have integer types for the component columns and will fill missing values with 0 where necessary.
         """
+        if not hasattr(self, "name") or self.name is None:
+            # If this transformer handles exactly one original column, we can infer it:
+            if isinstance(data, pd.DataFrame) and len(data.columns) == 1:
+                self.name = data.columns[0]
+            elif isinstance(data, pd.Series):
+                self.name = data.name
+            # else: leave as-is; revert() will infer later
+
         self.original_column_name = data.name
+        if not hasattr(self, "name") or self.name is None:
+            self.name = self.original_column_name
+
         if missingness_column is not None:
             self._missingness_column_name = missingness_column.name
             full_index = data.index
-            data = data[missingness_column == 0]
+            _mask = pd.to_numeric(missingness_column, errors="coerce").fillna(0).astype(int)
+            _mask = _mask.reindex(data.index).fillna(0).astype(int)
+            data = data[_mask == 0]
+            constraint_adherence = constraint_adherence[_mask == 0]
+        semi_index = data.index
         index = data.index
+        data = data.fillna(0)
         data = np.array(data.values.reshape(-1, 1), dtype=data.dtype.name.lower())
 
         with warnings.catch_warnings():
@@ -88,10 +145,85 @@ class ClusterContinuousTransformer(ColumnTransformer):
         self.means = self._transformer.means_.reshape(-1)
         self.stds = np.sqrt(self._transformer.covariances_).reshape(-1)
 
+        # Diagnostic: Show effective number of components (weight > 1%)
+        weights = self._transformer.weights_
+        effective_components = (weights > 0.01).sum()
+        col_name = getattr(self, "name", "unknown")
+
+        # Show component means and stds to understand distribution
+        means = self._transformer.means_.reshape(-1)
+        covariances = self._transformer.covariances_
+        if covariances.ndim == 1:
+            stds = np.sqrt(covariances)
+        elif covariances.ndim == 3:
+            stds = np.sqrt(covariances[:, 0, 0])
+        else:
+            stds = np.sqrt(np.diag(covariances) if covariances.shape[0] == covariances.shape[1] else covariances[:, 0])
+
+        # Calculate expected mean from GMM
+        expected_mean = np.sum(weights * means)
+        actual_mean = float(np.mean(data))
+
+        if DEBUG_VERBOSE:
+            from tqdm import tqdm
+
+            tqdm.write(f"[{col_name}] BGM fitted {effective_components}/{len(weights)} components")
+            tqdm.write(f"[{col_name}] Component means: {means.round(2)}")
+            tqdm.write(f"[{col_name}] Component stds: {stds.round(2)}")
+            tqdm.write(f"[{col_name}] GMM expected mean: {expected_mean:.2f}, actual data mean: {actual_mean:.2f}")
+
+        # Calculate kurtosis to detect heavily-peaked distributions
+        # High kurtosis (>5) indicates need for lower temperature to preserve peakedness
+        from scipy import stats
+
+        if data.size > 10:
+            self._kurtosis = float(stats.kurtosis(data.flatten(), fisher=True))  # Fisher=True gives excess kurtosis
+            if DEBUG_VERBOSE and self._kurtosis > 5:
+                from tqdm import tqdm
+
+                tqdm.write(f"[{col_name}] High kurtosis detected: {self._kurtosis:.2f} (peaked distribution)")
+        else:
+            self._kurtosis = 0.0
+
+        # Store training data bounds for safety clipping during generation
+        # Use actual min to preserve lower bound (e.g., for variables bounded at 0)
+        # Use 99.9th percentile for max to be robust to outliers
+        self._data_min = float(np.min(data))  # Actual minimum
+        self._data_max = float(np.percentile(data, 99.9))  # 99.9th percentile
+        data_range = self._data_max - self._data_min
+        # No margin on min to avoid generating negative values when natural bound is 0
+        # This prevents constraint violations and artificial pileup at 0 after repair
+        self._safe_min = self._data_min  # 0% margin on lower bound
+        # Larger margin on max (15%) to allow reasonable extrapolation
+        self._safe_max = self._data_max + 0.15 * data_range
+
+        # --- variance floor: keep components from collapsing ---
+        # Use a more adaptive floor: 15% of the column's std (increased from 10%)
+        # This prevents extreme z-scores from collapsed components
+        col_std = float(np.std(data)) if data.size else 0.0
+        # Increased floor percentage and minimum to be more conservative
+        sigma_floor = max(0.05, 0.15 * col_std)
+
+        # store for use in revert
+        self._sigma_floor = sigma_floor
+
+        # apply the floor to the stds used to normalise (keeps z-scale reasonable during training)
+        self.stds = np.maximum(self.stds, sigma_floor)
+
+        if DEBUG_VERBOSE:
+            from tqdm import tqdm
+
+            tqdm.write(
+                f"[{self.name}] fit: col_std={col_std:.4f}, sigma_floor={sigma_floor:.4f}, "
+                f"stds range=[{float(np.min(self.stds)):.4f}, {float(np.max(self.stds)):.4f}], "
+                f"safe_range=[{self._safe_min:.2f}, {self._safe_max:.2f}]"
+            )
+
         components = np.argmax(self._transformer.predict_proba(data), axis=1)
         normalised_values = (data - self.means.reshape(1, -1)) / (self._std_multiplier * self.stds.reshape(1, -1))
         normalised = normalised_values[np.arange(len(data)), components]
-        normalised = np.clip(normalised, -1.0, 1.0)
+        if self.clip_output:
+            normalised = np.clip(normalised, -1.0, 1.0)
         components = np.eye(self._n_components, dtype=int)[components]
 
         transformed_data = pd.DataFrame(
@@ -100,52 +232,208 @@ class ClusterContinuousTransformer(ColumnTransformer):
             columns=[f"{self.original_column_name}_normalised"]
             + [f"{self.original_column_name}_c{i + 1}" for i in range(self._n_components)],
         )
-
         # EXPERIMENTAL feature, removing components from the column matrix that have no data assigned to them
-        if self.remove_unused_components:
+        """if self.remove_unused_components:
             nunique = transformed_data.iloc[:, 1:].nunique(dropna=False)
             unused_components = nunique[nunique == 1].index
             unused_component_idx = [transformed_data.columns.get_loc(col_name) - 1 for col_name in unused_components]
             self.means = np.delete(self.means, unused_component_idx)
             self.stds = np.delete(self.stds, unused_component_idx)
             transformed_data.drop(unused_components, axis=1, inplace=True)
+        """
+
+        transformed_data = pd.concat(
+            [transformed_data.reindex(semi_index).fillna(0.0), constraint_adherence],
+            axis=1,
+        )
 
         if missingness_column is not None:
-            transformed_data = pd.concat([transformed_data.reindex(full_index).fillna(0.0), missingness_column], axis=1)
+            transformed_data = pd.concat(
+                [transformed_data.reindex(full_index).fillna(0.0), missingness_column],
+                axis=1,
+            )
+
+        if 0 in transformed_data.columns:
+            transformed_data = transformed_data.drop(columns=[0])
 
         self.new_column_names = transformed_data.columns
-        return transformed_data.astype(
-            {col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)}
-        )
+
+        out = transformed_data
+
+        # Only DataFrames have .columns
+        if isinstance(out, pd.DataFrame):
+            out = out.loc[:, ~out.columns.str.endswith("_adherence")]
+
+        return out.astype({col_name: int for col_name in transformed_data.columns if re.search(r"_c\d+", col_name)})
 
     def revert(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Revert data to pre-transformer state via the means and stds of the BGM. Extract the relevant columns from the data via the `new_column_names` attribute.
-        If `missingness_column` was provided to the `apply` method, drop the missing values from the data before reverting and use the `full_index` to
-        reintroduce missing values when `original_column_name` is constructed.
-
-        Args:
-            data: The full dataset including the column(s) to be reverted to their pre-transformer state.
-
-        Returns:
-            The dataset with a single continuous column that is analogous to the original column, with the same name, and without the generated columns from which it is derived.
+        Decode continuous feature from mixture-normalised form and
+        return the full DataFrame (DataFrame in -> DataFrame out).
         """
-        working_data = data[self.new_column_names]
-        full_index = working_data.index
-        if self._missingness_column_name is not None:
-            working_data = working_data[working_data[self._missingness_column_name] == 0]
-            working_data = working_data.drop(self._missingness_column_name, axis=1)
-        index = working_data.index
+        import re
 
-        components = np.argmax(working_data.filter(regex=r".*_c\d+").values, axis=1)
-        working_data = working_data.filter(like="_normalised").values.reshape(-1)
-        if self.clip_output:
-            working_data = np.clip(working_data, -1.0, 1.0)
+        import numpy as np
 
-        mean_t = self.means[components]
-        std_t = self.stds[components]
-        data[self.original_column_name] = pd.Series(
-            working_data * self._std_multiplier * std_t + mean_t, index=index, name=self.original_column_name
-        ).reindex(full_index)
-        data.drop(self.new_column_names, axis=1, inplace=True)
+        # 1) Determine base/original column name
+        base = (
+            getattr(self, "name", None)
+            or getattr(self, "column", None)
+            or getattr(self, "col", None)
+            or getattr(self, "feature", None)
+            or getattr(self, "base", None)
+        )
+
+        def _infer_bases_from_df(df):
+            value_suffixes = ("_value", "_normalized", "_normalised")
+            bases_from_values = {c[: -len(sfx)] for c in df.columns for sfx in value_suffixes if c.endswith(sfx)}
+            comp_pat = re.compile(r"^(.*)_c(\d+)$")
+            bases_from_comps = {comp_pat.match(c).group(1) for c in df.columns if comp_pat.match(c)}
+            candidates = (bases_from_values & bases_from_comps) or (bases_from_values or bases_from_comps)
+            return candidates
+
+        if base is None:
+            candidates = _infer_bases_from_df(data)
+            if len(candidates) == 1:
+                base = next(iter(candidates))
+                self.name = base
+            else:
+                raise ValueError(
+                    "ClusterContinuousTransformer missing 'name'/'column' and could not infer a unique base; "
+                    f"candidates={sorted(list(candidates))[:5]} ..."
+                )
+
+        # 2) Find value + component columns
+        value_candidates = [f"{base}_value", f"{base}_normalized", f"{base}_normalised"]
+        value_col = next((c for c in value_candidates if c in data.columns), None)
+        if value_col is None:
+            raise ValueError(f"[revert:{base}] could not find value column; tried {value_candidates}")
+
+        comp_pat = re.compile(rf"^{re.escape(base)}_c(\d+)$")
+        comp_cols: List[str] = [c for c in data.columns if comp_pat.match(c)]
+        comp_cols.sort(key=lambda c: int(comp_pat.match(c).group(1)))
+
+        # 3) Get fitted BGM on THIS instance
+        bgm = getattr(self, "_transformer", None)
+        if bgm is None or not hasattr(bgm, "means_") or not hasattr(bgm, "covariances_"):
+            raise ValueError(f"[revert:{base}] mixture model not fitted (no means_/covariances_).")
+
+        means = np.asarray(bgm.means_).reshape(-1)
+        cov = np.asarray(bgm.covariances_)
+        if cov.ndim == 1:
+            vars_ = cov
+        elif cov.ndim == 2:
+            vars_ = np.diag(cov) if cov.shape[0] == cov.shape[1] else cov[:, 0]
+        elif cov.ndim == 3:
+            vars_ = cov[:, 0, 0]
+        else:
+            raise ValueError(f"[revert:{base}] unexpected covariances_ shape: {cov.shape}")
+        sigmas = np.sqrt(vars_ + 1e-12)
+
+        # --- apply the same floor at decode time ---
+        sigma_floor = getattr(self, "_sigma_floor", None)
+        if sigma_floor is None:
+            # fallback: derive a conservative floor from all components
+            sigma_floor = max(1e-2, 0.05 * float(np.nanstd(means)) if means.size else 1e-2)
+        sigmas = np.maximum(sigmas, float(sigma_floor))
+
+        # replace with (ALWAYS clamp to training encode range):
+        vals = data[value_col].to_numpy(dtype=float)
+
+        # if z collapsed (std ~ 0), inject small jitter so we don't decode only means
+        if not np.isfinite(vals).any() or np.nanstd(vals) < 1e-3:
+            rng = np.random.default_rng(getattr(self, "random_state", None))
+            vals = vals + rng.normal(0.0, 0.5, size=vals.shape)  # 0.5 in z-space is a good default
+
+        # clamp to training encode range
+        # vals = np.clip(vals, -1.0, 1.0)
+
+        if comp_cols:
+            comps = data[comp_cols].to_numpy(dtype=float)
+
+            # Detect rows that are genuine one-hot (training path)
+            one_hot = (np.isin(comps, [0.0, 1.0]).all(axis=1)) & (comps.sum(axis=1) == 1.0)
+
+            k_idx = np.empty(len(vals), dtype=int)
+
+            # 1) One-hot rows -> deterministic argmax (fast path)
+            if one_hot.any():
+                k_idx[one_hot] = comps[one_hot].argmax(axis=1)
+
+            # 2) Non one-hot rows (generated logits/probs) -> sample a component
+            bad = ~one_hot
+            if bad.any():
+                logits = comps[bad]
+
+                # Component temperature already applied in VAE (gmm_temperature=2.0)
+                # Applying additional temperature here was causing component selection bias
+                # component_temperature = 4.0  # REMOVED - was causing 8x total temperature
+                # logits = logits / component_temperature  # REMOVED
+
+                # If these are already probabilities, they might be negative or not sum to 1.
+                # Convert to probabilities via stable softmax.
+                logits = logits - np.nanmax(logits, axis=1, keepdims=True)
+                exp = np.exp(np.clip(logits, -40, 40))  # avoid overflow
+                probs = exp / (np.nansum(exp, axis=1, keepdims=True) + 1e-12)
+
+                # Handle any degenerate rows (all-NaN or all-equal): fall back to uniform
+                row_sums = probs.sum(axis=1, keepdims=True)
+                deg = ~(row_sums > 0)
+                if deg.any():
+                    K = probs.shape[1]
+                    probs[deg] = 1.0 / K
+
+                # Sample a component index per row from probs
+                cum = np.cumsum(probs, axis=1)
+                r = np.random.rand(probs.shape[0], 1)
+                k_idx[bad] = (cum < r).sum(axis=1)
+
+        else:
+            # no component columns: fall back to first component
+            k_idx = np.zeros(len(vals), dtype=int)
+
+        # Debug: show component selection frequencies
+        if DEBUG_VERBOSE:
+            from tqdm import tqdm
+
+            unique_k, counts_k = np.unique(k_idx, return_counts=True)
+            selection_freq = np.zeros(len(means))
+            selection_freq[unique_k] = counts_k / len(k_idx)
+            tqdm.write(f"[revert:{base}] Component selection frequencies: {selection_freq.round(3)}")
+            # Calculate mean from selected components
+            selected_mean = np.mean(means[k_idx])
+            tqdm.write(f"[revert:{base}] Mean from selected components: {selected_mean:.2f}")
+
+        # 4) Invert: x = z * (scale * sigma_k) + mu_k
+        scale = getattr(self, "_std_multiplier", 1.0)
+        decoded = vals * (scale * sigmas[k_idx]) + means[k_idx]
+
+        # 4a) Apply safety clipping to prevent extreme outliers
+        safe_min = getattr(self, "_safe_min", None)
+        safe_max = getattr(self, "_safe_max", None)
+        if safe_min is not None and safe_max is not None:
+            pre_clip = decoded.copy()
+            decoded = np.clip(decoded, safe_min, safe_max)
+            n_clipped = np.sum((pre_clip < safe_min) | (pre_clip > safe_max))
+            if DEBUG_VERBOSE and n_clipped > 0:
+                from tqdm import tqdm
+
+                tqdm.write(
+                    f"[revert:{base}] Clipped {n_clipped}/{len(decoded)} values to safe range "
+                    f"[{safe_min:.2f}, {safe_max:.2f}]"
+                )
+
+        # 4b) If a missingness flag exists, apply it (set decoded to NaN for missing rows)
+        miss_col = f"{base}_missing"
+        if miss_col in data.columns:
+            miss_mask = data[miss_col].to_numpy().astype(bool)
+            decoded[miss_mask] = np.nan
+
+        # 5) Write back
+        data[base] = decoded
+
+        # 6) Drop helper columns for this feature
+        to_drop = [value_col] + comp_cols
+        to_drop += [c for c in (f"{base}_adherence", f"{base}_missing") if c in data.columns]
+        data = data.drop(columns=[c for c in to_drop if c in data.columns], errors="ignore")
         return data

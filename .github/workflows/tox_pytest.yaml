@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["3.9", "3.10", "3.11"]
+        # Only test Python 3.10 as specified in pyproject.toml (>=3.10, <3.11)
+        python: ["3.10"]
 
     steps:
       - name: Check-out repository
@@ -27,6 +28,8 @@ jobs:
       - name: Install Poetry
         if: steps.cached-poetry.outputs.cache-hit != 'true'
         uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
       - name: Configure Poetry
         run: poetry config virtualenvs.in-project true
       - name: Install tox

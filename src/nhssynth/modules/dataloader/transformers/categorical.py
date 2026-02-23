@@ -2,6 +2,7 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_extension_array_dtype, is_integer_dtype
 from sklearn.preprocessing import OneHotEncoder
 
 from nhssynth.modules.dataloader.transformers.base import ColumnTransformer
@@ -31,43 +32,113 @@ class OHECategoricalTransformer(ColumnTransformer):
         self._transformer: OneHotEncoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False, drop=self._drop)
         self.missing_value: Any = None
 
-    def apply(self, data: pd.Series, missing_value: Optional[Any] = None) -> pd.DataFrame:
+    def apply(
+        self,
+        data: pd.Series,
+        constraint_adherence: Optional[pd.Series],
+        missing_value: Optional[Any] = None,
+    ) -> pd.DataFrame:
         """
-        Apply the transformer to the data via sklearn's `OneHotEncoder`'s `fit_transform` method. Name the new columns via manipulation of the original column name.
-        If `missing_value` is provided, fill missing values with this value before applying the transformer to ensure a new category is added.
+        Applies a transformation to the input data using scikit-learn's `OneHotEncoder`'s `fit_transform` method.
+
+        This method transforms the input data (`data`) into one-hot encoded format. If a `missing_value` is provided, missing values are replaced
+        with the specified value before the transformation is applied. The transformation is further filtered based on the provided
+        `constraint_adherence` Series, which determines which rows are included in the transformation process (only rows where the value in
+        `constraint_adherence` is `1` are retained).
+
+        The resulting transformed data includes the one-hot encoded columns for the original data, with the constraint adherence values
+        appended as an additional column. If a column labeled `0` is created (which may happen in certain transformations), it is dropped.
 
         Args:
-            data: The column of data to transform.
-            missing_value: The value learned by the `MetaTransformer` to represent missingness, this is only used as part of the `AugmentMissingnessStrategy`.
+            data (pd.Series): The input column of data to be transformed. The data is expected to be a single column to which the transformation will be applied.
+
+            constraint_adherence (Optional[pd.Series]): A Series indicating whether each row should be included in the transformation.
+                Rows corresponding to `1` will be included, and rows corresponding to `0` will be excluded.
+
+            missing_value (Optional[Any]): The value used to replace missing values (`NaN`) in the `data` before applying the transformation.
+                This is primarily used for the `AugmentMissingnessStrategy` to ensure that missing values are treated as a specific category.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the transformed data. The DataFrame consists of:
+                - One-hot encoded columns based on the original data, with each column corresponding to a unique category.
+                - The `constraint_adherence` column, indicating whether the row satisfies the user-defined constraints (values of `1` or `0`).
+
+        Notes:
+            - If `missing_value` is provided, missing values in the `data` column are replaced with the specified value before the transformation.
+            - Only rows where `constraint_adherence == 1` will be included in the transformed data.
+            - Any columns with the header `0` (which can occur in some transformations) will be dropped.
+            - The method ensures that the transformed data maintains the original index (`semi_index`) and properly aligns with the input data.
         """
+
         self.original_column_name = data.name
-        if missing_value:
+        if missing_value is not None:
             data = data.fillna(missing_value)
             self.missing_value = missing_value
-        transformed_data = pd.DataFrame(
-            self._transformer.fit_transform(data.values.reshape(-1, 1)),
-            columns=self._transformer.get_feature_names_out(input_features=[data.name]),
-        )
+        semi_index = data.index
+
+        # --- Make data sklearn-friendly: no pd.NA, uniform dtype ---
+        s = data.copy()
+
+        # Nullable integer (e.g., Int64) -> float64 so <NA> -> np.nan
+        if is_integer_dtype(s.dtype) and is_extension_array_dtype(s.dtype):
+            s = s.astype("float64")
+        else:
+            # Coerce anything else to object and map pandas-missing to np.nan
+            s = s.astype(object)
+            s[pd.isna(s)] = np.nan
+
+        X = s.to_numpy().reshape(-1, 1)
+
+        # --- Fit & transform with OHE ---
+        ohe = self._transformer.fit_transform(X)
+        ohe_cols = self._transformer.get_feature_names_out(input_features=[data.name]).tolist()
+        ohe_df = pd.DataFrame(ohe, index=data.index, columns=ohe_cols)
+
+        # Keep the canonical list of OHE columns for inverse_transform later
+        self.ohe_columns = ohe_cols
+
+        # --- Build the transformed output ---
+        # Align back to the original (semi-)index and append adherence
+        transformed_data = ohe_df.reindex(semi_index).fillna(0.0)
+
+        if constraint_adherence is not None:
+            transformed_data = pd.concat(
+                [transformed_data, constraint_adherence],
+                axis=1,
+            )
+
+        # Some pipelines accidentally leave a numeric 0 column; drop if present
+        if 0 in transformed_data.columns:
+            transformed_data = transformed_data.drop(columns=[0])
+
+        # You can keep this for downstream bookkeeping if something reads it,
+        # but note: in revert() we'll use self.ohe_columns explicitly.
         self.new_column_names = transformed_data.columns
+
         return transformed_data
 
     def revert(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Revert data to pre-transformer state via sklearn's `OneHotEncoder`'s `inverse_transform` method.
-        If `missing_value` is provided, replace instances of this value in the data with `np.nan` to ensure missing values are represented correctly in the case
-        where `missing_value` was 'modelled' and thus generated.
+        # Ensure we have the list of OHE feature columns used in fit
+        if not hasattr(self, "ohe_columns") or not self.ohe_columns:
+            raise ValueError(
+                f"[OHECategoricalTransformer.revert] missing ohe_columns for '{self.original_column_name}'. "
+                "Make sure apply() was called on this instance before revert()."
+            )
 
-        Args:
-            data: The full dataset including the column(s) to be reverted to their pre-transformer state.
+        # Some generated frames may have columns shuffled or include extras.
+        # Reindex to the expected OHE columns (add any missing with zeros; ignore extras).
+        X = data.reindex(columns=self.ohe_columns, fill_value=0.0)
 
-        Returns:
-            The dataset with a single categorical column that is analogous to the original column, with the same name, and without the generated one-hot columns.
-        """
-        data[self.original_column_name] = pd.Series(
-            self._transformer.inverse_transform(data[self.new_column_names].values).flatten(),
-            index=data.index,
-            name=self.original_column_name,
-        )
-        if self.missing_value:
+        # Inverse transform back to labels
+        inv = self._transformer.inverse_transform(X.values).flatten()
+        data[self.original_column_name] = pd.Series(inv, index=data.index, name=self.original_column_name)
+
+        # If you replaced missing with a sentinel during fit, map it back to NaN here
+        if getattr(self, "missing_value", None):
             data[self.original_column_name] = data[self.original_column_name].replace(self.missing_value, np.nan)
-        return data.drop(self.new_column_names, axis=1)
+
+        # Drop the OHE columns and adherence column after invert
+        cols_to_drop = list(self.ohe_columns) + [f"{self.original_column_name}_adherence"]
+        data = data.drop(columns=[c for c in cols_to_drop if c in data.columns], errors="ignore")
+
+        return data

@@ -1,5 +1,5 @@
 seed: 1
-experiment_name: test
+experiment_name: test_hypertension
 run_type: pipeline
 dataloader:
   collapse_yaml: true
@@ -20,8 +20,9 @@ evaluation:
   downstream_tasks: true
   fairness: true
   protected_attributes:
-    - x1
-    - x3
+    - Gender
+    - Ethnicity
+    - Income_Level
 
   # Column Shape Metrics
   column_shape_metrics:
@@ -57,9 +58,10 @@ evaluation:
   # Key fields: attributes that could identify someone (quasi-identifiers)
   # Sensitive fields: attributes we want to protect
   key_categorical_fields:
-    - x1
+    - Gender
+    - Ethnicity
   sensitive_categorical_fields:
-    - event
+    - Hypertension_Diagnosis
   cap_privacy_metrics:
     - CategoricalCAP
     - CategoricalGeneralizedCAP
@@ -73,9 +75,9 @@ evaluation:
 
   # Privacy Metrics - Numerical
   key_numerical_fields:
-    - x7
+    - Baseline_BP_Systolic
   sensitive_numerical_fields:
-    - x12
+    - Genetic_Risk_Score
   numerical_privacy_metrics:
     - NumericalLR
     - NumericalMLP

@@ -114,7 +114,13 @@ class Model(nn.Module, ABC):
         """Returns the list of metrics to track during training."""
         raise NotImplementedError
 
-    def _start_training(self, num_epochs: int, patience: int, displayed_metrics: list[str], notebook_run: bool) -> None:
+    def _start_training(
+        self,
+        num_epochs: int,
+        patience: int,
+        displayed_metrics: list[str],
+        notebook_run: bool,
+    ) -> None:
         """
         Initialises the training process.
 
@@ -147,7 +153,9 @@ class Model(nn.Module, ABC):
 
     def _generate_metric_str(self, key) -> str:
         """Generates a string to display the current value of the metric `key`."""
-        return f"{(add_spaces_before_caps(key) + ':').ljust(self.max_length)}  {np.mean(self.metrics[key][-len(self.data_loader) :]):.4f}"
+        values = self.metrics[key][-len(self.data_loader) :]
+        mean_val = np.mean(values) if len(values) > 0 else float("nan")
+        return f"{(add_spaces_before_caps(key) + ':').ljust(self.max_length)}  {mean_val:.4f}"
 
     def _record_metrics(self, losses):
         """Records the metrics for the current batch to file and updates the tqdm status bars."""
@@ -155,7 +163,8 @@ class Model(nn.Module, ABC):
             if key in losses:
                 if losses[key]:
                     self.metrics[key] = np.append(
-                        self.metrics[key], losses[key].item() if isinstance(losses[key], torch.Tensor) else losses[key]
+                        self.metrics[key],
+                        losses[key].item() if isinstance(losses[key], torch.Tensor) else losses[key],
                     )
         if time.time() - self.update_time > 0.5:
             for key, stats_bar in self.stats_bars.items():

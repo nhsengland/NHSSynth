@@ -29,10 +29,17 @@ def check_input_paths(
         [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations]
     )
     fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations = io.potential_suffixes(
-        [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], fn_dataset
+        [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations],
+        fn_dataset,
     )
-    io.warn_if_path_supplied([fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], dir_experiment)
-    io.check_exists([fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations], dir_experiment)
+    io.warn_if_path_supplied(
+        [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations],
+        dir_experiment,
+    )
+    io.check_exists(
+        [fn_typed, fn_experiments, fn_synthetic_datasets, fn_evaluations],
+        dir_experiment,
+    )
     return (
         dir_experiment / fn_typed,
         dir_experiment / fn_experiments,

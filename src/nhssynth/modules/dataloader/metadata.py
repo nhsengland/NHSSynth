@@ -150,9 +150,15 @@ class MetaData:
             if self.categorical:
                 transformer = OHECategoricalTransformer(**self.transformer_config)
             else:
-                transformer = ClusterContinuousTransformer(**self.transformer_config)
-            if self.dtype.kind == "M":
-                transformer = DatetimeTransformer(transformer)
+                # Datetime columns should use single Gaussian (typically smooth temporal distributions)
+                if self.dtype.kind == "M":
+                    datetime_config = self.transformer_config.copy()
+                    # Force exactly 1 component for smooth temporal distributions
+                    datetime_config["n_components"] = 1
+                    transformer = ClusterContinuousTransformer(**datetime_config)
+                    transformer = DatetimeTransformer(transformer)
+                else:
+                    transformer = ClusterContinuousTransformer(**self.transformer_config)
             return transformer
 
     def __init__(self, data: pd.DataFrame, metadata: Optional[dict] = {}):
@@ -235,7 +241,10 @@ class MetaData:
             else:
                 column_types.pop(cix)
 
-        return {"column_types": {i + 1: x for i, x in enumerate(column_types.values())}, **metadata}
+        return {
+            "column_types": {i + 1: x for i, x in enumerate(column_types.values())},
+            **metadata,
+        }
 
     def _assemble(self, collapse_yaml: bool) -> dict[str, dict[str, Any]]:
         """
@@ -266,7 +275,10 @@ class MetaData:
                 assembled_metadata["columns"][cn]["missingness"] = (
                     cmd.missingness_strategy.name
                     if cmd.missingness_strategy.name != "impute"
-                    else {"name": cmd.missingness_strategy.name, "impute": cmd.missingness_strategy.impute}
+                    else {
+                        "name": cmd.missingness_strategy.name,
+                        "impute": cmd.missingness_strategy.impute,
+                    }
                 )
             if cmd.transformer_config:
                 assembled_metadata["columns"][cn]["transformer"] = {

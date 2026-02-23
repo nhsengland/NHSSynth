@@ -1,18 +1,42 @@
 from typing import Final, Optional, Union
 
 import networkx as nx
-import numpy as np
 import pandas as pd
 from pyvis.network import Network
 
 
 class ConstraintGraph:
     VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
-    POSITIVITY_TO_OPERATOR: Final = {"positive": ">", "nonnegative": ">=", "negative": "<", "nonpositive": "<="}
+    POSITIVITY_TO_OPERATOR: Final = {
+        "positive": ">",
+        "nonnegative": ">=",
+        "negative": "<",
+        "nonpositive": "<=",
+    }
     BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
-    OPERATOR_TO_PANDAS: Final = {"<": pd.Series.lt, "<=": pd.Series.le, ">": pd.Series.gt, ">=": pd.Series.ge}
+    OPERATOR_TO_PANDAS: Final = {
+        "<": pd.Series.lt,
+        "<=": pd.Series.le,
+        ">": pd.Series.gt,
+        ">=": pd.Series.ge,
+    }
 
     class Constraint:
+        VALID_OPERATORS: Final = [">", ">=", "<", "<=", "in"]
+        POSITIVITY_TO_OPERATOR: Final = {
+            "positive": ">",
+            "nonnegative": ">=",
+            "negative": "<",
+            "nonpositive": "<=",
+        }
+        BRACKET_TO_OPERATOR: Final = {"[": ">=", "]": "<=", "(": ">", ")": "<"}
+        OPERATOR_TO_PANDAS: Final = {
+            "<": pd.Series.lt,
+            "<=": pd.Series.le,
+            ">": pd.Series.gt,
+            ">=": pd.Series.ge,
+        }
+
         def __init__(
             self,
             base: str,
@@ -40,19 +64,28 @@ class ConstraintGraph:
             )
 
         def transform(self, df):
-            base = df[self.base]
-            if self.reference_is_column:
-                reference = df[self.reference][base.index]
-            else:
-                reference = float(self.reference)
+            # Ensure that the base column exists in the DataFrame
+            if self.base not in df.columns:
+                raise ValueError(f"Column '{self.base}' not found in DataFrame.")
 
-            adherence = self.OPERATOR_TO_PANDAS[self.operator](reference).astype(int)
-            adherence[reference.isna()] = 1
-            # When there is no reference, i.e. admidate and disdate, constraint is disdate >= admidate and admidate is null, we assume we want to keep the ability to generate disdates without a reference admidate, so we require a new column that inherits the constraints of the base column except for this constraint
-            diff = abs(base[adherence] - reference[adherence])
-            diff.fillna(diff.mean(), inplace=True)
-            df[self.base + "_diff"] = np.log(diff + 1)
-            df[self.base + "_adherence"] = adherence
+            # Handle float-based constraints (e.g., columnA > 10)
+            if not self.reference_is_column:
+                reference = float(self.reference)
+                adherence = self.OPERATOR_TO_PANDAS[self.operator](df[self.base], reference)
+            else:
+                # Handle column-to-column constraints (e.g., columnB <= columnC)
+                reference = df[self.reference]
+                adherence = self.OPERATOR_TO_PANDAS[self.operator](df[self.base], reference)
+            adherence = adherence.fillna(False)
+            # Create a new column for adherence (boolean series)
+            df[self.base + "_adherence"] = adherence.astype(int)  # Store adherence as 0 (False) or 1 (True)
+
+            # Optionally calculate and store the difference for rows that don't meet the constraint
+            # This is useful for identifying the "degree" to which the constraint is violated
+            # diff = np.abs(df[self.base] - self.reference)
+            #  diff[~adherence] = np.nan  # Set diff to NaN where adherence is False
+            #  df[self.base + "_diff"] = diff
+
             return df
 
     class ComboConstraint:
@@ -249,9 +282,11 @@ class ConstraintGraph:
             ref_is_col, operator = True, ">"
             if subgraph.edges[item1, item2]["color"] == "green":
                 operator += "="
-            if subgraph.nodes[item1]["color"] == "red":
+            if subgraph.nodes[item1]["color"] == "red":  # Note: this breaks if two none col constraints are the same!
                 item1, item2 = item2, item1
                 ref_is_col, operator = False, operator.replace(">", "<")
+            if subgraph.nodes[item2]["color"] == "red":  # Note: this breaks if two none col constraints are the same!
+                ref_is_col = False
             constraint = self.Constraint(item1, operator, item2, reference_is_column=ref_is_col)
             if constraint not in constraints:
                 constraints.append(constraint)
@@ -299,3 +334,10 @@ class ConstraintGraph:
         html = net.generate_html(notebook=False)
         with open(str(name).replace(".html", "_minimal.html"), "w") as f:
             f.write(html)
+
+    def __iter__(self):
+        """
+        Make the ConstraintGraph iterable over the minimal_constraints.
+        """
+        # Assuming self.minimal_constraints is a list of Constraint or ComboConstraint objects
+        return iter(self.minimal_constraints)

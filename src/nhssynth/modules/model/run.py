@@ -45,7 +45,12 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
             f"\nRunning the {i[0]} architecture, repeat {i[1]} of {args.repeats}, with configuration {i[2]} of {experiment['num_configs']} 🤖\033[31m\n"
         )
         synthetic_datasets.loc[i], models.loc[i] = run_iter(
-            experiment, i[0], real_dataset, metatransformer, args.displayed_metrics.copy(), args.num_samples
+            experiment,
+            i[0],
+            real_dataset,
+            metatransformer,
+            args.displayed_metrics.copy(),
+            args.num_samples,
         )
 
     write_data_outputs(experiments, synthetic_datasets, models, fn_dataset, dir_experiment, args)

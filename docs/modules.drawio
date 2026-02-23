@@ -106,7 +106,7 @@
         <mxCell id="ACNoox2-9j7IDCJrgEu1-38" value="Task-Based Evaluation Framework" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9673A6;strokeColor=#9673A6;fontColor=#E1D5E7;" parent="1" vertex="1">
           <mxGeometry x="910" y="420" width="220" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="ACNoox2-9j7IDCJrgEu1-42" value="&lt;b&gt;Aequitas (WIP)&lt;/b&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;rounded=0;glass=0;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontColor=#9673A6;" parent="1" vertex="1">
+        <mxCell id="ACNoox2-9j7IDCJrgEu1-42" value="&lt;b&gt;Fairness Metrics&lt;/b&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;rounded=0;glass=0;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontColor=#9673A6;" parent="1" vertex="1">
           <mxGeometry x="1190" y="500" width="240" height="40" as="geometry" />
         </mxCell>
         <mxCell id="Sln4i85SB3qMOuH6Ym7y-40" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Helvetica;fontColor=#666666;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=3;endArrow=block;endFill=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="ACNoox2-9j7IDCJrgEu1-44" target="ACNoox2-9j7IDCJrgEu1-31" edge="1">

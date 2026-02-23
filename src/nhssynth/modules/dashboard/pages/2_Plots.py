@@ -1,5 +1,3 @@
-from typing import Any
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -101,7 +99,8 @@ def correlation_plots(real_dataset, synthetic_datasets) -> None:
 
 
 def prepare_for_dimensionality(df: pd.DataFrame) -> pd.DataFrame:
-    """Factorize all categorical columns in a dataframe."""
+    """Factorize all categorical columns in a dataframe and normalize values."""
+    df = df.copy()
     for col in df.columns:
         if df[col].dtype == "object":
             df[col] = pd.factorize(df[col])[0]
@@ -109,20 +108,54 @@ def prepare_for_dimensionality(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col])
         min_val = df[col].min()
         max_val = df[col].max()
-        df[col] = (df[col] - min_val) / (max_val - min_val)
+        # Avoid division by zero when all values are the same
+        if max_val != min_val:
+            df[col] = (df[col] - min_val) / (max_val - min_val)
+        else:
+            df[col] = 0.0
+    # Drop rows with NaN values (required for UMAP/t-SNE)
+    df = df.dropna()
     return df
 
 
+@st.cache_data(show_spinner=False)
+def compute_umap(data: np.ndarray) -> np.ndarray:
+    """Compute UMAP projection with caching."""
+    reducer = umap.UMAP()
+    return reducer.fit_transform(data)
+
+
+@st.cache_data(show_spinner=False)
+def compute_tsne(data: np.ndarray) -> np.ndarray:
+    """Compute t-SNE projection with caching."""
+    reducer = TSNE(n_components=2, init="pca")
+    return reducer.fit_transform(data)
+
+
 def plot_reducer(
-    real_dataset: pd.DataFrame, synthetic_dataset: pd.DataFrame, reducer: Any, reducer_name: str
+    real_dataset: pd.DataFrame,
+    synthetic_dataset: pd.DataFrame,
+    method: str,
 ) -> go.Figure:
-    with st.spinner(f"Running {reducer_name}..."):
-        fig = go.Figure(layout=go.Layout(xaxis_title="UMAP 1", yaxis_title="UMAP 2"))
-        proj_real = reducer.fit_transform(real_dataset)
+    with st.spinner(f"Running {method}..."):
+        fig = go.Figure(layout=go.Layout(xaxis_title=f"{method} 1", yaxis_title=f"{method} 2"))
+
+        # Use cached computation functions
+        if method == "UMAP":
+            proj_real = compute_umap(real_dataset.values)
+            proj_synth = compute_umap(synthetic_dataset.values)
+        else:  # t-SNE
+            proj_real = compute_tsne(real_dataset.values)
+            proj_synth = compute_tsne(synthetic_dataset.values)
+
         fig.add_scatter(
-            x=proj_real[:, 0], y=proj_real[:, 1], mode="markers", marker=dict(size=5), opacity=0.75, name="Real data"
+            x=proj_real[:, 0],
+            y=proj_real[:, 1],
+            mode="markers",
+            marker=dict(size=5),
+            opacity=0.75,
+            name="Real data",
         )
-        proj_synth = reducer.fit_transform(synthetic_dataset)
         fig.add_scatter(
             x=proj_synth[:, 0],
             y=proj_synth[:, 1],
@@ -135,16 +168,26 @@ def plot_reducer(
 
 
 def dimensionality_plots(real_dataset: pd.DataFrame, synthetic_datasets: pd.DataFrame) -> None:
-    synthetic_dataset = prepare_for_dimensionality(id_selector(synthetic_datasets).iloc[0].copy())
+    original_real_len = len(real_dataset)
+    synthetic_raw = id_selector(synthetic_datasets).iloc[0].copy()
+    original_synth_len = len(synthetic_raw)
+
+    synthetic_dataset = prepare_for_dimensionality(synthetic_raw)
     real_dataset = prepare_for_dimensionality(real_dataset.copy())
+
+    # Warn if significant data was dropped due to NaN
+    real_dropped = original_real_len - len(real_dataset)
+    synth_dropped = original_synth_len - len(synthetic_dataset)
+    if real_dropped > 0 or synth_dropped > 0:
+        st.warning(f"Rows with missing values were dropped: {real_dropped} real rows, {synth_dropped} synthetic rows.")
+
     dimensionality_method = st.sidebar.selectbox("Select dimensionality reduction method", ["UMAP", "t-SNE"])
     run = st.sidebar.button("Run dimensionality reduction")
     if run:
-        if dimensionality_method == "UMAP":
-            reducer = umap.UMAP()
-        if dimensionality_method == "t-SNE":
-            reducer = TSNE(n_components=2, init="pca")
-        fig = plot_reducer(real_dataset, synthetic_dataset, reducer, dimensionality_method)
+        if len(real_dataset) == 0 or len(synthetic_dataset) == 0:
+            st.error("No data remaining after dropping NaN values. Cannot run dimensionality reduction.")
+            return
+        fig = plot_reducer(real_dataset, synthetic_dataset, dimensionality_method)
         st.plotly_chart(fig, use_container_width=True)
 
 

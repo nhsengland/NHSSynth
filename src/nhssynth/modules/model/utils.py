@@ -50,7 +50,15 @@ def get_experiments(args: argparse.Namespace) -> pd.DataFrame:
         A dataframe of experiments indexed by architecture, repeat and config ID.
     """
     experiments = pd.DataFrame(
-        columns=["architecture", "repeat", "config", "model_config", "seed", "train_config", "num_configs"]
+        columns=[
+            "architecture",
+            "repeat",
+            "config",
+            "model_config",
+            "seed",
+            "train_config",
+            "num_configs",
+        ]
     )
     train_configs = configs_from_arg_combinations(args, ["num_epochs", "patience"])
     for arch_name, repeat in itertools.product(*[wrap_arg(args.architecture), list(range(args.repeats))]):

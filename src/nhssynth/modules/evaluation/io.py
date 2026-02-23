@@ -14,7 +14,11 @@ class Evaluations:
 
 
 def check_input_paths(
-    fn_dataset: str, fn_typed: str, fn_synthetic_datasets: str, fn_sdv_metadata: str, dir_experiment: Path
+    fn_dataset: str,
+    fn_typed: str,
+    fn_synthetic_datasets: str,
+    fn_sdv_metadata: str,
+    dir_experiment: Path,
 ) -> tuple[str, str]:
     """
     Sets up the input and output paths for the model files.
@@ -88,7 +92,11 @@ def load_required_data(
         )
     else:
         fn_dataset, fn_typed, fn_synthetic_datasets, fn_sdv_metadata = check_input_paths(
-            args.dataset, args.typed, args.synthetic_datasets, args.sdv_metadata, dir_experiment
+            args.dataset,
+            args.typed,
+            args.synthetic_datasets,
+            args.sdv_metadata,
+            dir_experiment,
         )
         with open(dir_experiment / fn_typed, "rb") as f:
             real_data = pickle.load(f).contents

@@ -16,6 +16,22 @@ def prepare_evals(evaluations: pd.DataFrame, experiments: pd.DataFrame) -> pd.Da
     return evaluations[metrics_to_show].join(experiments)[experiments.columns.tolist() + metrics_to_show]
 
 
+def safe_highlight_dataframe(df: pd.DataFrame):
+    """
+    Safely apply highlight_max styling to a dataframe, handling NaN values in index.
+    Falls back to unstyled display if styling fails.
+    """
+    try:
+        # Select only numeric columns for highlighting
+        numeric_cols = df.select_dtypes(include=["number"]).columns
+        if len(numeric_cols) > 0:
+            return df.style.highlight_max(axis=0, subset=numeric_cols)
+        return df
+    except (KeyError, ValueError, TypeError):
+        # Fall back to unstyled display if highlight_max fails
+        return df
+
+
 def group_by_display(
     evaluations_filtered: pd.DataFrame,
     experiments: pd.DataFrame,
@@ -36,13 +52,15 @@ def group_by_display(
                 ]
             ]
             .groupby(group_by_cols, dropna=False)
-            .mean()
+            .mean(numeric_only=True)
         )
         st.write(f"## {title} grouped by `{group_by_cols}`")
         download = convert_df(evaluations_shown.copy())
-        # No idea why this fixes the bug with highlight_max but it does
-        evaluations_shown.index = evaluations_shown.index.set_levels(evaluations_shown.index.levels[0], level=0)
-        st.dataframe(evaluations_shown.style.highlight_max(axis=0))
+        # Replace NaN in index with "N/A" and convert all to string to avoid pyarrow type issues
+        if isinstance(evaluations_shown.index, pd.MultiIndex):
+            new_index = evaluations_shown.index.to_frame().fillna("N/A").astype(str)
+            evaluations_shown.index = pd.MultiIndex.from_frame(new_index)
+        st.dataframe(safe_highlight_dataframe(evaluations_shown))
         st.download_button("Press to Download", download, "evaluations.csv", "text/csv")
         if "config" in group_by_cols:
             st.write("### Configurations")
@@ -50,8 +68,18 @@ def group_by_display(
     else:
         evaluations_shown = evaluations_filtered
         st.write(f"## {title}")
-        st.dataframe(evaluations_shown.style.highlight_max(axis=0))
-        st.download_button("Press to Download", convert_df(evaluations_shown), "evaluations.csv", "text/csv")
+        # Replace NaN in index with "N/A" and convert all to string to avoid pyarrow type issues
+        if isinstance(evaluations_shown.index, pd.MultiIndex):
+            new_index = evaluations_shown.index.to_frame().fillna("N/A").astype(str)
+            evaluations_shown = evaluations_shown.copy()
+            evaluations_shown.index = pd.MultiIndex.from_frame(new_index)
+        st.dataframe(safe_highlight_dataframe(evaluations_shown))
+        st.download_button(
+            "Press to Download",
+            convert_df(evaluations_filtered),
+            "evaluations.csv",
+            "text/csv",
+        )
 
 
 def table_metrics(evaluations, experiments, selected_metric_group):
@@ -86,12 +114,21 @@ def columnwise_metrics(evaluations, experiments):
             default=exploded_evaluations.columns.tolist(),
         )
         exploded_evaluations = exploded_evaluations[metrics_to_show]
+        # Handle potential NaN in index names
+        repeat_val = config_evaluations.name[1]
+        config_val = config_evaluations.name[2]
+        repeat_str = str(int(repeat_val)) if pd.notna(repeat_val) else "N/A"
+        config_str = str(int(config_val)) if pd.notna(config_val) else "N/A"
         st.write(
-            f"## Columnwise metrics for {config_evaluations.name[0]} repeat {int(config_evaluations.name[1])} configuration {int(config_evaluations.name[2])}"
+            f"## Columnwise metrics for {config_evaluations.name[0]} repeat {repeat_str} configuration {config_str}"
         )
-        st.dataframe(exploded_evaluations.style.highlight_max(axis=0))
+        st.dataframe(safe_highlight_dataframe(exploded_evaluations))
         st.download_button(
-            "Press to Download", convert_df(exploded_evaluations), "evaluations.csv", "text/csv", key="download-csv"
+            "Press to Download",
+            convert_df(exploded_evaluations),
+            "evaluations.csv",
+            "text/csv",
+            key="download-csv",
         )
         st.write("### Configurations")
         st.dataframe(experiments.groupby(["architecture", "config"]).first())
@@ -100,7 +137,11 @@ def columnwise_metrics(evaluations, experiments):
 def pairwise_metrics(evaluations, experiments):
     display = st.sidebar.selectbox(
         "Display",
-        ["By column pair", "By reference column and metric", "By configuration and metric"],
+        [
+            "By column pair",
+            "By reference column and metric",
+            "By configuration and metric",
+        ],
         index=0,
     )
     metric_column_map = {
@@ -119,11 +160,16 @@ def pairwise_metrics(evaluations, experiments):
             lambda x: x.apply(lambda y: (y.get((column1, column2)) or y.get((column2, column1)) or {}).get("score"))
         )
         prepared_evals = prepare_evals(column_pair_evaluations, experiments)
-        group_by_display(prepared_evals, experiments, f"Pairwise metrics for `{column1}` and `{column2}`")
+        group_by_display(
+            prepared_evals,
+            experiments,
+            f"Pairwise metrics for `{column1}` and `{column2}`",
+        )
     elif display == "By reference column and metric":
         reference_column = st.sidebar.selectbox("Select reference column", columns, index=0)
         metric = st.sidebar.selectbox(
-            "Select metric to display", [k for k, v in metric_column_map.items() if reference_column in v]
+            "Select metric to display",
+            [k for k, v in metric_column_map.items() if reference_column in v],
         )
         metric_evaluations = (
             evaluations[metric]
@@ -135,19 +181,37 @@ def pairwise_metrics(evaluations, experiments):
             (col[0] + col[1]).replace(reference_column, "") for col in metric_evaluations.columns
         ]
         joined_evals = metric_evaluations.join(experiments)
-        group_by_display(joined_evals, experiments, f"Pairwise `{metric}` relative to `{reference_column}`")
+        group_by_display(
+            joined_evals,
+            experiments,
+            f"Pairwise `{metric}` relative to `{reference_column}`",
+        )
     elif display == "By configuration and metric":
         config_evaluations = id_selector(evaluations)
         metric = st.sidebar.selectbox("Select metric to display", evaluations.columns)
         metric_evaluations = config_evaluations.loc[metric]
-        grid = pd.DataFrame(columns=list(metric_column_map[metric]), index=list(metric_column_map[metric]))
+        grid = pd.DataFrame(
+            columns=list(metric_column_map[metric]),
+            index=list(metric_column_map[metric]),
+        )
         for (col1, col2), score in metric_evaluations.items():
             grid.loc[col1, col2], grid.loc[col2, col1] = score["score"], score["score"]
+        # Handle potential NaN in index names
+        repeat_val = config_evaluations.name[1]
+        config_val = config_evaluations.name[2]
+        repeat_str = str(int(repeat_val)) if pd.notna(repeat_val) else "N/A"
+        config_str = str(int(config_val)) if pd.notna(config_val) else "N/A"
         st.write(
-            f"## Pairwise `{metric}` values for {config_evaluations.name[0]} repeat {int(config_evaluations.name[1])} configuration {int(config_evaluations.name[2])}"
+            f"## Pairwise `{metric}` values for {config_evaluations.name[0]} repeat {repeat_str} configuration {config_str}"
         )
         st.table(grid)
-        st.download_button("Press to Download", convert_df(grid), "evaluations.csv", "text/csv", key="download-csv")
+        st.download_button(
+            "Press to Download",
+            convert_df(grid),
+            "evaluations.csv",
+            "text/csv",
+            key="download-csv",
+        )
         st.write("### Configurations")
         st.dataframe(experiments.groupby(["architecture", "config"]).first())
 
@@ -160,7 +224,7 @@ def page():
 
     evaluations = st.session_state["evaluations"][selected_metric_group].copy()
     experiments = st.session_state["experiments"]
-    if selected_metric_group in ["table", "task", "privacy", "efficacy", "aequitas"]:
+    if selected_metric_group in ["table", "task", "privacy", "efficacy", "fairness"]:
         table_metrics(evaluations, experiments, selected_metric_group)
     elif selected_metric_group == "columnwise":
         columnwise_metrics(evaluations, experiments)

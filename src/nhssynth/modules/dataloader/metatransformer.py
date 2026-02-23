@@ -1,6 +1,13 @@
 import pathlib
 import sys
-from typing import Any, Optional, Self, Union
+from typing import Any, Optional, Union
+
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
+
+import inspect
 
 import numpy as np
 import pandas as pd
@@ -8,6 +15,9 @@ from tqdm import tqdm
 
 from nhssynth.modules.dataloader.metadata import MetaData
 from nhssynth.modules.dataloader.missingness import MISSINGNESS_STRATEGIES
+
+# Set to True for verbose debug output during transformation/reversion
+DEBUG_VERBOSE = False
 
 
 class MetaTransformer:
@@ -109,6 +119,17 @@ class MetaTransformer:
         Returns:
             The column with the rounding scheme applied.
         """
+        # Check if column is numeric before applying rounding
+        if not pd.api.types.is_numeric_dtype(working_column):
+            # Try to coerce to numeric first
+            working_column = pd.to_numeric(working_column, errors="coerce")
+            if not pd.api.types.is_numeric_dtype(working_column):
+                # If still not numeric, skip rounding (likely datetime or categorical)
+                from tqdm import tqdm
+
+                tqdm.write(f"Warning: Skipping rounding for non-numeric column {working_column.name}")
+                return working_column
+
         working_column = np.round(working_column / rounding_scheme) * rounding_scheme
         return working_column.round(max(0, int(np.ceil(np.log10(1 / rounding_scheme)))))
 
@@ -133,7 +154,11 @@ class MetaTransformer:
         dtype = column_metadata.dtype
         try:
             if dtype.kind == "M":
-                working_column = pd.to_datetime(working_column, format=column_metadata.datetime_config.get("format"))
+                working_column = pd.to_datetime(
+                    working_column,
+                    format=column_metadata.datetime_config.get("format"),
+                    errors="coerce",
+                )
                 if column_metadata.datetime_config.get("floor"):
                     working_column = working_column.dt.floor(column_metadata.datetime_config.get("floor"))
                     column_metadata.datetime_config["format"] = column_metadata._infer_datetime_format(working_column)
@@ -183,11 +208,143 @@ class MetaTransformer:
             working_data = column_metadata.missingness_strategy.remove(working_data, column_metadata)
         return working_data
 
-    # def apply_constraints(self) -> pd.DataFrame:
-    #     working_data = self.post_missingness_strategy_dataset.copy()
-    #     for constraint in self._metadata.constraints:
-    #         working_data = constraint.apply(working_data)
-    #     return working_data
+    def apply_constraints(self) -> pd.DataFrame:
+        working_data = self.post_missingness_strategy_dataset.copy()
+        for constraint in self._metadata.constraints:
+            working_data = constraint.transform(working_data)
+        return working_data
+
+    def repair_constraints(
+        self, df: pd.DataFrame, *, mode: str = "reflect", rng=None, n_retries: int = 0
+    ) -> pd.DataFrame:
+        """
+        Enforce constraints on a *decoded* DataFrame using
+        self._metadata.constraints.minimal_constraints.
+
+        Supports:
+        - Numeric constant constraints (e.g., x > 0, x in (0, 100))
+        - Column reference constraints (e.g., x8 > x10)
+
+        Args:
+            df: DataFrame to repair
+            mode: Repair strategy ('reflect', 'resample', 'clamp')
+            rng: Random number generator
+            n_retries: Number of retries (unused for now)
+
+        Returns:
+            DataFrame with constraints enforced
+        """
+        import numpy as np
+        import pandas as pd
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        constraints = getattr(getattr(self, "_metadata", None), "constraints", None)
+        if constraints is None:
+            return df
+        constraints_iterable = getattr(constraints, "minimal_constraints", None)
+        if constraints_iterable is None:
+            return df
+
+        repaired = df.copy()
+        violations_fixed = 0
+
+        # Import ComboConstraint to check instance
+        from nhssynth.modules.dataloader.constraints import ConstraintGraph
+
+        # Convert to list to avoid consuming iterator
+        constraints_list = list(constraints_iterable)
+
+        # Iterate through minimal constraints and repair violations
+        for constraint in constraints_list:
+            # Skip combo constraints for now (they require special handling)
+            if isinstance(constraint, ConstraintGraph.ComboConstraint):
+                continue
+
+            base = constraint.base
+            operator = constraint.operator
+            reference = constraint.reference
+            is_column = constraint.reference_is_column
+
+            # Skip if base column doesn't exist in dataframe
+            if base not in repaired.columns:
+                continue
+
+            # Get base values
+            base_vals = pd.to_numeric(repaired[base], errors="coerce")
+
+            # Handle column reference constraints (e.g., x8 > x10)
+            if is_column:
+                if reference not in repaired.columns:
+                    continue
+                ref_vals = pd.to_numeric(repaired[reference], errors="coerce")
+            else:
+                # Handle numeric constant constraints (e.g., x > 0)
+                try:
+                    ref_vals = float(reference)
+                except ValueError:
+                    # Could be datetime, skip for now
+                    continue
+
+            # Identify violations
+            if operator == ">":
+                violations = base_vals <= ref_vals
+            elif operator == ">=":
+                violations = base_vals < ref_vals
+            elif operator == "<":
+                violations = base_vals >= ref_vals
+            elif operator == "<=":
+                violations = base_vals > ref_vals
+            else:
+                continue  # Unknown operator
+
+            # Only repair finite violations (skip NaN)
+            violations = violations & np.isfinite(base_vals)
+
+            n_viol = violations.sum()
+            if n_viol == 0:
+                continue
+
+            violations_fixed += n_viol
+
+            # Repair strategy
+            if operator in [">", ">="]:
+                # Base must be greater than reference
+                if is_column:
+                    # Add small margin above reference (5% of reference value or 0.1, whichever is larger)
+                    margin = np.maximum(0.1, 0.05 * np.abs(ref_vals[violations]))
+                    if operator == ">":
+                        repaired.loc[violations, base] = ref_vals[violations] + margin
+                    else:  # >=
+                        repaired.loc[violations, base] = ref_vals[violations]
+                else:
+                    # Numeric constant
+                    margin = max(0.1, 0.05 * abs(ref_vals))
+                    if operator == ">":
+                        repaired.loc[violations, base] = ref_vals + margin
+                    else:  # >=
+                        repaired.loc[violations, base] = ref_vals
+
+            elif operator in ["<", "<="]:
+                # Base must be less than reference
+                if is_column:
+                    margin = np.maximum(0.1, 0.05 * np.abs(ref_vals[violations]))
+                    if operator == "<":
+                        repaired.loc[violations, base] = ref_vals[violations] - margin
+                    else:  # <=
+                        repaired.loc[violations, base] = ref_vals[violations]
+                else:
+                    margin = max(0.1, 0.05 * abs(ref_vals))
+                    if operator == "<":
+                        repaired.loc[violations, base] = ref_vals - margin
+                    else:  # <=
+                        repaired.loc[violations, base] = ref_vals
+
+        if DEBUG_VERBOSE and violations_fixed > 0:
+            tqdm.write(f"[repair_constraints] Fixed {violations_fixed} constraint violations")
+
+        return repaired
 
     def _get_missingness_carrier(self, column_metadata: MetaData.ColumnMetaData) -> Union[pd.Series, Any]:
         """
@@ -207,43 +364,187 @@ class MetaTransformer:
         else:
             return missingness_carrier
 
+    def _get_adherence_constraint(self, df) -> Union[pd.Series, Any]:
+        adherence_columns = [col for col in df.columns if col.endswith("_adherence")]
+        constraint_adherence = df[adherence_columns].prod(axis=1).astype(int)
+
+        return constraint_adherence
+
+    def _call_transformer_apply(
+        self,
+        transformer,
+        *,
+        series,
+        constraint_adherence=None,
+        missingness_column=None,
+    ):
+        """
+        Call transformer.apply with only the kwargs it supports, using **keywords only**.
+        - Binds the input series to 'data' if present, otherwise to the first non-self parameter.
+        - Only passes constraint_adherence / missingness_column if the transformer declares them.
+        """
+        fn = transformer.apply
+        sig = inspect.signature(fn)
+        params = sig.parameters
+
+        # Decide which parameter name to bind the series to
+        if "data" in params:
+            data_param = "data"
+        else:
+            data_param = next((n for n, p in params.items() if n != "self"), None)
+            if data_param is None:
+                # Last resort: the method takes no args beyond self; try calling without any
+                return fn()
+
+        kwargs = {data_param: series}
+
+        if "constraint_adherence" in params:
+            kwargs["constraint_adherence"] = constraint_adherence
+        if "missingness_column" in params:
+            kwargs["missingness_column"] = missingness_column
+
+        return fn(**kwargs)
+
     def transform(self) -> pd.DataFrame:
         """
-        Prepares the dataset by applying each of the columns' transformers and recording the indices of the single and multi columns.
-
-        Returns:
-            The transformed dataset.
+        Apply each column transformer to its *raw* Series, then concatenate results.
+        Ensures each transformer receives a single Series (not the whole/mutated DataFrame),
+        which fixes DateTime ('dob') KeyErrors.
         """
-        transformed_columns = []
-        self.single_column_indices = []
-        self.multi_column_indices = []
-        col_counter = 0
-        working_data = self.post_missingness_strategy_dataset.copy()
 
-        # iteratively build the transformed df
-        for column_metadata in tqdm(
-            self._metadata, desc="Transforming data", unit="column", total=len(self._metadata.columns)
-        ):
-            missingness_carrier = self._get_missingness_carrier(column_metadata)
-            transformed_data = column_metadata.transformer.apply(
-                working_data[column_metadata.name], missingness_carrier
+        # Prefer the dataset that already has missingness flags computed,
+        # but still contains the original raw columns.
+        if hasattr(self, "post_missingness_strategy_dataset") and self.post_missingness_strategy_dataset is not None:
+            source_df = self.post_missingness_strategy_dataset
+        elif hasattr(self, "typed_dataset") and self.typed_dataset is not None:
+            source_df = self.typed_dataset
+        else:
+            # Fallback: raw dataset as last resort
+            source_df = self._raw_dataset
+
+        parts = []
+
+        # Helper: get a column if it exists, else None
+        def _maybe_col(df: pd.DataFrame, name: str):
+            return df[name] if (df is not None and name in df.columns) else None
+
+        for col_meta in self._metadata:
+            # Work out the original column name this transformer handles
+            col = (
+                getattr(col_meta, "name", None)
+                or getattr(col_meta, "column", None)
+                or getattr(col_meta, "feature", None)
             )
-            transformed_columns.append(transformed_data)
+            if col is None:
+                raise ValueError(f"Metadata entry missing column name: {col_meta}")
 
-            # track single and multi column indices to supply to the model
-            if isinstance(transformed_data, pd.DataFrame) and transformed_data.shape[1] > 1:
-                num_to_add = transformed_data.shape[1]
-                if not column_metadata.categorical:
-                    self.single_column_indices.append(col_counter)
-                    col_counter += 1
-                    num_to_add -= 1
-                self.multi_column_indices.append(list(range(col_counter, col_counter + num_to_add)))
-                col_counter += num_to_add
+            # Always hand the transformer a *Series* from the original (pre-transform) frame
+            if col not in source_df.columns:
+                raise KeyError(
+                    f"[MetaTransformer.transform] Expected raw column '{col}' in source_df; "
+                    f"available={list(source_df.columns)[:15]}..."
+                )
+            series = source_df[col]
+
+            # Optional per-row flags
+            # Missingness: prefer exact "{col}_missing"; if not present, try to find any "<col>_missing*"
+            miss = _maybe_col(source_df, f"{col}_missing")
+            if miss is None:
+                # Try a looser match if you have variant names
+                candidates = [c for c in source_df.columns if c.startswith(f"{col}_missing")]
+                miss = source_df[candidates[0]] if candidates else None
+
+            # Constraint adherence: if your PR1 kept these in constrained_dataset, pass it through; else use ones
+            if hasattr(self, "constrained_dataset") and self.constrained_dataset is not None:
+                adh = _maybe_col(self.constrained_dataset, f"{col}_adherence")
             else:
-                self.single_column_indices.append(col_counter)
-                col_counter += 1
+                adh = None
 
-        return pd.concat(transformed_columns, axis=1)
+            if adh is None:
+                # Default to all-ones (i.e., include all rows during transform)
+                adh = pd.Series(1, index=series.index, name=f"{col}_adherence", dtype=int)
+
+            # Apply the per-column transformer
+            part = self._call_transformer_apply(
+                col_meta.transformer,
+                series=series,
+                constraint_adherence=adh,
+                missingness_column=miss,
+            )
+
+            # Normalise to DataFrame
+            if isinstance(part, pd.Series):
+                part = part.to_frame()
+
+            value_idx_in_part = None
+            for cand in (f"{col}_value", f"{col}_normalized", f"{col}_normalised"):
+                if cand in part.columns:
+                    value_idx_in_part = part.columns.get_loc(cand)
+                    break
+
+            # record absolute index for this value column
+            if not hasattr(self, "continuous_value_indices"):
+                self.continuous_value_indices = []
+
+            abs_offset = sum(m.shape[1] if hasattr(m, "shape") else 1 for m in parts)  # cols before this part
+            if value_idx_in_part is not None:
+                self.continuous_value_indices.append(abs_offset + value_idx_in_part)
+
+            parts.append(part)
+
+        # Concatenate all transformed parts
+        transformed = pd.concat(parts, axis=1)
+
+        multi_groups: list[list[int]] = []
+        single_list: list[int] = []
+
+        col_offset = 0
+        for part in parts:
+            m = part.shape[1] if hasattr(part, "shape") else 1
+            if m > 1:
+                part_cols = list(part.columns)
+                component_indices = []
+                non_component_indices = []
+
+                import re
+
+                for i, col_name in enumerate(part_cols):
+                    col_idx = col_offset + i
+                    # Check if this is a single-column type (z-score or missingness)
+                    is_single_col = isinstance(col_name, str) and any(
+                        suffix in col_name for suffix in ["_value", "_normalized", "_normalised", "_missing"]
+                    )
+                    if is_single_col:
+                        # Z-scores and missingness go to single_column_indices
+                        non_component_indices.append(col_idx)
+                    elif isinstance(col_name, str) and re.search(r"_c\d+$", col_name):
+                        # GMM component columns (e.g., x7_c1, x7_c10) go to multi_column_indices
+                        component_indices.append(col_idx)
+                    elif isinstance(col_name, str):
+                        # OHE categorical columns (e.g., x1_0.0, x3_A) go to multi_column_indices
+                        component_indices.append(col_idx)
+                    else:
+                        # Fallback for non-string column names
+                        non_component_indices.append(col_idx)
+
+                if component_indices:
+                    multi_groups.append(component_indices)
+                single_list.extend(non_component_indices)
+            else:
+                single_list.append(col_offset)
+            col_offset += m
+
+        # Store on self for the model
+        self.multi_column_indices = multi_groups
+        self.single_column_indices = single_list
+        self.output_columns = list(transformed.columns)
+        self.ncols = transformed.shape[1]
+        self.continuous_value_indices = list(self.continuous_value_indices)
+
+        # Make sure downstream code (like VAE.generate) has the correct column names
+        self.columns = list(transformed.columns)
+
+        return transformed
 
     def apply(self) -> pd.DataFrame:
         """
@@ -255,7 +556,7 @@ class MetaTransformer:
         self.drop_columns()
         self.typed_dataset = self.apply_dtypes(self._raw_dataset)
         self.post_missingness_strategy_dataset = self.apply_missingness_strategy()
-        # self.constrained_dataset = self.apply_constraints()
+        self.constrained_dataset = self.apply_constraints()
         self.transformed_dataset = self.transform()
         return self.transformed_dataset
 
@@ -269,9 +570,53 @@ class MetaTransformer:
         Returns:
             The original dataset.
         """
+        import numpy as np
+
+        # binarize generated missingness indicators: >0.5 -> 1, else 0
+        for col in list(dataset.columns):
+            if col.endswith("_missing"):
+                v = pd.to_numeric(dataset[col], errors="coerce").fillna(0.0).to_numpy()
+                dataset[col] = (v > 0.5).astype(int)
+
         for column_metadata in self._metadata:
             dataset = column_metadata.transformer.revert(dataset)
-        return self.apply_dtypes(dataset)
+
+        # Add Gaussian smoothing to continuous variables to blur GMM component peaks
+        try:
+            smoothing_std = 0.03  # 3% of column std as smoothing noise
+            continuous_cols = []
+            for col_meta in self._metadata:
+                # Skip datetime columns, categorical columns, and missingness indicators
+                if (
+                    hasattr(col_meta, "transformer")
+                    and col_meta.name in dataset.columns
+                    and not col_meta.name.endswith("_missing")
+                    and dataset[col_meta.name].dtype in ["float64", "float32", "int64", "int32"]
+                ):
+                    continuous_cols.append(col_meta.name)
+
+            if continuous_cols:
+                for col in continuous_cols:
+                    col_std = dataset[col].std()
+                    if col_std > 0:
+                        noise = np.random.normal(0, smoothing_std * col_std, size=len(dataset))
+                        dataset[col] = dataset[col] + noise
+        except Exception as e:
+            if DEBUG_VERBOSE:
+                tqdm.write(f"[inverse_apply] WARNING: Gaussian smoothing failed: {e}")
+
+        # Enforce constraints on decoded data if available
+        try:
+            dataset = self.repair_constraints(dataset, mode="resample")
+        except Exception as e:
+            if DEBUG_VERBOSE:
+                tqdm.write(f"[inverse_apply] ERROR calling repair_constraints: {type(e).__name__}: {e}")
+                import traceback
+
+                tqdm.write(traceback.format_exc())
+
+        out = self.apply_dtypes(dataset)
+        return out
 
     def get_typed_dataset(self) -> pd.DataFrame:
         if not hasattr(self, "typed_dataset"):

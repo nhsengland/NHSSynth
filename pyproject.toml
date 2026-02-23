@@ -17,14 +17,15 @@ classifiers = [
 "Docs" = "https://nhsengland.github.io/NHSSynth"
 
 [tool.poetry.dependencies]
-python = ">=3.9, !=3.9.7, <3.12"
+python = ">=3.10, <3.11"
 pandas = "^2.0.1"
 scikit-learn = "^1.2.2"
 tqdm = "^4.65.0"
 gower = "^0.1.2"
 pyyaml = "^6.0"
-torch = "^2.1.2"
-opacus = "^1.4.0"
+torch = ">=2.2.0,<2.4.0"
+numpy = ">=1.24.0,<2.0.0"
+opacus = ">=1.4.0,<1.5.0"
 networkx = "^3.1"
 pyvis = "^0.3.2"
 sdmetrics = "^0.11.0"
@@ -32,6 +33,7 @@ streamlit = "^1.25.0"
 plotly = "^5.16.1"
 umap-learn = "^0.5.3"
 llvmlite = "^0.40.1"
+matplotlib = "^3.7.0"
 
 [tool.poetry.scripts]
 nhssynth = "nhssynth.cli.__main__:__main__"
@@ -49,6 +51,7 @@ pre-commit = "^3.5.0"
 nbstripout = "^0.6.1"
 pre-commit-hooks = "^4.5.0"
 ruff = "^0.1.0"
+setuptools = ">=65.0.0"
 
 [tool.poetry.group.aux]
 optional = true
@@ -77,15 +80,27 @@ urllib3 = "^2.0.7"
 
 [tool.black]
 line-length = 120
+extend-exclude = '''
+(
+    auxiliary/
+    | \.venv/
+)
+'''
 
 [tool.ruff]
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-select = ["E4", "E7", "E9", "F", "C90", "I"]
+exclude = ["auxiliary/", ".venv/"]
+lint.select = ["E4", "E7", "E9", "F", "C90", "I"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "src/nhssynth/common/constants.py" = ["F403", "F405"]
+# Complex functions that are difficult to simplify without significant refactoring
+"src/nhssynth/modules/dashboard/pages/4_Summary.py" = ["C901"]
+"src/nhssynth/modules/dataloader/metatransformer.py" = ["C901"]
+"src/nhssynth/modules/dataloader/transformers/continuous.py" = ["C901"]
+"src/nhssynth/modules/model/models/vae.py" = ["C901"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["nhssynth"]
 
 [tool.pytest.ini_options]

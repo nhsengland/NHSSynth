@@ -1,4 +1,5 @@
 import argparse
+import warnings
 
 import nhssynth.common as common
 from nhssynth.modules.evaluation.io import load_required_data, output_eval
@@ -7,6 +8,18 @@ from nhssynth.modules.evaluation.utils import EvalFrame, validate_metric_args
 
 def run(args: argparse.Namespace) -> argparse.Namespace:
     print("Running evaluation module...\n\033[32m")
+
+    # Suppress common warnings from scipy/sklearn during evaluation
+    warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
+    warnings.filterwarnings("ignore", category=RuntimeWarning, module="scipy")
+    warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")
+    try:
+        from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
+
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
+        warnings.filterwarnings("ignore", category=DataConversionWarning)
+    except ImportError:
+        pass
 
     common.set_seed(args.seed)
     dir_experiment = common.experiment_io(args.experiment_name)
@@ -19,8 +32,8 @@ def run(args: argparse.Namespace) -> argparse.Namespace:
         tasks,
         metrics,
         sdv_metadata,
-        args.aequitas,
-        args.aequitas_attributes,
+        args.fairness,
+        args.protected_attributes,
         args.key_numerical_fields,
         args.sensitive_numerical_fields,
         args.key_categorical_fields,

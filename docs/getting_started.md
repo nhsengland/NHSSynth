@@ -147,6 +147,15 @@ For each column in the dataset, we specify the following:
 - Whether it is `categorical` or not. If a column is not categorical, you don't need to specify this. A column is inferred as `categorical` if it has less than 10 unique values or is a string type.
 - If the column has missing values, we can specify how to deal with them by specifying a `missingness` strategy. In the case of the `x8` column, we `impute` the missing values with the column's `mean`. If you don't specify this, the CLI or configuration file's specified global missingness strategy will be applied instead (this defaults to the augment strategy which model's the missingness as a separate level in the case of categorical features, or as a separate cluster in the case of continuous features).
 
+**Note**: The package includes optimized handling for different variable types during transformation and generation:
+
+- **Datetime columns**: Automatically use single Gaussian component with aggressive temperature scaling (15x) to maintain wide temporal ranges spanning the full date range in your data
+- **Peaked distributions**: Variables with high kurtosis (excess kurtosis > 5) are detected during transformation and receive lower temperature (1.5x) during generation to preserve characteristic peakedness
+- **Normal distributions**: Standard continuous variables receive moderate temperature scaling (3.0x) for appropriate spread
+- **Automatic component selection**: Bayesian Gaussian Mixture Models with sparse prior automatically determine the optimal number of components (1-10) per variable
+
+See [optimized_transformer_config.yaml](../config/optimized_transformer_config.yaml) for details on the automatic adaptive configuration and [mwe_optimized.ipynb](../auxiliary/mwe_optimized.ipynb) for a working example.
+
 ### Constraints
 
 The second part of the metadata file specifies any constraints that should be enforced on the dataset. These can be a relative constraint between two columns, or a fixed one via a constant on a single column. For example, the `support` dataset's constraints are as follows (note that these are arbitrarily defined and do not necessarily reflect the real data):
@@ -168,6 +177,8 @@ constraints:
 
 The function of these constraints is fairly self-explanatory: The package ensures the constraints are feasible and minimises them before applying transformations to ensure that they will be satisfied in the synthetic data as well. When a column does not meet a feasible constraint in the real data, we assume that this is intentional and use the violation as a feature upon which to generate synthetic data that also violates the constraint.
 
+The constraint repair system has been extensively optimized to achieve <1% violation rates in generated synthetic data through iterative constraint satisfaction with minimal data perturbation. See [IMPLEMENTATION_SUMMARY.md](../config/IMPLEMENTATION_SUMMARY.md) for technical details on constraint handling improvements and the optimization process.
+
 There is a further constraint `fixcombo` that only applies to categorical columns. This suggests that only existing combinations of two or more categorical columns should be generated, i.e. the columns can be collapsed into a single composite feature. I.e. if we have a column for pregnancy, and another for sex, we may only want to allow three categories, 'male:not-pregnant', 'female:pregnant', 'female:not-pregnant'. This is specified as follows:
 
 ```yaml
@@ -186,6 +197,6 @@ Once this metadata is setup, you are ready to run your experiment.
 
 ## Evaluation
 
-Once models have been trained and synthetic datasets generated, we leverage evaluations from [SDMetrics](https://docs.sdv.dev/sdmetrics), [Aequitas](http://aequitas.dssg.io), the NHS' internal [SynAdvSuite](https://github.com/nhsengland/SynAdvSuite) (at current time you must request access to this repository to use the privacy-related attacks it implements), and also offer a facility for the [custom specification of downstream tasks](downstream_tasks.md). These evaluations are then aggregated into a dashboard for ease of comparison and analysis.
+Once models have been trained and synthetic datasets generated, we leverage evaluations from [SDMetrics](https://docs.sdv.dev/sdmetrics), custom fairness metrics (demographic parity, equalized odds), the NHS' internal [SynAdvSuite](https://github.com/nhsengland/SynAdvSuite) (at current time you must request access to this repository to use the privacy-related attacks it implements), and also offer a facility for the [custom specification of downstream tasks](downstream_tasks.md). These evaluations are then aggregated into a dashboard for ease of comparison and analysis.
 
 See the relevant documentation for each of these packages for more information on the metrics they offer.

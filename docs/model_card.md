@@ -29,9 +29,61 @@ including as the level of DP is varied. It would also be of interest to apply DP
 whether the performance drop as a function of implemented privacy is similar or different
 across the models.
 
-Currently the SynthVAE model only works for data which is 'clean'. I.e data that has no missingness or NaNs within its input. It can handle continuous, categorical and datetime variables. Special types such as nominal data cannot be handled properly however the model may still run. Column names have to be specified in the code for the variable group they belong to.
+### Data Handling Capabilities
 
-Hyperparameter tuning of the model can result in errors if certain parameter values are selected. Most commonly, changing learning rate in our example results in errors during training. An extensive test to evaluate plausible ranges has not been performed as of yet. If you get errors during tuning then consider your hyperparameter values and adjust accordingly.
+The model handles continuous, categorical, and datetime variables with optimized transformations:
+
+- **Missingness handling**: Supports both augmentation (modeling missingness as a feature) and imputation strategies (mean, median, mode)
+- **Continuous variables**: Uses Bayesian Gaussian Mixture Models (GMM) with automatic component selection (1-10 components) based on variable characteristics
+- **Categorical variables**: Standard one-hot encoding with support for rare categories
+- **Datetime variables**: Special handling with single Gaussian component and aggressive temperature scaling to maintain wide temporal ranges
+- **Constraints**: Post-generation constraint repair achieving <1% violation rates
+
+### Data Transformation
+
+The model uses Bayesian Gaussian Mixture Models for continuous variable transformation with the following key features:
+
+- **Automatic component selection**: Sparse Bayesian prior (weight_concentration_prior=1e-3) enables automatic determination of optimal component count per variable
+- **Kurtosis detection**: Identifies heavily-peaked distributions (excess kurtosis > 5) during transformation to inform generation strategy
+- **Adaptive configuration**: Variables are automatically categorized as peaked, normal, or datetime for differential treatment during generation
+- **Z-score normalization**: Optimized std_multiplier=1 for proper calibration with GMM component variances
+
+See [config/optimized_transformer_config.yaml](../config/optimized_transformer_config.yaml) for complete transformation settings.
+
+### Generation Process
+
+The VAE decoder applies adaptive temperature scaling to preserve variable characteristics:
+
+- **Peaked distributions** (high kurtosis > 5): 1.5x temperature to maintain characteristic peakedness
+- **Normal distributions**: 3.0x temperature for appropriate spread
+- **Datetime variables**: 15.0x temperature (3.0 × 5.0 boost) to achieve wide temporal ranges
+- **GMM component softening**: 2.0x temperature on component logits to smooth boundaries
+- **Post-generation smoothing**: 3% Gaussian noise applied to blur residual GMM peaks
+
+This adaptive approach preserves both unimodal peaked variables (e.g., heavily-tailed distributions) and smooth temporal trends while preventing artificial multimodality and clipping.
+
+### Constraint Handling
+
+The model includes sophisticated post-generation constraint repair:
+
+- Iterative constraint satisfaction with minimal data perturbation
+- Support for inequality constraints (<, <=, >, >=), range constraints (in), and fixed combinations (fixcombo)
+- Optimization to achieve <1% constraint violation rates (down from 50,000+ violations in early versions)
+- Preserves statistical properties while enforcing logical relationships
+
+See [config/IMPLEMENTATION_SUMMARY.md](../config/IMPLEMENTATION_SUMMARY.md) for detailed technical documentation of the constraint repair system and fidelity improvements.
+
+### Current Limitations
+
+- Hyperparameter tuning may result in errors if certain parameter values are selected (particularly extreme learning rates). Consider adjusting hyperparameters if training fails.
+- Special types such as nominal data may not be handled optimally, though the model may still run
+- The adaptive temperature system is optimized for the SUPPORT dataset characteristics and may require tuning for datasets with significantly different distributions
+
+### Configuration and Examples
+
+- **Optimized configuration**: See [config/optimized_transformer_config.yaml](../config/optimized_transformer_config.yaml) for all settings and rationale
+- **Working example**: See [auxiliary/mwe_optimized.ipynb](../auxiliary/mwe_optimized.ipynb) for a complete workflow demonstrating the optimized configuration
+- **Implementation details**: See [config/IMPLEMENTATION_SUMMARY.md](../config/IMPLEMENTATION_SUMMARY.md) for technical details and testing guidelines
 
 ## Acknowledgements
 

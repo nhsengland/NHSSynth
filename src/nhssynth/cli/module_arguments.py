@@ -195,16 +195,20 @@ def add_evaluation_args(parser: argparse.ArgumentParser, group_title: str, overr
         help="the directory containing the downstream tasks to run, this directory must contain a folder called <DATASET> containing the tasks to run",
     )
     group.add_argument(
-        "--aequitas",
+        "--fairness",
+        "--aequitas",  # backward compatibility alias
         action="store_true",
-        help="run the aequitas fairness evaluation (note this runs for each of the downstream tasks)",
+        dest="fairness",
+        help="run fairness evaluation (demographic parity, equalized odds) for downstream tasks",
     )
     group.add_argument(
-        "--aequitas-attributes",
+        "--protected-attributes",
+        "--aequitas-attributes",  # backward compatibility alias
         type=str,
         nargs="+",
         default=None,
-        help="the attributes to use for the aequitas fairness evaluation, defaults to all attributes",
+        dest="protected_attributes",
+        help="the protected attributes to use for fairness evaluation, defaults to all attributes",
     )
     group.add_argument(
         "--key-numerical-fields",
