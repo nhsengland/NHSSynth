@@ -48,6 +48,7 @@ jobs:
           poetry run pytest --cov src/*
           echo "COVERAGE=$(poetry run coverage report --format markdown --precision 1 | awk -F'|' 'END{gsub(/ *(\*\*|%)* */, "", $(NF-1)); print $(NF-1)}')" >> $GITHUB_ENV
       - name: Create Coverage Badge
+        continue-on-error: true
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -63,6 +64,7 @@ jobs:
           echo "COLLECTED=$(poetry run pytest --collect-only | grep -m 1 "collected" | awk '{print $2;}' | tr -d '[:space:]\n')" >> $GITHUB_ENV
           echo "PASSED=$(poetry run pytest --verbose | grep -o "PASSED" | wc -l | tr -d '[:space:]\n')" >> $GITHUB_ENV
       - name: Create Tests Passing Badge
+        continue-on-error: true
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -89,6 +91,7 @@ jobs:
           echo "CODE_LINES=$(.github/cloc.sh --loc)" >> $GITHUB_ENV
           echo "COMMENT_PERCENTAGE=$(.github/cloc.sh --percentage)" >> $GITHUB_ENV
       - name: Create Lines-of-Code Badge
+        continue-on-error: true
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -98,6 +101,7 @@ jobs:
           message: ${{ env.CODE_LINES }}
           color: blue
       - name: Create Comments Badge
+        continue-on-error: true
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
