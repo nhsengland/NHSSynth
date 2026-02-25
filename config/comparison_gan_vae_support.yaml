@@ -1,0 +1,110 @@
+seed: 1
+experiment_name: comparison_gan_vae
+run_type: pipeline
+dataloader:
+  collapse_yaml: true
+  write_csv: true
+model:
+  # Both architectures will be run and compared.
+  # GAN-specific params (noise_dim, generator_*, discriminator_*, lambda_gradient_penalty)
+  # are silently ignored by the VAE, and VAE-specific params (latent_dim, etc.) are
+  # silently ignored by the GAN.
+  architecture:
+    - VAE
+    - GAN
+    - CTGAN
+  num_epochs:
+    - 200
+  patience: 20
+
+  # VAE settings
+  latent_dim: 256
+  decoder_n_layers_hidden: 2
+  decoder_n_units_hidden: 256
+  decoder_activation: leaky_relu
+  decoder_dropout: 0.0
+
+  # GAN settings
+  noise_dim: 128
+  generator_n_layers_hidden: 2
+  generator_n_units_hidden: 256
+  generator_activation: leaky_relu
+  generator_batch_norm: false
+  generator_dropout: 0.0
+  generator_residual: true
+  generator_lr: 2.0e-4
+  discriminator_n_layers_hidden: 3
+  discriminator_n_units_hidden: 256
+  discriminator_activation: leaky_relu
+  discriminator_batch_norm: false
+  discriminator_dropout: 0.1
+  discriminator_lr: 2.0e-4
+  lambda_gradient_penalty: 10
+  clipping_value: 0
+
+  repeats: 1
+
+evaluation:
+  # Downstream tasks and fairness
+  downstream_tasks: true
+  fairness: true
+  protected_attributes:
+    - x1
+    - x3
+
+  # Column Shape Metrics
+  column_shape_metrics:
+    - KSComplement
+    - TVComplement
+
+  # Column Similarity Metrics
+  column_similarity_metrics:
+    - MissingValueSimilarity
+    - StatisticSimilarity
+    - CorrelationSimilarity
+    - ContingencySimilarity
+
+  # Boundary Metrics
+  boundary_metrics:
+    - BoundaryAdherence
+
+  # Coverage Metrics
+  coverage_metrics:
+    - RangeCoverage
+    - CategoryCoverage
+
+  # Synthesis Metrics
+  synthesis_metrics:
+    - NewRowSynthesis
+
+  # Divergence Metrics
+  divergence_metrics:
+    - ContinuousKLDivergence
+    - DiscreteKLDivergence
+
+  # Privacy Metrics - Categorical
+  key_categorical_fields:
+    - x1
+  sensitive_categorical_fields:
+    - event
+  cap_privacy_metrics:
+    - CategoricalCAP
+    - CategoricalGeneralizedCAP
+    - CategoricalZeroCAP
+  categorical_privacy_metrics:
+    - CategoricalKNN
+    - CategoricalNB
+    - CategoricalRF
+    - CategoricalSVM
+    - CategoricalEnsemble
+
+  # Privacy Metrics - Numerical
+  key_numerical_fields:
+    - x7
+  sensitive_numerical_fields:
+    - x12
+  numerical_privacy_metrics:
+    - NumericalLR
+    - NumericalMLP
+    - NumericalSVR
+    - NumericalRadiusNearestNeighbor

@@ -3,3 +3,4 @@
 # Except this file
 !.gitignore
 !test_*.yaml
+!comparison_gan_vae_support.yaml

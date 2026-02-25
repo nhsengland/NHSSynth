@@ -43,3 +43,4 @@ site/
 .pytest_cache/
 coverage.xml
 coverage-badge.svg
+localCHANGELOG.md
