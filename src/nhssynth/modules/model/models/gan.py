@@ -6,8 +6,7 @@ import torch
 from tqdm import tqdm
 
 from nhssynth.modules.model.common.dp import DPMixin
-
-# from nhssynth.modules.model.common.mlp import MLP
+from nhssynth.modules.model.common.mlp import MLP
 from nhssynth.modules.model.common.model import Model
 
 
@@ -67,6 +66,7 @@ class GAN(Model):
     def __init__(
         self,
         *args,
+        noise_dim: int = 128,
         n_units_conditional: int = 0,
         generator_n_layers_hidden: int = 2,
         generator_n_units_hidden: int = 250,
@@ -89,16 +89,15 @@ class GAN(Model):
     ) -> None:
         super(GAN, self).__init__(*args, **kwargs)
 
-        self.generator_n_units_hidden = generator_n_units_hidden
+        self.noise_dim = noise_dim
         self.n_units_conditional = n_units_conditional
 
-        self.generator = MLP(  # noqa: F821 - MLP not implemented yet
-            n_units_in=generator_n_units_hidden + n_units_conditional,
+        self.generator = MLP(
+            n_units_in=noise_dim + n_units_conditional,
             n_units_out=self.ncols,
             n_layers_hidden=generator_n_layers_hidden,
             n_units_hidden=generator_n_units_hidden,
             activation=generator_activation,
-            # nonlin_out=generator_activation_out,
             batch_norm=generator_batch_norm,
             dropout=generator_dropout,
             lr=generator_lr,
@@ -106,13 +105,13 @@ class GAN(Model):
             opt_betas=generator_opt_betas,
         ).to(self.device)
 
-        self.discriminator = MLP(  # noqa: F821 - MLP not implemented yet
+        self.discriminator = MLP(
             n_units_in=self.ncols + n_units_conditional,
             n_units_out=1,
             n_layers_hidden=discriminator_n_layers_hidden,
             n_units_hidden=discriminator_n_units_hidden,
             activation=discriminator_activation,
-            activation_out=[("none", 1)],
+            activation_out=None,
             batch_norm=discriminator_batch_norm,
             dropout=discriminator_dropout,
             lr=discriminator_lr,
@@ -134,6 +133,7 @@ class GAN(Model):
     @classmethod
     def get_args(cls) -> list[str]:
         return [
+            "noise_dim",
             "n_units_conditional",
             "generator_n_layers_hidden",
             "generator_n_units_hidden",
@@ -188,7 +188,7 @@ class GAN(Model):
         if cond is not None and len(cond) != N:
             raise ValueError("cond length must match N")
 
-        fixed_noise = torch.randn(N, self.generator_n_units_hidden, device=self.device)
+        fixed_noise = torch.randn(N, self.noise_dim, device=self.device)
         fixed_noise = self._append_optional_cond(fixed_noise, cond)
 
         return self.generator(fixed_noise)
@@ -200,13 +200,13 @@ class GAN(Model):
     ) -> float:
         # Update the G network
         self.generator.train()
-        self.generator.optimizer.zero_grad()
+        self.generator.optim.zero_grad()
 
         real_X_raw = X.to(self.device)
         real_X = self._append_optional_cond(real_X_raw, cond)
         batch_size = len(real_X)
 
-        noise = torch.randn(batch_size, self.generator_n_units_hidden, device=self.device)
+        noise = torch.randn(batch_size, self.noise_dim, device=self.device)
         noise = self._append_optional_cond(noise, cond)
 
         fake_raw = self.generator(noise)
@@ -229,7 +229,7 @@ class GAN(Model):
         # Update G
         if self.clipping_value > 0:
             torch.nn.utils.clip_grad_norm_(self.generator.parameters(), self.clipping_value)
-        self.generator.optimizer.step()
+        self.generator.optim.step()
 
         if torch.isnan(errG):
             raise RuntimeError("NaNs detected in the generator loss")
@@ -257,7 +257,7 @@ class GAN(Model):
         real_output = self.discriminator(real_X).squeeze().float()
 
         # Train with all-fake batch
-        noise = torch.randn(batch_size, self.generator_n_units_hidden, device=self.device)
+        noise = torch.randn(batch_size, self.noise_dim, device=self.device)
         noise = self._append_optional_cond(noise, cond)
 
         fake_raw = self.generator(noise)
@@ -283,7 +283,7 @@ class GAN(Model):
         )
         errD = -errD_real + errD_fake
 
-        self.discriminator.optimizer.zero_grad()
+        self.discriminator.optim.zero_grad()
         if isinstance(self, DPMixin):
             # Adversarial loss
             # 1. split fwd-bkwd on fake and real images into two explicit blocks.
@@ -303,7 +303,7 @@ class GAN(Model):
         # Update D
         if self.clipping_value > 0:
             torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), self.clipping_value)
-        self.discriminator.optimizer.step()
+        self.discriminator.optim.step()
 
         errors.append(errD.item())
 
@@ -340,8 +340,9 @@ class GAN(Model):
         num_epochs: int = 100,
         patience: int = 5,
         displayed_metrics: list[str] = ["GLoss", "DLoss"],
+        notebook_run: bool = False,
     ) -> tuple[int, dict[str, np.ndarray]]:
-        self._start_training(num_epochs, patience, displayed_metrics)
+        self._start_training(num_epochs, patience, displayed_metrics, notebook_run)
 
         for epoch in tqdm(range(num_epochs), desc="Epochs", position=len(self.stats_bars), leave=False):
             losses = self._train_epoch()

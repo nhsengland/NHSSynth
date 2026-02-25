@@ -15,6 +15,20 @@ model:
   max_grad_norm: 5.0
   secure_mode: false
   repeats: 1
+  # GAN example (replace architecture above with one of these):
+  # architecture: [GAN]
+  # noise_dim: 128
+  # n_critic: 5  # critic steps per generator step (not yet exposed; set via n_units_conditional)
+  # lambda_gradient_penalty: 10
+  # generator_n_layers_hidden: 2
+  # generator_n_units_hidden: 250
+  # discriminator_n_layers_hidden: 3
+  # discriminator_n_units_hidden: 300
+  #
+  # DPGAN example:
+  # architecture: [DPGAN]
+  # target_epsilon: 3.0
+  # max_grad_norm: 5.0
 evaluation:
   # Downstream tasks and fairness
   downstream_tasks: true

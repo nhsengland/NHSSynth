@@ -11,8 +11,13 @@ def add_model_specific_args(group: argparse._ArgumentGroup, name: str, overrides
         add_vae_args(group, overrides)
     elif name == "GAN":
         add_gan_args(group, overrides)
+    elif name == "CTGAN":
+        add_ctgan_args(group, overrides)
     elif name == "TabularGAN":
         add_tabular_gan_args(group, overrides)
+    # DPVAE, DPGAN, DPCTGAN share args with their base models (already registered above);
+    # their DP-specific args (target_epsilon, target_delta, max_grad_norm, secure_mode)
+    # are registered globally in module_arguments.add_model_args.
 
 
 def add_vae_args(group: argparse._ArgumentGroup, overrides: bool = False) -> None:
@@ -76,6 +81,12 @@ def add_vae_args(group: argparse._ArgumentGroup, overrides: bool = False) -> Non
 
 def add_gan_args(group: argparse._ArgumentGroup, overrides: bool = False) -> None:
     """Adds arguments to an existing group for the GAN model."""
+    group.add_argument(
+        "--noise-dim",
+        type=int,
+        default=128,
+        help="the dimensionality of the generator noise input",
+    )
     group.add_argument(
         "--n-units-conditional",
         type=int,
@@ -169,6 +180,22 @@ def add_gan_args(group: argparse._ArgumentGroup, overrides: bool = False) -> Non
         "--lambda-gradient-penalty",
         type=float,
         help="the gradient penalty coefficient",
+    )
+
+
+def add_ctgan_args(group: argparse._ArgumentGroup, overrides: bool = False) -> None:
+    """Adds CTGAN-specific arguments. GAN backbone args are registered by the GAN/DPGAN groups."""
+    group.add_argument(
+        "--pac",
+        type=int,
+        default=2,
+        help="number of samples packed together for the PacGAN discriminator",
+    )
+    group.add_argument(
+        "--lambda-cond",
+        type=float,
+        default=1.0,
+        help="weight of the conditional cross-entropy loss in the generator",
     )
 
 
