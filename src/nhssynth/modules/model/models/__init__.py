@@ -1,5 +1,7 @@
 from typing import Final
 
+from .ctgan import CTGAN
+from .dpctgan import DPCTGAN
 from .dpgan import DPGAN
 from .dpvae import DPVAE
 from .gan import GAN
@@ -10,4 +12,6 @@ MODELS: Final = {
     "DPVAE": DPVAE,
     "GAN": GAN,
     "DPGAN": DPGAN,
+    "CTGAN": CTGAN,
+    "DPCTGAN": DPCTGAN,
 }

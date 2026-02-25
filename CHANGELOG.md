@@ -10,6 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **CTGAN model** — Conditional Tabular GAN (Xu et al. 2019) available via `model.architecture: [CTGAN]`.
+  - Conditional vector: at each training step one categorical column is sampled uniformly and a category is drawn from its empirical distribution; a one-hot condition vector is appended to the generator noise input and discriminator data input.
+  - Conditional training sampler: real training rows are resampled so the conditioned-on category is always active, ensuring balanced coverage of all categorical modes.
+  - PacGAN discriminator (`pac=2`): processes two samples concatenated along the feature dimension, preventing mode collapse.
+  - Conditional cross-entropy loss (`lambda_cond`): penalises the generator for failing to reproduce the conditioned-on category.
+  - Falls back to plain WGAN-GP behaviour on purely continuous datasets (no categorical columns).
+- **DPCTGAN model** — differentially private CTGAN (`model.architecture: [DPCTGAN]`); DP applied to discriminator only.
+- **CTGAN conditional sampler** (`src/nhssynth/modules/model/common/ctgan_sampler.py`) — utility for condition vector construction, empirical category sampling, and conditioned real-data resampling.
+
 - **GAN model (WGAN-GP)** — new `GAN` architecture available via `model.architecture: [GAN]` in pipeline config.
   - Generator and critic are both configurable MLPs (`noise_dim`, `generator_*`, `discriminator_*` params).
   - Critic uses raw Wasserstein scores (no sigmoid); gradient penalty enforces the Lipschitz constraint (`lambda_gradient_penalty`, default 10).
