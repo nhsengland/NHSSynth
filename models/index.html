@@ -2757,6 +2757,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../reference/modules/model/models/copula/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    copula
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/modules/model/models/ctgan/" class="md-nav__link">
         
   
@@ -2877,6 +2905,34 @@
     
   
     gan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/model/models/marginal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    marginal
   
 
     
@@ -3294,6 +3350,16 @@
 </thead>
 <tbody>
 <tr>
+<td><code>Marginal</code></td>
+<td><code>Marginal</code></td>
+<td>Zero-order baseline: samples each column independently from its empirical distribution. No inter-variable correlation.</td>
+</tr>
+<tr>
+<td><code>Copula</code></td>
+<td><code>Copula</code></td>
+<td>Gaussian copula baseline with ordinal marginals for categorical columns. Captures linear inter-variable correlations.</td>
+</tr>
+<tr>
 <td><code>VAE</code></td>
 <td><code>VAE</code></td>
 <td>Variational Autoencoder with GMM-based continuous variable transformation and adaptive temperature scaling.</td>
@@ -3327,8 +3393,8 @@
 </table>
 <p>All DP variants accept <code>target_epsilon</code>, <code>target_delta</code>, <code>max_grad_norm</code>, and <code>secure_mode</code> arguments.</p>
 <h2 id="model-design">Model design</h2>
-<p>The models in this package are built entirely in <a href="https://pytorch.org">PyTorch</a> and use <a href="https://opacus.ai">Opacus</a> for differential privacy.</p>
-<p>We have built the VAE and (Tabular)GAN implementations in this package to serve as the foundations for a number of other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private (or otherwise augmented) architectures. Each model inherits from either the <code>GAN</code> or <code>VAE</code> class (<a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models">in files of the same name</a>) which in turn inherit from a generic <code>Model</code> class found in the <a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/common"><code>common</code></a> folder. This folder contains components of models which are not to be instantiated themselves, e.g. a mixin class for differential privacy, the MLP underlying the <code>GAN</code> and so on.</p>
+<p>The neural models in this package are built entirely in <a href="https://pytorch.org">PyTorch</a> and use <a href="https://opacus.ai">Opacus</a> for differential privacy. The statistical baselines (<code>Marginal</code>, <code>Copula</code>) inherit directly from <code>Model</code> without any PyTorch training machinery.</p>
+<p>We have built the VAE and GAN implementations in this package to serve as the foundations for a number of other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private (or otherwise augmented) architectures. Neural models inherit from either the <code>GAN</code> or <code>VAE</code> class (<a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models">in files of the same name</a>); statistical baselines inherit directly from <code>Model</code>. All of these inherit from a generic <code>Model</code> class found in the <a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/common"><code>common</code></a> folder. This folder contains components of models which are not to be instantiated themselves, e.g. a mixin class for differential privacy, the MLP underlying the <code>GAN</code> and so on.</p>
 <p>The <code>Model</code> class from which all of the models derive handles all of the general attributes. Roughly, these are the specifics of the dataset the instance of the model is relative to, the device that training is to be carried out upon, and other training parameters such as the total number of epochs to execute.</p>
 <p>We define these things at the model level, as when using differential privacy or other privacy accountant methods, we must know ahead of time the data and length of training exposure in order to calculate the levels of noise required to reach a certain privacy guarantee and so on.</p>
 <h2 id="implementing-a-new-model">Implementing a new model</h2>
@@ -3338,7 +3404,7 @@
 <li><code>get_args</code>: a class method that lists the architecture specific arguments that the model requires. This is used to facilitate default arguments in the python API whilst still allowing for arguments in the CLI to be propagated and recorded automatically in the experiment output. This should be a list of variable names equal to the concatenation of all of the non-<code>Model</code> parent classes (e.g. <code>DPVAE</code> has <code>DP</code> and <code>VAE</code> args) plus any architecture specific arguments in the <code>__init__</code> method of the model in question.</li>
 <li><code>get_metrics</code>: another class method that behaves similarly to the above, should return a list of valid metrics to track during training for this model</li>
 <li><code>train</code>: a method handling the training loop for the model. This should take <code>num_epochs</code>, <code>patience</code> and <code>displayed_metrics</code> as arguments and return a tuple containing the number of epochs that were executed plus a bundle of training metrics (the values over time returned by <code>get_metrics</code> on the class). In the execution of this method, the utility methods defined in <code>Model</code> should be called in order, <code>_start_training</code> at the beginning, then <code>_record_metrics</code> at each training step of the data loader, and finally <code>_finish_training</code> to clean up progress bars and so on. <code>displayed_metrics</code> determines which metrics are actively displayed during training.</li>
-<li><code>generate</code>: a method to call on the trained model which generates <code>N</code> samples of data, and calls the model's associated <code>MetaTransformer</code> to return a valid pandas DataFrame of synthetic data ready to output.</li>
+<li><code>generate</code>: a method to call on the trained model which generates <code>N</code> samples of data and returns a valid pandas DataFrame of synthetic data ready to output. Neural models typically call <code>metatransformer.inverse_apply()</code> to convert from the transformed representation back to the original data space; statistical baselines that operate directly on the raw data may return the DataFrame without this step.</li>
 </ul>
 <h2 id="adding-a-new-model-to-the-cli">Adding a new model to the CLI</h2>
 <p>Once you have implemented your new model, you must add it to the CLI. To do this, we must first export the model's class into the <code>MODELS</code> constant in the <code>__init__</code> file <a href="https://github.com/nhsengland/NHSSynth/blob/main/src/nhssynth/modules/model/models/__init__.py">in the <code>models</code> subfolder</a>. We can then add a new function and option in <a href="https://github.com/nhsengland/NHSSynth/blob/main/src/nhssynth/cli/model_arguments.py"><code>module_arguments.py</code></a> to list the arguments and their types unique to this type of architecture.</p>
@@ -3410,7 +3476,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 25, 2026 15:18:28 UTC">February 25, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 25, 2026 16:51:11 UTC">February 25, 2026</span>
   </span>
 
     
