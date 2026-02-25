@@ -8,6 +8,8 @@ It is likely that as the literature matures, more effective architectures will p
 
 | Architecture | Class | Description |
 |---|---|---|
+| `Marginal` | `Marginal` | Zero-order baseline: samples each column independently from its empirical distribution. No inter-variable correlation. |
+| `Copula` | `Copula` | Gaussian copula baseline with ordinal marginals for categorical columns. Captures linear inter-variable correlations. |
 | `VAE` | `VAE` | Variational Autoencoder with GMM-based continuous variable transformation and adaptive temperature scaling. |
 | `DPVAE` | `DPVAE` | Differentially private VAE; DP applied to the decoder via Opacus. |
 | `GAN` | `GAN` | WGAN-GP (Wasserstein GAN with Gradient Penalty) for stable tabular synthesis. |
@@ -19,9 +21,9 @@ All DP variants accept `target_epsilon`, `target_delta`, `max_grad_norm`, and `s
 
 ## Model design
 
-The models in this package are built entirely in [PyTorch](https://pytorch.org) and use [Opacus](https://opacus.ai) for differential privacy.
+The neural models in this package are built entirely in [PyTorch](https://pytorch.org) and use [Opacus](https://opacus.ai) for differential privacy. The statistical baselines (`Marginal`, `Copula`) inherit directly from `Model` without any PyTorch training machinery.
 
-We have built the VAE and (Tabular)GAN implementations in this package to serve as the foundations for a number of other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private (or otherwise augmented) architectures. Each model inherits from either the `GAN` or `VAE` class ([in files of the same name](https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models)) which in turn inherit from a generic `Model` class found in the [`common`](https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/common) folder. This folder contains components of models which are not to be instantiated themselves, e.g. a mixin class for differential privacy, the MLP underlying the `GAN` and so on.
+We have built the VAE and GAN implementations in this package to serve as the foundations for a number of other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private (or otherwise augmented) architectures. Neural models inherit from either the `GAN` or `VAE` class ([in files of the same name](https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models)); statistical baselines inherit directly from `Model`. All of these inherit from a generic `Model` class found in the [`common`](https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/common) folder. This folder contains components of models which are not to be instantiated themselves, e.g. a mixin class for differential privacy, the MLP underlying the `GAN` and so on.
 
 The `Model` class from which all of the models derive handles all of the general attributes. Roughly, these are the specifics of the dataset the instance of the model is relative to, the device that training is to be carried out upon, and other training parameters such as the total number of epochs to execute.
 
@@ -36,7 +38,7 @@ In all of these cases, the interface expects for the implementation to have the 
 - `get_args`: a class method that lists the architecture specific arguments that the model requires. This is used to facilitate default arguments in the python API whilst still allowing for arguments in the CLI to be propagated and recorded automatically in the experiment output. This should be a list of variable names equal to the concatenation of all of the non-`Model` parent classes (e.g. `DPVAE` has `DP` and `VAE` args) plus any architecture specific arguments in the `__init__` method of the model in question.
 - `get_metrics`: another class method that behaves similarly to the above, should return a list of valid metrics to track during training for this model
 - `train`: a method handling the training loop for the model. This should take `num_epochs`, `patience` and `displayed_metrics` as arguments and return a tuple containing the number of epochs that were executed plus a bundle of training metrics (the values over time returned by `get_metrics` on the class). In the execution of this method, the utility methods defined in `Model` should be called in order, `_start_training` at the beginning, then `_record_metrics` at each training step of the data loader, and finally `_finish_training` to clean up progress bars and so on. `displayed_metrics` determines which metrics are actively displayed during training.
-- `generate`: a method to call on the trained model which generates `N` samples of data, and calls the model's associated `MetaTransformer` to return a valid pandas DataFrame of synthetic data ready to output.
+- `generate`: a method to call on the trained model which generates `N` samples of data and returns a valid pandas DataFrame of synthetic data ready to output. Neural models typically call `metatransformer.inverse_apply()` to convert from the transformed representation back to the original data space; statistical baselines that operate directly on the raw data may return the DataFrame without this step.
 
 ## Adding a new model to the CLI
 
