@@ -6,7 +6,10 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from nhssynth.modules.model.common.ctgan_sampler import CTGANConditionalSampler, extract_categorical_groups
+from nhssynth.modules.model.common.ctgan_sampler import (
+    CTGANConditionalSampler,
+    extract_categorical_groups,
+)
 from nhssynth.modules.model.common.mlp import MLP
 from nhssynth.modules.model.models.gan import GAN
 
@@ -54,18 +57,14 @@ class CTGAN(GAN):
         self.lambda_cond = lambda_cond
 
         # Identify categorical column groups from the metatransformer metadata
-        self.categorical_groups = extract_categorical_groups(
-            self.multi_column_indices, self.columns
-        )
+        self.categorical_groups = extract_categorical_groups(self.multi_column_indices, self.columns)
 
         # Store the full training tensor for the conditional sampler
         # (dataset is a TensorDataset; first element is the data tensor)
         self._tensor_data: torch.Tensor = self.data_loader.dataset.tensors[0]
 
         if len(self.categorical_groups) > 0:
-            self.ctgan_sampler = CTGANConditionalSampler(
-                self._tensor_data, self.categorical_groups
-            )
+            self.ctgan_sampler = CTGANConditionalSampler(self._tensor_data, self.categorical_groups)
             self.cond_dim: int = self.ctgan_sampler.cond_dim
         else:
             # Purely continuous dataset — no conditional sampling, behave like plain GAN
@@ -114,9 +113,7 @@ class CTGAN(GAN):
         self.generator.eval()
         with torch.no_grad():
             fake = self(N).detach().cpu().numpy()
-        return self.metatransformer.inverse_apply(
-            pd.DataFrame(fake, columns=self.columns)
-        )
+        return self.metatransformer.inverse_apply(pd.DataFrame(fake, columns=self.columns))
 
     def forward(self, N: int, cond: Optional[torch.Tensor] = None) -> torch.Tensor:
         noise = torch.randn(N, self.noise_dim, device=self.device)

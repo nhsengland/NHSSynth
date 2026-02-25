@@ -13,7 +13,7 @@ nhssynth pipeline \
     --experiment-name test \
     --dataset support \
     --seed 123 \
-    --architecture DPVAE PATEGAN DECAF \
+    --architecture VAE GAN CTGAN \
     --repeats 3 \
     --downstream-tasks \
     --column-similarity-metrics CorrelationSimilarity ContingencySimilarity \
@@ -25,7 +25,7 @@ nhssynth pipeline \
 
 This will run a full pipeline experiment on the `support` dataset in the `data` directory. The outputs of the experiment will be recorded in a folder named `test` (corresponding to the experiment name) in the `experiments` directory.
 
-In total, three different model architectures will be trained three times each with their default configurations. The resulting generated synthetic datasets will be evaluated via the downstream tasks in `tasks/support` alongside the metrics specified in the command. A dashboard will then be built automatically to exhibit the results.
+In total, three different model architectures will be trained three times each with their default configurations. (The YAML config example below runs four.) The resulting generated synthetic datasets will be evaluated via the downstream tasks in `tasks/support` alongside the metrics specified in the command. A dashboard will then be built automatically to exhibit the results.
 
 The components of the run are persistent to the experiment's folder. Suppose you have already run this experiment and want to add some new evaluations. You do not have to re-run the entire experiment, you can simply run:
 
@@ -46,9 +46,10 @@ experiment_name: test
 run_type: pipeline
 model:
   architecture:
+    - VAE
     - DPVAE
-    - DPGAN
-    - DECAF
+    - GAN
+    - CTGAN
   max_grad_norm: 5.0
   secure_mode: false
   repeats: 4

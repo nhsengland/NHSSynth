@@ -4,6 +4,19 @@ The `model` module contains all of the architectures implemented as part of this
 
 It is likely that as the literature matures, more effective architectures will present themselves as promising for application to the type of tabular data `NHSSynth` is designed for. Below we discuss how to add new models to the package.
 
+## Available architectures
+
+| Architecture | Class | Description |
+|---|---|---|
+| `VAE` | `VAE` | Variational Autoencoder with GMM-based continuous variable transformation and adaptive temperature scaling. |
+| `DPVAE` | `DPVAE` | Differentially private VAE; DP applied to the decoder via Opacus. |
+| `GAN` | `GAN` | WGAN-GP (Wasserstein GAN with Gradient Penalty) for stable tabular synthesis. |
+| `DPGAN` | `DPGAN` | Differentially private GAN; DP applied to the discriminator only. |
+| `CTGAN` | `CTGAN` | Conditional Tabular GAN (Xu et al. 2019). Adds a conditional vector, conditional training sampler, PacGAN discriminator, and conditional cross-entropy loss to the WGAN-GP base. |
+| `DPCTGAN` | `DPCTGAN` | Differentially private CTGAN; DP applied to the discriminator only. |
+
+All DP variants accept `target_epsilon`, `target_delta`, `max_grad_norm`, and `secure_mode` arguments.
+
 ## Model design
 
 The models in this package are built entirely in [PyTorch](https://pytorch.org) and use [Opacus](https://opacus.ai) for differential privacy.

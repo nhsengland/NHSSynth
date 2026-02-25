@@ -51,9 +51,7 @@ class CTGANConditionalSampler:
             offset += len(group)
         self.cond_dim: int = offset
 
-    def sample_condvec(
-        self, batch_size: int
-    ) -> tuple[torch.Tensor, torch.Tensor, np.ndarray, np.ndarray]:
+    def sample_condvec(self, batch_size: int) -> tuple[torch.Tensor, torch.Tensor, np.ndarray, np.ndarray]:
         """
         Sample a batch of condition vectors.
 
@@ -71,9 +69,7 @@ class CTGANConditionalSampler:
         col_idxs = np.random.randint(self.n_cat_cols, size=batch_size)
 
         # Sample a category proportional to empirical frequency
-        cat_idxs = np.array(
-            [np.random.choice(len(self.groups[c]), p=self.probs[c]) for c in col_idxs]
-        )
+        cat_idxs = np.array([np.random.choice(len(self.groups[c]), p=self.probs[c]) for c in col_idxs])
 
         cond = np.zeros((batch_size, self.cond_dim), dtype=np.float32)
         mask = np.zeros((batch_size, self.n_cat_cols), dtype=np.float32)
@@ -84,9 +80,7 @@ class CTGANConditionalSampler:
 
         return torch.FloatTensor(cond), torch.FloatTensor(mask), col_idxs, cat_idxs
 
-    def sample_data_conditioned(
-        self, batch_size: int, col_idxs: np.ndarray, cat_idxs: np.ndarray
-    ) -> torch.Tensor:
+    def sample_data_conditioned(self, batch_size: int, col_idxs: np.ndarray, cat_idxs: np.ndarray) -> torch.Tensor:
         """
         Sample real training rows conditioned on each ``(col, category)`` pair.
 
@@ -108,9 +102,7 @@ class CTGANConditionalSampler:
         return torch.stack(selected)
 
 
-def extract_categorical_groups(
-    multi_column_indices: list[list[int]], columns
-) -> list[list[int]]:
+def extract_categorical_groups(multi_column_indices: list[list[int]], columns) -> list[list[int]]:
     """
     Identify which groups in ``multi_column_indices`` are OHE categorical columns
     (as opposed to GMM component columns, whose names end in ``_c<digit>``).
