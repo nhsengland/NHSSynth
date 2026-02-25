@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Marginal baseline** — zero-order statistical baseline (`model.architecture: [Marginal]`). Samples each column independently from its empirical distribution; no inter-variable correlation. Operates directly on the raw post-missingness data without the metatransformer.
+- **Copula baseline** — Gaussian copula baseline (`model.architecture: [Copula]`). Uses ordinal marginals for categorical columns and rank-based PIT for continuous columns; captures linear inter-variable correlations. Operates directly on the raw post-missingness data without the metatransformer.
+
 - **CTGAN model** — Conditional Tabular GAN (Xu et al. 2019) available via `model.architecture: [CTGAN]`.
   - Conditional vector: at each training step one categorical column is sampled uniformly and a category is drawn from its empirical distribution; a one-hot condition vector is appended to the generator noise input and discriminator data input.
   - Conditional training sampler: real training rows are resampled so the conditioned-on category is always active, ensuring balanced coverage of all categorical modes.
