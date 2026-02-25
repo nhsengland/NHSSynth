@@ -730,6 +730,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#available-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available architectures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model-design" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2541,6 +2552,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../reference/modules/model/common/ctgan_sampler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ctgan_sampler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/modules/model/common/dp/" class="md-nav__link">
         
   
@@ -2549,6 +2588,34 @@
     
   
     dp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/model/common/mlp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mlp
   
 
     
@@ -2682,6 +2749,90 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/model/models/ctgan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ctgan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/model/models/dpctgan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dpctgan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/model/models/dpgan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dpgan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -3132,6 +3283,49 @@
 <h1 id="adding-new-models">Adding new models</h1>
 <p>The <code>model</code> module contains all of the architectures implemented as part of this package. We offer GAN and VAE based architectures with a number of adjustments to achieve privacy and other augmented functionalities. The module handles the training and generation of synthetic data using these architectures, per a user's choice of model(s) and configuration.</p>
 <p>It is likely that as the literature matures, more effective architectures will present themselves as promising for application to the type of tabular data <code>NHSSynth</code> is designed for. Below we discuss how to add new models to the package.</p>
+<h2 id="available-architectures">Available architectures</h2>
+<table>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>Class</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VAE</code></td>
+<td><code>VAE</code></td>
+<td>Variational Autoencoder with GMM-based continuous variable transformation and adaptive temperature scaling.</td>
+</tr>
+<tr>
+<td><code>DPVAE</code></td>
+<td><code>DPVAE</code></td>
+<td>Differentially private VAE; DP applied to the decoder via Opacus.</td>
+</tr>
+<tr>
+<td><code>GAN</code></td>
+<td><code>GAN</code></td>
+<td>WGAN-GP (Wasserstein GAN with Gradient Penalty) for stable tabular synthesis.</td>
+</tr>
+<tr>
+<td><code>DPGAN</code></td>
+<td><code>DPGAN</code></td>
+<td>Differentially private GAN; DP applied to the discriminator only.</td>
+</tr>
+<tr>
+<td><code>CTGAN</code></td>
+<td><code>CTGAN</code></td>
+<td>Conditional Tabular GAN (Xu et al. 2019). Adds a conditional vector, conditional training sampler, PacGAN discriminator, and conditional cross-entropy loss to the WGAN-GP base.</td>
+</tr>
+<tr>
+<td><code>DPCTGAN</code></td>
+<td><code>DPCTGAN</code></td>
+<td>Differentially private CTGAN; DP applied to the discriminator only.</td>
+</tr>
+</tbody>
+</table>
+<p>All DP variants accept <code>target_epsilon</code>, <code>target_delta</code>, <code>max_grad_norm</code>, and <code>secure_mode</code> arguments.</p>
 <h2 id="model-design">Model design</h2>
 <p>The models in this package are built entirely in <a href="https://pytorch.org">PyTorch</a> and use <a href="https://opacus.ai">Opacus</a> for differential privacy.</p>
 <p>We have built the VAE and (Tabular)GAN implementations in this package to serve as the foundations for a number of other architectures. As such, we try to maintain a somewhat modular design to building up more complex differentially private (or otherwise augmented) architectures. Each model inherits from either the <code>GAN</code> or <code>VAE</code> class (<a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/models">in files of the same name</a>) which in turn inherit from a generic <code>Model</code> class found in the <a href="https://github.com/nhsengland/NHSSynth/tree/main/src/nhssynth/modules/model/common"><code>common</code></a> folder. This folder contains components of models which are not to be instantiated themselves, e.g. a mixin class for differential privacy, the MLP underlying the <code>GAN</code> and so on.</p>
@@ -3216,7 +3410,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="January 16, 2026 16:33:49 UTC">January 16, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 25, 2026 15:18:28 UTC">February 25, 2026</span>
   </span>
 
     
